@@ -1,0 +1,117 @@
+.markdown-content {
+  min-width: 0;
+  color: inherit;
+  overflow-wrap: anywhere;
+}
+
+.markdown-content > :first-child {
+  margin-top: 0;
+}
+
+.markdown-content > :last-child {
+  margin-bottom: 0;
+}
+
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4 {
+  margin: 0.9em 0 0.38em;
+  color: inherit;
+  line-height: 1.24;
+}
+
+.markdown-content h1 {
+  font-size: 1.55em;
+}
+
+.markdown-content h2 {
+  font-size: 1.32em;
+}
+
+.markdown-content h3 {
+  font-size: 1.14em;
+}
+
+.markdown-content h4 {
+  font-size: 1em;
+}
+
+.markdown-content p {
+  margin: 0.48em 0;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+  margin: 0.58em 0;
+  padding-left: 1.5em;
+}
+
+.markdown-content li {
+  margin: 0.24em 0;
+  padding-left: 0.12em;
+}
+
+.markdown-content blockquote {
+  margin: 0.72em 0;
+  padding: 0.12em 0 0.12em 0.9em;
+  border-left: 3px solid color-mix(in srgb, var(--accent) 72%, transparent);
+  color: var(--text-secondary);
+}
+
+.markdown-content blockquote p {
+  margin: 0;
+}
+
+.markdown-content pre {
+  max-width: 100%;
+  margin: 0.72em 0;
+  padding: 0.82em 0.92em;
+  overflow: auto;
+  border: 1px solid var(--border-soft);
+  border-radius: 10px 7px 10px 7px;
+  background: color-mix(in srgb, var(--control-bg) 74%, var(--surface-solid));
+  white-space: pre;
+}
+
+.markdown-content code {
+  padding: 0.12em 0.34em;
+  border: 1px solid var(--border-soft);
+  border-radius: 5px;
+  background: var(--control-bg);
+  font:
+    0.9em/1.5 ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    monospace;
+}
+
+.markdown-content pre code {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-size: 0.88em;
+}
+
+.markdown-content a {
+  color: color-mix(in srgb, var(--accent) 82%, var(--text-primary));
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+.markdown-content a:hover {
+  color: var(--accent-strong);
+}
+
+.markdown-content hr {
+  height: 1px;
+  margin: 0.9em 0;
+  border: 0;
+  background: var(--border-soft);
+}
+
+.markdown-content__empty {
+  color: var(--text-tertiary);
+}

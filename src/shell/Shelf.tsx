@@ -31,6 +31,8 @@ interface ShelfPointerDrag {
   order: string[];
 }
 
+const SHELF_CONTEXT_WIDTH = 218;
+
 export function Shelf({
   apps,
   windows,
@@ -42,6 +44,7 @@ export function Shelf({
   onRemove,
 }: ShelfProps) {
   const [contextAppId, setContextAppId] = useState<string | null>(null);
+  const [contextLeft, setContextLeft] = useState(4);
   const [dragOrder, setDragOrder] = useState<string[] | null>(null);
   const [draggedAppId, setDraggedAppId] = useState<string | null>(null);
   const [dragTargetAppId, setDragTargetAppId] = useState<string | null>(null);
@@ -58,9 +61,21 @@ export function Shelf({
     return () => globalThis.removeEventListener('pointerdown', close);
   }, []);
 
-  const showContextMenu = (event: MouseEvent, appId: string) => {
+  const showContextMenu = (event: MouseEvent<HTMLButtonElement>, appId: string) => {
     event.preventDefault();
     event.stopPropagation();
+    const shelfBounds = shelfRef.current?.getBoundingClientRect();
+    const appBounds = event.currentTarget.getBoundingClientRect();
+    if (shelfBounds) {
+      const centeredLeft =
+        appBounds.left - shelfBounds.left + appBounds.width / 2 - SHELF_CONTEXT_WIDTH / 2;
+      setContextLeft(
+        Math.min(
+          Math.max(4, centeredLeft),
+          Math.max(4, shelfBounds.width - SHELF_CONTEXT_WIDTH - 4),
+        ),
+      );
+    }
     setContextAppId(appId);
   };
 
@@ -212,7 +227,7 @@ export function Shelf({
         );
       })}
       {contextApp ? (
-        <div className="shelf-context" role="menu">
+        <div className="shelf-context" role="menu" style={{ left: contextLeft }}>
           <header>
             <AppIcon name={contextApp.icon} size={29} />
             <span>

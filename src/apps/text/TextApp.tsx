@@ -1,14 +1,6 @@
-import {
-  Fragment,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type Dispatch,
-  type ReactNode,
-  type SetStateAction,
-} from 'react';
+import { useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from 'react';
 import { Icon } from '../../design/Icon';
+import { MarkdownContent } from '../../design/MarkdownContent';
 import { ROOT_DIRECTORY_ID, isTextMimeType, type VfsNode } from '../../kernel/vfs';
 import type { SystemAppProps } from '../../kernel/app-registry/types';
 import './text.css';
@@ -518,7 +510,14 @@ export function TextApp({ system, window }: SystemAppProps) {
           placeholder="Start writing…"
           onChange={(event) => updateActiveTab({ text: event.target.value })}
         />
-        {preview ? <MarkdownPreview text={activeTab.text} /> : null}
+        {preview ? (
+          <MarkdownContent
+            text={activeTab.text}
+            className="markdown-preview"
+            ariaLabel="Markdown preview"
+            emptyMessage="Nothing to preview yet."
+          />
+        ) : null}
       </div>
 
       <footer className="text-status">
@@ -528,77 +527,6 @@ export function TextApp({ system, window }: SystemAppProps) {
       </footer>
     </div>
   );
-}
-
-function MarkdownPreview({ text }: { text: string }) {
-  const lines = text.split('\n');
-  let inCode = false;
-  const rendered: ReactNode[] = [];
-  const codeLines: string[] = [];
-
-  const flushCode = (key: number) => {
-    if (!codeLines.length) return;
-    rendered.push(
-      <pre key={`code-${key}`}>
-        <code>{codeLines.join('\n')}</code>
-      </pre>,
-    );
-    codeLines.length = 0;
-  };
-
-  lines.forEach((line, index) => {
-    if (line.trim().startsWith('```')) {
-      if (inCode) flushCode(index);
-      inCode = !inCode;
-      return;
-    }
-    if (inCode) {
-      codeLines.push(line);
-      return;
-    }
-    const heading = /^(#{1,3})\s+(.+)$/u.exec(line);
-    if (heading) {
-      const content = renderInline(heading[2], index);
-      if (heading[1].length === 1) rendered.push(<h1 key={index}>{content}</h1>);
-      else if (heading[1].length === 2) rendered.push(<h2 key={index}>{content}</h2>);
-      else rendered.push(<h3 key={index}>{content}</h3>);
-      return;
-    }
-    if (/^[-*]\s+/u.test(line)) {
-      rendered.push(<li key={index}>{renderInline(line.replace(/^[-*]\s+/u, ''), index)}</li>);
-      return;
-    }
-    if (line.startsWith('> ')) {
-      rendered.push(<blockquote key={index}>{renderInline(line.slice(2), index)}</blockquote>);
-      return;
-    }
-    if (!line.trim()) rendered.push(<br key={index} />);
-    else rendered.push(<p key={index}>{renderInline(line, index)}</p>);
-  });
-  flushCode(lines.length);
-
-  return (
-    <article className="markdown-preview" aria-label="Markdown preview">
-      {rendered.length ? (
-        rendered
-      ) : (
-        <span className="markdown-preview__empty">Nothing to preview yet.</span>
-      )}
-    </article>
-  );
-}
-
-function renderInline(text: string, key: number) {
-  const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`)/gu);
-  return parts.map((part, index) => {
-    if (part.startsWith('**') && part.endsWith('**')) {
-      return <strong key={`${key}-${index}`}>{part.slice(2, -2)}</strong>;
-    }
-    if (part.startsWith('`') && part.endsWith('`')) {
-      return <code key={`${key}-${index}`}>{part.slice(1, -1)}</code>;
-    }
-    return <Fragment key={`${key}-${index}`}>{part}</Fragment>;
-  });
 }
 
 function updateTab(

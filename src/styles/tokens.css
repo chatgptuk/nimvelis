@@ -24,6 +24,13 @@
   --memo-accent: #d99b33;
   --settings-accent: #7c83e7;
   --focus-ring: #78dbdc;
+  --ink-strong: var(--text-primary);
+  --ink: var(--text-primary);
+  --ink-muted: var(--text-tertiary);
+  --window-surface: var(--surface-solid);
+  --window-sidebar: var(--sidebar-bg);
+  --field-surface: var(--control-bg);
+  --line-soft: var(--border-soft);
 
   --wallpaper-solstice:
     radial-gradient(circle at 64% 72%, rgb(255 209 172 / 90%), transparent 22%),

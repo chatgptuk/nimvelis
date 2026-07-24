@@ -357,6 +357,26 @@ test('Shelf apps can be reordered, removed, restored, and kept above windows', a
   const restoredShelf = page.getByRole('navigation', { name: 'Application Shelf' });
   const restoredVela = restoredShelf.getByRole('button', { name: 'Vela', exact: true });
   await restoredVela.click({ button: 'right' });
+  const shelfMenu = restoredShelf.getByRole('menu');
+  const [restoredVelaBox, shelfMenuBox] = await Promise.all([
+    restoredVela.boundingBox(),
+    shelfMenu.boundingBox(),
+  ]);
+  if (!restoredVelaBox || !shelfMenuBox) {
+    throw new Error('Shelf context menu position was not measurable');
+  }
+  expect(
+    Math.abs(
+      restoredVelaBox.x + restoredVelaBox.width / 2 - (shelfMenuBox.x + shelfMenuBox.width / 2),
+    ),
+  ).toBeLessThan(120);
+  const shelfMenuSurface = await shelfMenu.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return { backgroundColor: style.backgroundColor, color: style.color };
+  });
+  expect(shelfMenuSurface.backgroundColor).not.toBe('rgba(0, 0, 0, 0)');
+  expect(shelfMenuSurface.backgroundColor).not.toBe('transparent');
+  expect(shelfMenuSurface.color).not.toBe('rgba(0, 0, 0, 0)');
   await page.getByRole('menuitem', { name: 'Remove from Shelf' }).click();
   await expect(restoredShelf.getByRole('button', { name: 'Vela', exact: true })).toHaveCount(0);
 
@@ -392,14 +412,42 @@ test('Shelf apps can be reordered, removed, restored, and kept above windows', a
 });
 
 test('Vela exposes only the server-approved Gemma 4 model', async ({ page }) => {
+  await page.evaluate(() => {
+    localStorage.setItem(
+      'nimvelis.aurora.vela',
+      JSON.stringify([
+        {
+          role: 'assistant',
+          content:
+            '## Rendered answer\n\n- **Bold** guidance\n- Use `code` safely\n\n[Reference](https://example.com/vela)',
+          createdAt: Date.now(),
+        },
+      ]),
+    );
+  });
+  await page.reload();
   await page.getByRole('button', { name: /^Vela/ }).last().click();
   const velaWindow = page.locator('[data-app-id="vela"]');
   await expect(velaWindow).toBeVisible();
   await expect(velaWindow.getByLabel('Vela model')).toContainText('Gemma 4 26B · Deep');
   await expect(velaWindow.getByRole('combobox')).toHaveCount(0);
+  await expect(
+    velaWindow.getByRole('heading', { level: 2, name: 'Rendered answer' }),
+  ).toBeVisible();
+  await expect(velaWindow.getByRole('listitem').filter({ hasText: 'Bold guidance' })).toBeVisible();
+  await expect(velaWindow.getByText('code', { exact: true })).toHaveCSS(
+    'font-family',
+    /ui-monospace|Menlo|Monaco|Consolas/,
+  );
+  await expect(velaWindow.getByRole('link', { name: 'Reference' })).toHaveAttribute(
+    'rel',
+    'noreferrer noopener',
+  );
 });
 
 test('system menus expose Nimvelis workflows and keyboard guidance', async ({ page }) => {
+  await expect(page.locator('.top-bar__active-mark .nimvelis-mark')).toBeVisible();
+  await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href', '/nimvelis-mark.svg');
   await page.getByRole('button', { name: 'Open Nimvelis menu' }).click();
   await page.getByRole('menuitem', { name: 'About This Device' }).click();
   const about = page.getByRole('dialog', { name: 'Nimvelis Aurora' });

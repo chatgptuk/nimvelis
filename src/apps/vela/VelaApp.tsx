@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { AppIcon, Icon } from '../../design/Icon';
+import { MarkdownContent } from '../../design/MarkdownContent';
 import type { SystemAppProps } from '../../kernel/app-registry/types';
 import { readVelaResponse } from './stream';
 import './vela.css';
@@ -202,7 +203,15 @@ export function VelaApp({ system }: SystemAppProps) {
             <span className="vela-message__role">{message.role === 'user' ? 'You' : 'Vela'}</span>
             <div>
               {message.content ? (
-                <p>{message.content}</p>
+                message.role === 'assistant' && message.state !== 'error' ? (
+                  <MarkdownContent
+                    text={message.content}
+                    className="vela-markdown"
+                    ariaLabel="Vela response"
+                  />
+                ) : (
+                  <p>{message.content}</p>
+                )
               ) : (
                 <span className="vela-thinking" aria-label="Vela is thinking">
                   <i />

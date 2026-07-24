@@ -102,7 +102,7 @@
   font-weight: 720;
 }
 
-.top-bar__active-app > span {
+.top-bar__active-mark {
   width: 19px;
   height: 19px;
   display: grid;
@@ -110,9 +110,10 @@
   border: 1px solid rgb(255 255 255 / 14%);
   border-radius: 7px 4px 7px 4px;
   background: linear-gradient(145deg, rgb(119 232 224 / 32%), rgb(122 142 255 / 24%));
-  color: #dbfffc;
-  font-size: 0.61rem;
-  font-weight: 850;
+}
+
+.top-bar__active-mark .nimvelis-mark {
+  filter: drop-shadow(0 2px 4px rgb(2 6 18 / 36%));
 }
 
 .top-menu {
@@ -660,17 +661,21 @@
 
 .shelf-context {
   position: absolute;
+  z-index: 5;
   bottom: calc(100% + 10px);
-  left: 4px;
-  width: 208px;
+  width: 218px;
   display: grid;
   padding: 7px;
-  border: 1px solid rgb(255 255 255 / 20%);
+  border: 1px solid var(--popover-border);
   border-radius: 15px 10px 15px 10px;
-  color: var(--ink);
-  background: color-mix(in srgb, var(--window-surface) 93%, transparent);
-  box-shadow: 0 22px 65px rgb(0 0 0 / 38%);
-  backdrop-filter: blur(28px) saturate(1.2);
+  color: var(--text-primary);
+  background: color-mix(in srgb, var(--surface-solid) 96%, var(--accent) 4%);
+  box-shadow:
+    0 24px 70px rgb(0 0 0 / 42%),
+    0 3px 12px rgb(0 0 0 / 18%),
+    inset 0 1px color-mix(in srgb, white 42%, transparent);
+  isolation: isolate;
+  animation: popover-in 130ms ease-out;
 }
 
 .shelf-context header {
@@ -690,7 +695,7 @@
 }
 
 .shelf-context header small {
-  color: var(--ink-muted);
+  color: var(--text-tertiary);
   font-size: 9px;
 }
 
@@ -699,7 +704,7 @@
   padding: 0 8px;
   border: 0;
   border-radius: 8px;
-  color: var(--ink);
+  color: var(--text-primary);
   background: transparent;
   font: inherit;
   font-size: 11px;
@@ -707,7 +712,7 @@
 }
 
 .shelf-context button:hover:not(:disabled) {
-  background: var(--surface-hover);
+  background: var(--selection-bg);
 }
 
 .shelf-context button:disabled {
@@ -721,7 +726,7 @@
 .shelf-context > div {
   height: 1px;
   margin: 4px;
-  background: var(--line-soft);
+  background: var(--border-soft);
 }
 
 .desktop-tagline {

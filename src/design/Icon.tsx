@@ -803,6 +803,7 @@ function LumaArtwork({ accent }: { accent: string }) {
 }
 
 export function NimvelisMark({ size = 24 }: { size?: number }) {
+  const gradientId = `${useId().replaceAll(':', '')}-nimvelis-crest`;
   return (
     <svg
       width={size}
@@ -812,13 +813,31 @@ export function NimvelisMark({ size = 24 }: { size?: number }) {
       aria-hidden="true"
       className="nimvelis-mark"
     >
-      <path d="M6.2 20.8 11 7.5l5 9 4.3-7.2 5.5 15.2H11.1Z" fill="url(#nimvelis-gradient)" />
-      <path d="m9.2 18.5 6.9-2 6.2 3.1" stroke="white" strokeOpacity=".74" strokeWidth="1.5" />
+      <path
+        d="M4.7 24.8 11.1 8.2c.6-1.6 2.7-1.8 3.6-.3l3.3 5.6 2.9-5.2c.9-1.5 3.1-1.1 3.5.6l3 15.9c-7.1-3.3-15.1-3.3-22.7 0Z"
+        fill={`url(#${gradientId})`}
+      />
+      <path
+        d="M8.1 21.8c5.4-2.9 10.7-2.8 16.2.1"
+        stroke="white"
+        strokeOpacity=".82"
+        strokeWidth="1.45"
+        strokeLinecap="round"
+      />
+      <path
+        d="m13.3 9.7 3.5 6.1-3.5 5"
+        stroke="#E9FFFC"
+        strokeOpacity=".44"
+        strokeWidth="1.1"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="24.4" cy="6.6" r="1.45" fill="#F7FFFE" />
       <defs>
-        <linearGradient id="nimvelis-gradient" x1="7" y1="5" x2="26" y2="27">
-          <stop stopColor="#77E8E0" />
-          <stop offset=".48" stopColor="#7A8EFF" />
-          <stop offset="1" stopColor="#F39BC6" />
+        <linearGradient id={gradientId} x1="7" y1="5" x2="27" y2="27">
+          <stop stopColor="#8AFFF0" />
+          <stop offset=".46" stopColor="#7B9CFF" />
+          <stop offset="1" stopColor="#FF9ECE" />
         </linearGradient>
       </defs>
     </svg>

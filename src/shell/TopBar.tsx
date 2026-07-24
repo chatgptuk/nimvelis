@@ -116,7 +116,9 @@ export function TopBar({
           )}
         </div>
         <span className="top-bar__active-app">
-          <span>N</span>
+          <span className="top-bar__active-mark">
+            <NimvelisMark size={17} />
+          </span>
           {activeManifest?.name ?? 'Desktop'}
         </span>
         <div className="top-menu">
