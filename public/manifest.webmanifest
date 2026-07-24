@@ -1,7 +1,7 @@
 {
   "name": "Nimvelis",
   "short_name": "Nimvelis",
-  "description": "A private, browser-native workspace for local files, notes, and everyday tools.",
+  "description": "A browser-native workspace for local files, notes, everyday tools, and optional Workers AI assistance.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

@@ -13,6 +13,7 @@ type DesktopSnapshot = Pick<
   | 'hasCompletedWelcome'
   | 'workspaces'
   | 'activeWorkspaceId'
+  | 'desktopIconPositions'
 >;
 
 interface SyncMessage {
@@ -99,6 +100,7 @@ function pickSnapshot(state: DesktopStore): DesktopSnapshot {
     hasCompletedWelcome: state.hasCompletedWelcome,
     workspaces: state.workspaces,
     activeWorkspaceId: state.activeWorkspaceId,
+    desktopIconPositions: state.desktopIconPositions,
   };
 }
 

@@ -6,10 +6,10 @@
 [![CI](https://github.com/chatgptuk/nimvelis/actions/workflows/ci.yml/badge.svg)](https://github.com/chatgptuk/nimvelis/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Nimvelis Aurora 0.3 is a browser-native personal workspace with a desktop interface. The
-current milestone is intentionally local-first: a custom window manager, IndexedDB file system,
-Files, Text, local media preview, global search, everyday utilities, appearance controls, and an
-installable offline shell.
+Nimvelis Aurora 0.4 is a browser-native personal workspace with a desktop interface. It combines
+a local-first window manager, IndexedDB file system, Files, Text, local media preview, global
+search, everyday utilities, appearance controls, and an installable offline shell with Vela, an
+optional text assistant powered by Cloudflare Workers AI.
 
 Nimvelis is an independent project and is not affiliated with or endorsed by Apple Inc. Its
 marks, icons, wallpaper, interface assets, naming, and visual system are original to Nimvelis;
@@ -26,8 +26,10 @@ Click **Deploy to Cloudflare** above. Cloudflare will:
 3. Let you choose your repository name and Worker name.
 4. Build and deploy the app with Workers Builds.
 
-No account ID, API token, environment variable, database, or storage bucket is required. Future
-pushes to the generated repository can be deployed automatically by Workers Builds.
+No account ID, API token, environment variable, database, or storage bucket is required. The
+native Workers AI binding is created from `wrangler.jsonc` and inference is billed to, and limited
+by, the Cloudflare account that deploys the Worker. Future pushes to the generated repository can
+be deployed automatically by Workers Builds.
 
 ### Receive upstream updates
 
@@ -79,13 +81,16 @@ See [the deployment guide](docs/deployment.md) for the full flow and troubleshoo
 | `npm run deploy`   | Deploy the existing production build with Wrangler                       |
 
 The Worker configuration intentionally contains no account-specific IDs, routes, secrets, or
-resource bindings. `assets.not_found_handling` is set to `single-page-application`, so browser
-routes fall back to `index.html`.
+resource IDs. It declares only portable `AI` and static asset bindings.
+`assets.not_found_handling` is set to `single-page-application`, so browser routes fall back to
+`index.html`.
 
 ## What works today
 
 - Organize windows across named workspaces, use Overview to switch tasks, snap windows left or
-  right, and use per-app Shelf menus.
+  right, move desktop icons with mouse or touch, and use per-app Shelf menus.
+- Chat with Vela through Cloudflare Workers AI, choose between server-approved Llama and Gemma
+  models, stream replies, stop generation, copy responses, and keep conversation history locally.
 - Multi-select, copy, cut, paste, move, sort, favorite, and drag files between folders; switch
   between list and grid views; browse Recent and undo moves to Trash.
 - Edit documents in tabs with automatic local saving, find and replace, Markdown preview, recent
@@ -99,8 +104,16 @@ routes fall back to `index.html`.
 - Inspect the current browser, device, display, and local storage from **About This Device**.
 - Install the app and reopen its shell offline after the first production visit.
 
-Aurora 0.3 does not yet include accounts, cloud files, AI, collaboration, or third-party apps.
+Aurora 0.4 does not yet include accounts, cloud files, collaboration, or third-party apps.
 See [`docs/architecture.md`](docs/architecture.md) for the component boundaries and data flow.
+
+## AI and privacy
+
+Vela sends the conversation messages shown in its window and the selected model key to
+`/api/vela/chat`. The Worker validates the request, maps the key to an approved Cloudflare model,
+and streams the Workers AI response back. Vela never reads or uploads Nimvelis files
+automatically. Its chat history and model choice stay in the browser's local storage. Prompts are
+processed under the deploying Cloudflare account's Workers AI service and policies.
 
 ## License
 

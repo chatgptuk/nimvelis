@@ -11,6 +11,7 @@ describe('app registry', () => {
       'view',
       'calculator',
       'memo',
+      'vela',
       'settings',
     ]);
     expect(new Set(manifests.map((manifest) => manifest.id)).size).toBe(manifests.length);
@@ -18,5 +19,13 @@ describe('app registry', () => {
 
   it('declares Settings as single-instance', () => {
     expect(getAppManifest('settings')?.allowMultipleInstances).toBe(false);
+  });
+
+  it('declares Vela as a single-instance Workers AI app', () => {
+    expect(getAppManifest('vela')).toMatchObject({
+      name: 'Vela',
+      permissions: ['ai:generate'],
+      allowMultipleInstances: false,
+    });
   });
 });

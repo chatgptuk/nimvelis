@@ -49,6 +49,9 @@ export function DesktopShell() {
     snapWindow,
     closeAppWindows,
     minimizeAppWindows,
+    desktopIconPositions,
+    setDesktopIconPosition,
+    resetDesktopIconPositions,
   } = useDesktopStore(
     useShallow((state) => ({
       windows: state.windows,
@@ -78,6 +81,9 @@ export function DesktopShell() {
       snapWindow: state.snapWindow,
       closeAppWindows: state.closeAppWindows,
       minimizeAppWindows: state.minimizeAppWindows,
+      desktopIconPositions: state.desktopIconPositions,
+      setDesktopIconPosition: state.setDesktopIconPosition,
+      resetDesktopIconPositions: state.resetDesktopIconPositions,
     })),
   );
   const {
@@ -116,6 +122,16 @@ export function DesktopShell() {
   const activeManifest = activeWindow ? getAppManifest(activeWindow.appId) : undefined;
   const searchCommands = useMemo<SystemCommand[]>(
     () => [
+      {
+        id: 'ask-vela',
+        title: 'Ask Vela',
+        description: 'Open the Workers AI text assistant',
+        keywords: 'ai assistant chat write explain brainstorm',
+        icon: 'vela',
+        run: () => {
+          openApp('vela');
+        },
+      },
       {
         id: 'new-text',
         title: 'New text document',
@@ -166,6 +182,17 @@ export function DesktopShell() {
         run: () => setNotificationCenterOpen(true),
       },
       {
+        id: 'reset-desktop-icons',
+        title: 'Reset desktop icon layout',
+        description: 'Return every app icon to its default place',
+        keywords: 'arrange clean restore move icons desktop',
+        icon: 'window',
+        run: () => {
+          resetDesktopIconPositions();
+          addNotification('Desktop icon layout reset', 'success');
+        },
+      },
+      {
         id: 'empty-trash',
         title: 'Empty Trash…',
         description: 'Permanently remove all trashed items',
@@ -178,7 +205,7 @@ export function DesktopShell() {
         },
       },
     ],
-    [addNotification, openApp],
+    [addNotification, openApp, resetDesktopIconPositions],
   );
   const openFile = useCallback(
     (node: VfsNode) => {
@@ -344,6 +371,10 @@ export function DesktopShell() {
         }}
         onSnapLeft={() => activeWindow && snapWindow(activeWindow.id, 'left')}
         onSnapRight={() => activeWindow && snapWindow(activeWindow.id, 'right')}
+        onResetDesktopIcons={() => {
+          resetDesktopIconPositions();
+          addNotification('Desktop icon layout reset', 'success');
+        }}
         activeWorkspaceName={activeWorkspace?.name ?? 'Main'}
         unreadNotifications={
           notificationHistory.filter((notification) => !notification.read).length
@@ -359,9 +390,15 @@ export function DesktopShell() {
         <div className="desktop-atmosphere" aria-hidden="true" />
         <div className="desktop-version" aria-hidden="true">
           <span>AURORA</span>
-          <strong>0.3</strong>
+          <strong>0.4</strong>
         </div>
-        <DesktopIcons apps={apps} onOpen={(appId) => openApp(appId)} />
+        <DesktopIcons
+          apps={apps}
+          viewport={viewport}
+          positions={desktopIconPositions}
+          onMove={setDesktopIconPosition}
+          onOpen={(appId) => openApp(appId)}
+        />
         {workspaceWindows.map((window) => (
           <WindowHost
             key={window.id}

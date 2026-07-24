@@ -68,12 +68,44 @@ test('appearance settings update the desktop immediately', async ({ page }) => {
   await expect(page.locator('.desktop-shell')).toHaveAttribute('data-wallpaper', 'solstice');
 });
 
+test('desktop icons can be moved and keep their positions after reload', async ({ page }) => {
+  const filesIcon = page.getByRole('button', { name: 'Open Files' });
+  const before = await filesIcon.boundingBox();
+  if (!before) throw new Error('Files desktop icon was not measurable');
+
+  await page.mouse.move(before.x + before.width / 2, before.y + before.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(before.x - 210, before.y + 120, { steps: 10 });
+  await page.mouse.up();
+
+  await expect.poll(async () => (await filesIcon.boundingBox())?.x).toBeLessThan(before.x - 150);
+  const moved = await filesIcon.boundingBox();
+  await page.reload();
+  const restored = await page.getByRole('button', { name: 'Open Files' }).boundingBox();
+  expect(restored?.x).toBeCloseTo(moved?.x ?? 0, 0);
+  expect(restored?.y).toBeCloseTo(moved?.y ?? 0, 0);
+});
+
+test('Vela exposes a persistent server-approved model picker', async ({ page }) => {
+  await page.getByRole('button', { name: /^Vela/ }).last().click();
+  const velaWindow = page.locator('[data-app-id="vela"]');
+  await expect(velaWindow).toBeVisible();
+  const modelPicker = velaWindow.getByRole('combobox', { name: 'Vela model' });
+  await modelPicker.selectOption('llama-4-scout');
+  await expect(modelPicker).toHaveValue('llama-4-scout');
+
+  await page.reload();
+  await expect(page.locator('[data-app-id="vela"]').getByRole('combobox')).toHaveValue(
+    'llama-4-scout',
+  );
+});
+
 test('system menus expose Nimvelis workflows and keyboard guidance', async ({ page }) => {
   await page.getByRole('button', { name: 'Open Nimvelis menu' }).click();
   await page.getByRole('menuitem', { name: 'About This Device' }).click();
   const about = page.getByRole('dialog', { name: 'Nimvelis Aurora' });
   await expect(about).toBeVisible();
-  await expect(about).toContainText('Version 0.3');
+  await expect(about).toContainText('Version 0.4');
   await expect(about).toContainText('LOCAL STORAGE');
   await expect(about).toContainText('Display');
   await about.getByRole('button', { name: 'Close About This Device' }).click();

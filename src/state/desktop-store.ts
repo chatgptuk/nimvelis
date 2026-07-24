@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { getAppManifest, hasApp } from '../kernel/app-registry/registry';
 import type { OpenAppOptions } from '../kernel/system-api';
+import type { DesktopIconPosition } from '../kernel/desktop-icons/geometry';
 import { constrainBounds } from '../kernel/window-manager/geometry';
 import type {
   DesktopWorkspace,
@@ -23,6 +24,7 @@ interface PersistedDesktopState {
   hasCompletedWelcome: boolean;
   workspaces: DesktopWorkspace[];
   activeWorkspaceId: string;
+  desktopIconPositions: Record<string, DesktopIconPosition>;
 }
 
 interface DesktopActions {
@@ -50,6 +52,8 @@ interface DesktopActions {
   snapWindow: (windowId: string, position: WindowSnapPosition) => void;
   closeAppWindows: (appId: string) => void;
   minimizeAppWindows: (appId: string) => void;
+  setDesktopIconPosition: (appId: string, position: DesktopIconPosition) => void;
+  resetDesktopIconPositions: () => void;
 }
 
 export type DesktopStore = PersistedDesktopState & DesktopActions;
@@ -94,6 +98,7 @@ const INITIAL_STATE: PersistedDesktopState = {
   hasCompletedWelcome: false,
   workspaces: INITIAL_WORKSPACES,
   activeWorkspaceId: 'space-main',
+  desktopIconPositions: {},
 };
 
 export const useDesktopStore = create<DesktopStore>()(
@@ -510,11 +515,23 @@ export const useDesktopStore = create<DesktopStore>()(
           ),
         }));
       },
+
+      setDesktopIconPosition: (appId, position) => {
+        if (!hasApp(appId) || !isDesktopIconPosition(position)) return;
+        set((state) => ({
+          desktopIconPositions: {
+            ...state.desktopIconPositions,
+            [appId]: position,
+          },
+        }));
+      },
+
+      resetDesktopIconPositions: () => set({ desktopIconPositions: {} }),
     }),
     {
       name: 'nimvelis.aurora.desktop',
       storage: createJSONStorage(() => window.localStorage),
-      version: 2,
+      version: 3,
       migrate: (persistedState) => persistedState,
       partialize: (state): PersistedDesktopState => ({
         windows: state.windows,
@@ -524,6 +541,7 @@ export const useDesktopStore = create<DesktopStore>()(
         hasCompletedWelcome: state.hasCompletedWelcome,
         workspaces: state.workspaces,
         activeWorkspaceId: state.activeWorkspaceId,
+        desktopIconPositions: state.desktopIconPositions,
       }),
       merge: (persistedState, currentState) => {
         const persisted = isRecord(persistedState)
@@ -562,6 +580,7 @@ export const useDesktopStore = create<DesktopStore>()(
               : currentState.hasCompletedWelcome,
           workspaces: resolvedWorkspaces,
           activeWorkspaceId,
+          desktopIconPositions: sanitizeDesktopIconPositions(persisted.desktopIconPositions),
         };
       },
     },
@@ -671,4 +690,23 @@ function isAppearance(value: unknown): value is AppearanceMode {
 
 function isWallpaper(value: unknown): value is WallpaperId {
   return ['aurora', 'solstice', 'stillness'].includes(String(value));
+}
+
+function sanitizeDesktopIconPositions(value: unknown): Record<string, DesktopIconPosition> {
+  if (!isRecord(value)) return {};
+  return Object.fromEntries(
+    Object.entries(value).flatMap(([appId, position]) =>
+      hasApp(appId) && isDesktopIconPosition(position) ? [[appId, position]] : [],
+    ),
+  );
+}
+
+function isDesktopIconPosition(value: unknown): value is DesktopIconPosition {
+  return (
+    isRecord(value) &&
+    typeof value.x === 'number' &&
+    Number.isFinite(value.x) &&
+    typeof value.y === 'number' &&
+    Number.isFinite(value.y)
+  );
 }

@@ -4,7 +4,12 @@ import type { NimvelisSystemApi } from '../system-api';
 import type { WindowInstance } from '../window-manager/types';
 
 export type AppPermission =
-  'appearance:write' | 'files:read' | 'files:write' | 'window:open' | 'window:write';
+  | 'ai:generate'
+  | 'appearance:write'
+  | 'files:read'
+  | 'files:write'
+  | 'window:open'
+  | 'window:write';
 
 export interface SystemAppProps {
   window: WindowInstance;

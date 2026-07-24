@@ -12,6 +12,7 @@ describe('desktop store', () => {
       hasCompletedWelcome: true,
       workspaces: [{ id: 'space-main', name: 'Main', createdAt: 0 }],
       activeWorkspaceId: 'space-main',
+      desktopIconPositions: {},
     });
   });
 
@@ -109,5 +110,13 @@ describe('desktop store', () => {
     expect(window?.state).toBe('normal');
     expect(window?.bounds.x).toBe(8);
     expect(window?.bounds.width).toBeGreaterThan(280);
+  });
+
+  it('persists and resets custom desktop icon positions', () => {
+    useDesktopStore.getState().setDesktopIconPosition('vela', { x: 142, y: 96 });
+    expect(useDesktopStore.getState().desktopIconPositions.vela).toEqual({ x: 142, y: 96 });
+
+    useDesktopStore.getState().resetDesktopIconPositions();
+    expect(useDesktopStore.getState().desktopIconPositions).toEqual({});
   });
 });

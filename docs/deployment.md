@@ -1,8 +1,8 @@
 # Deploy Nimvelis to Cloudflare Workers
 
-Nimvelis Aurora is a static React SPA deployed with the Cloudflare Vite plugin and Workers
-Static Assets. It does not require a server entry point, secrets, databases, buckets, or other
-Cloudflare resources.
+Nimvelis Aurora is a React SPA with a small Worker API deployed through the Cloudflare Vite
+plugin. Static Assets serves the desktop and the native Workers AI binding powers Vela. It does
+not require secrets, databases, buckets, or account-specific resource IDs.
 
 ## Deploy to Cloudflare
 
@@ -15,8 +15,11 @@ The deployment page lets you choose:
 - the Cloudflare account that owns the Worker.
 
 Cloudflare reads `package.json` and `wrangler.jsonc`, runs the build through Workers Builds, and
-deploys the generated static assets. The copied repository stays in your account, so you can
-customize Nimvelis and use Workers Builds for later deployments.
+deploys the Worker and generated static assets. The `AI` binding is declared in
+`wrangler.jsonc`, so the copied repository does not need an API key or manual resource ID. Workers
+AI usage belongs to the Cloudflare account selected during deployment and is subject to that
+account's pricing and limits. The copied repository stays in your account, so you can customize
+Nimvelis and use Workers Builds for later deployments.
 
 ## Sync with Nimvelis upstream
 
@@ -116,9 +119,11 @@ The repository deliberately avoids:
 - D1, R2, KV, Durable Objects, or other resource IDs;
 - environment-specific build paths.
 
-The Cloudflare Vite plugin creates the deployable Worker configuration during `npm run build`.
-The SPA fallback in `wrangler.jsonc` ensures that an unknown browser route serves `index.html`
-instead of returning an asset 404.
+The portable configuration does declare the built-in `AI` binding and the generated `ASSETS`
+binding. The Cloudflare Vite plugin creates the deployable Worker configuration during
+`npm run build`. The Worker handles `/api/vela/chat` first and passes all desktop routes to Static
+Assets. The SPA fallback ensures that an unknown browser route serves `index.html` instead of
+returning an asset 404.
 
 ## Custom domains
 
@@ -157,7 +162,8 @@ Confirm that the deployed copy still contains:
 
 ### Local desktop state does not appear on another device
 
-Aurora 0.3 stores windows, workspaces, notifications, Memo content, appearance, and wallpaper in
-localStorage. Files and
-their content live in IndexedDB in the same browser. Deploying the app does not synchronize state
-across browsers or devices.
+Aurora 0.4 stores windows, workspaces, desktop icon positions, notifications, Vela conversation
+history and model choice, Memo content, appearance, and wallpaper in localStorage. Files and their
+content live in IndexedDB in the same browser. Deploying the app does not synchronize state across
+browsers or devices. Vela sends only its visible conversation to Workers AI when the user sends a
+message.

@@ -7,6 +7,7 @@ export type IconName =
   | 'files'
   | 'text'
   | 'view'
+  | 'vela'
   | 'search'
   | 'folder'
   | 'file'
@@ -93,6 +94,13 @@ export function Icon({ name, size = 20, ...props }: IconProps) {
         <svg {...shared}>
           <path d="M2.8 12s3.2-5.2 9.2-5.2 9.2 5.2 9.2 5.2-3.2 5.2-9.2 5.2S2.8 12 2.8 12Z" />
           <circle cx="12" cy="12" r="2.8" />
+        </svg>
+      );
+    case 'vela':
+      return (
+        <svg {...shared}>
+          <path d="M12 3.3c4.9 0 8.7 3.4 8.7 8s-3.8 8-8.7 8c-1.1 0-2.2-.2-3.2-.5L4 21l1.4-4.3a7.7 7.7 0 0 1-2.1-5.4c0-4.6 3.8-8 8.7-8Z" />
+          <path d="M7.8 11.6c2.7-.4 4.2-1.9 4.6-4.5.4 2.6 1.9 4.1 4.5 4.5-2.6.4-4.1 1.9-4.5 4.5-.4-2.6-1.9-4.1-4.6-4.5Z" />
         </svg>
       );
     case 'search':
@@ -239,6 +247,7 @@ const APP_ICON_PALETTES = {
   files: ['#153d59', '#2e8cca', '#92f2ed'],
   text: ['#353368', '#8a67d3', '#f1c0ff'],
   view: ['#59344b', '#d26d7b', '#ffd391'],
+  vela: ['#15365d', '#38b9b7', '#a9ffef'],
 } as const;
 
 export function AppIcon({ name, size = 56, className = '', ...props }: AppIconProps) {
@@ -294,7 +303,8 @@ export function AppIcon({ name, size = 56, className = '', ...props }: AppIconPr
       {name === 'files' && <FilesArtwork accent={palette[2]} />}
       {name === 'text' && <TextArtwork accent={palette[2]} />}
       {name === 'view' && <ViewArtwork accent={palette[2]} />}
-      {!['calculator', 'memo', 'settings', 'files', 'text', 'view'].includes(name) && (
+      {name === 'vela' && <VelaArtwork accent={palette[2]} />}
+      {!['calculator', 'memo', 'settings', 'files', 'text', 'view', 'vela'].includes(name) && (
         <g color="white">
           <rect x="15" y="15" width="34" height="34" rx="12" fill="white" fillOpacity=".1" />
           <path
@@ -446,6 +456,49 @@ function ViewArtwork({ accent }: { accent: string }) {
       <circle cx="32" cy="32" r="9" fill="#563651" />
       <circle cx="32" cy="32" r="5" fill={accent} />
       <circle cx="29" cy="29" r="2" fill="white" fillOpacity=".92" />
+    </g>
+  );
+}
+
+function VelaArtwork({ accent }: { accent: string }) {
+  return (
+    <g>
+      <circle
+        cx="32"
+        cy="32"
+        r="19"
+        fill="#071425"
+        fillOpacity=".56"
+        stroke="white"
+        strokeOpacity=".22"
+      />
+      <ellipse
+        cx="32"
+        cy="32"
+        rx="16"
+        ry="8"
+        stroke={accent}
+        strokeOpacity=".74"
+        strokeWidth="2"
+        transform="rotate(-31 32 32)"
+      />
+      <ellipse
+        cx="32"
+        cy="32"
+        rx="16"
+        ry="8"
+        stroke="white"
+        strokeOpacity=".42"
+        strokeWidth="1.5"
+        transform="rotate(36 32 32)"
+      />
+      <path
+        d="M32 19c1.1 7.3 5.2 11.4 12.5 12.5C37.2 32.6 33.1 36.7 32 44c-1.1-7.3-5.2-11.4-12.5-12.5C26.8 30.4 30.9 26.3 32 19Z"
+        fill="white"
+        fillOpacity=".9"
+      />
+      <circle cx="20" cy="21" r="2.4" fill={accent} />
+      <circle cx="46" cy="39" r="1.8" fill="white" fillOpacity=".88" />
     </g>
   );
 }

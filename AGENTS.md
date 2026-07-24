@@ -6,7 +6,7 @@ Nimvelis is a browser-native personal workspace with a desktop interface.
 
 It is inspired by familiar desktop interaction patterns, but it is not a macOS emulator or Apple product. Do not use Apple logos, proprietary icons, wallpapers, application names, bundled assets, or copied interface resources.
 
-The current release is Nimvelis Aurora 0.3.
+The current release is Nimvelis Aurora 0.4.
 
 ## Current Scope
 
@@ -27,12 +27,14 @@ Build only:
 - Calculator
 - Memo
 - Settings
+- Vela text assistant through a native Cloudflare Workers AI binding
+- Movable, persistent desktop icons
 - Local persistence
 - Installable offline shell
 - Light and dark appearance
 - Automated tests
 
-Do not add authentication, D1, R2, Durable Objects, AI features, third-party apps, or collaboration unless the task explicitly requests them.
+Do not add authentication, D1, R2, Durable Objects, third-party apps, or collaboration unless the task explicitly requests them. Vela is the only current AI boundary and must use the native Workers AI binding with a server-side model allowlist.
 
 ## Architecture
 

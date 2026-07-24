@@ -18,6 +18,7 @@ interface TopBarProps {
   onOpenOverview: () => void;
   onSnapLeft: () => void;
   onSnapRight: () => void;
+  onResetDesktopIcons: () => void;
   activeWorkspaceName: string;
   unreadNotifications: number;
 }
@@ -39,6 +40,7 @@ export function TopBar({
   onOpenOverview,
   onSnapLeft,
   onSnapRight,
+  onResetDesktopIcons,
   activeWorkspaceName,
   unreadNotifications,
 }: TopBarProps) {
@@ -82,7 +84,7 @@ export function TopBar({
                 <NimvelisMark size={40} />
                 <div>
                   <strong>Nimvelis</strong>
-                  <span>Aurora desktop · 0.3</span>
+                  <span>Aurora desktop · 0.4</span>
                 </div>
               </div>
               <p>An independent space for your local work.</p>
@@ -191,6 +193,15 @@ export function TopBar({
                 {activeWindow?.state === 'fullscreen' ? 'Leave full canvas' : 'Full canvas'}
                 <Icon name="fullscreen" size={14} />
               </button>
+              <div className="top-menu__separator" />
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => runAndClose(onResetDesktopIcons)}
+              >
+                Reset desktop icons
+                <Icon name="window" size={14} />
+              </button>
             </div>
           )}
         </div>
@@ -276,7 +287,7 @@ export function TopBar({
                 </span>
               </div>
               <div className="top-menu__separator" />
-              <div className="top-menu__footnote">Nimvelis Aurora 0.3</div>
+              <div className="top-menu__footnote">Nimvelis Aurora 0.4</div>
             </div>
           )}
         </div>

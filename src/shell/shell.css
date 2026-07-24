@@ -373,16 +373,17 @@
 
 .desktop-icons {
   position: absolute;
-  top: 22px;
-  right: 20px;
+  inset: 0;
   z-index: 2;
-  display: grid;
-  gap: 10px;
+  pointer-events: none;
 }
 
 .desktop-icon {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 88px;
-  min-height: 92px;
+  height: 92px;
   display: grid;
   justify-items: center;
   gap: 7px;
@@ -394,7 +395,11 @@
   font: inherit;
   font-size: var(--font-xs);
   text-shadow: 0 2px 7px rgb(0 0 0 / 55%);
-  cursor: default;
+  cursor: grab;
+  pointer-events: auto;
+  touch-action: none;
+  user-select: none;
+  will-change: transform;
 }
 
 .desktop-icon:hover,
@@ -403,6 +408,14 @@
   background: rgb(255 255 255 / 9%);
   box-shadow: inset 0 1px rgb(255 255 255 / 8%);
   backdrop-filter: blur(12px);
+}
+
+.desktop-icon.is-dragging {
+  z-index: 3;
+  cursor: grabbing;
+  border-color: rgb(255 255 255 / 24%);
+  background: rgb(255 255 255 / 13%);
+  box-shadow: 0 16px 34px rgb(1 4 14 / 28%);
 }
 
 .desktop-icon__tile {
@@ -693,10 +706,6 @@
   .top-bar__search span,
   .top-bar__search kbd {
     display: none;
-  }
-
-  .desktop-icons {
-    right: 8px;
   }
 
   .shelf {

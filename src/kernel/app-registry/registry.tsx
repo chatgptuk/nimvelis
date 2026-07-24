@@ -3,6 +3,7 @@ import { FilesApp } from '../../apps/files/FilesApp';
 import { MemoApp } from '../../apps/memo/MemoApp';
 import { SettingsApp } from '../../apps/settings/SettingsApp';
 import { TextApp } from '../../apps/text/TextApp';
+import { VelaApp } from '../../apps/vela/VelaApp';
 import { ViewApp } from '../../apps/view/ViewApp';
 import type { AppManifest } from './types';
 
@@ -82,6 +83,21 @@ const manifests = [
     },
     permissions: ['window:open', 'window:write'],
     allowMultipleInstances: true,
+  },
+  {
+    id: 'vela',
+    name: 'Vela',
+    description: 'A private-by-design text assistant powered by Cloudflare Workers AI.',
+    icon: 'vela',
+    component: VelaApp,
+    defaultWindow: {
+      width: 760,
+      height: 620,
+      minWidth: 430,
+      minHeight: 420,
+    },
+    permissions: ['ai:generate'],
+    allowMultipleInstances: false,
   },
   {
     id: 'settings',

@@ -1,7 +1,8 @@
-# Nimvelis Aurora 0.3 architecture
+# Nimvelis Aurora 0.4 architecture
 
-Nimvelis is a long-running browser SPA. Aurora 0.3 adds a usable local workspace while preserving
-the desktop kernel boundaries. It still has no account, remote storage, AI, or collaboration code.
+Nimvelis is a long-running browser SPA with a small edge API. Aurora 0.4 preserves the local
+desktop boundaries while adding Vela through a native Cloudflare Workers AI binding. It still has
+no account, remote file storage, or collaboration code.
 
 ## Boundaries
 
@@ -9,7 +10,7 @@ the desktop kernel boundaries. It still has no account, remote storage, AI, or c
 flowchart LR
   Shell["Desktop Shell\nTop Bar · Overview · Shelf · Windows"] --> Store["Desktop Store\nZustand + versioned persistence"]
   Shell --> Registry["App Registry\nTyped manifests"]
-  Registry --> Apps["System Apps\nFiles · Text · View · Utilities"]
+  Registry --> Apps["System Apps\nFiles · Text · View · Vela · Utilities"]
   Apps --> API["Nimvelis System API"]
   API --> Store
   Store --> Persistence["Browser localStorage\nstable state only"]
@@ -19,13 +20,16 @@ flowchart LR
   Sync --> VFS
   Search["System Search\napps + local content"] --> Registry
   Search --> VFS
+  Vela["Vela text app\nlocal conversation history"] --> Worker["Worker API\nvalidation + model allowlist"]
+  Worker --> AI["Cloudflare Workers AI\nstreamed inference"]
 ```
 
 - `src/kernel/window-manager` owns normalized window types and pure geometry functions.
 - `src/kernel/app-registry` is the only list of installed applications. A manifest defines the
   component, identity, initial size, minimum size, permissions, and instance policy.
-- `src/state/desktop-store.ts` owns durable desktop state, named workspaces, snapping, and window
-  lifecycle actions. `system-store.ts` owns durable notification history.
+- `src/state/desktop-store.ts` owns durable desktop state, named workspaces, desktop icon
+  positions, snapping, and window lifecycle actions. `system-store.ts` owns durable notification
+  history.
 - `src/shell` turns the kernel state into the desktop UI and implements Pointer Events.
 - `src/apps` receives a window record and a capability-shaped System API. Apps do not import or
   mutate the desktop store.
@@ -33,6 +37,8 @@ flowchart LR
   future adapters; the IndexedDB implementation is the browser default.
 - `src/shell/SystemSearch.tsx` owns transient global search UI and queries the registry plus VFS.
 - `src/design` and `src/styles` own original Nimvelis icons and shared design tokens.
+- `worker/index.ts` is the only remote inference boundary. It validates chat size and roles,
+  rate-limits per edge isolate, maps a short model key through an allowlist, and streams Workers AI.
 
 ## Window lifecycle
 
@@ -56,7 +62,9 @@ Move and resize start from a Pointer Event and capture that pointer. During the 
 - geometry helpers constrain the visible titlebar and minimum application size;
 - Zustand is not updated on each `pointermove`.
 
-The final bounds are committed once on `pointerup` or `pointercancel`. The titlebar also supports
+The final bounds are committed once on `pointerup` or `pointercancel`. Desktop icons use the same
+pointer-capture and animation-frame pattern, clamp to the usable desktop, and persist only the
+final position. The titlebar also supports
 keyboard movement with `Alt + Arrow`, keyboard resizing with `Alt + Shift + Arrow`, and maximize
 with `Alt + Enter`.
 
@@ -70,6 +78,7 @@ The Zustand `persist` middleware stores only stable user state:
 - wallpaper choice;
 - welcome completion.
 - named workspaces and the active workspace.
+- desktop icon positions.
 
 Transient pointer data, animation state, menu state, current time, and resolved system color
 scheme are not persisted. Rehydration validates records, application IDs, bounds, visual states,
@@ -90,8 +99,14 @@ The production service worker caches the application shell and same-origin built
 workers are surfaced through Device space so the user controls when to refresh. It does not cache
 or upload virtual-file content: IndexedDB remains the source of truth for local files.
 
+Vela stores completed messages and the selected model key in localStorage. Sending a message posts
+only the visible conversation slice and selected key to `/api/vela/chat`; it has no VFS capability
+and cannot read files or device details. The Worker holds the system prompt and Cloudflare model
+IDs, rejects unsupported models and cross-origin browser requests, and returns a no-store SSE
+stream.
+
 ## Future adapters
 
 Cloud metadata, object storage, and synchronization can be implemented as separate adapters
-without changing the window manager or application components. No cloud assumptions are embedded
-in the Aurora 0.3 system apps.
+without changing the window manager or application components. Workers AI is isolated to Vela and
+does not change the local file-system contract.
