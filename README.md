@@ -28,6 +28,23 @@ Click **Deploy to Cloudflare** above. Cloudflare will:
 No account ID, API token, environment variable, database, or storage bucket is required. Future
 pushes to the generated repository can be deployed automatically by Workers Builds.
 
+### Receive upstream updates
+
+Cloudflare creates an independent cloned repository, not a GitHub fork. The generated repository
+therefore includes a manual **Sync from Nimvelis upstream** workflow:
+
+1. Open the **Actions** tab in your generated GitHub repository.
+2. Select **Sync from Nimvelis upstream**.
+3. Choose **Run workflow**.
+
+The workflow fetches `chatgptuk/nimvelis`, merges compatible changes, runs the full validation
+suite, and pushes only when validation succeeds. A successful push is then deployed by Workers
+Builds. Your commits are preserved; a merge conflict stops the workflow without changing the
+repository.
+
+For full Git control, including workflow-file updates, follow the
+[upstream synchronization guide](docs/deployment.md#sync-with-nimvelis-upstream).
+
 ### From the command line
 
 Requirements: Node.js 20 or newer and a Cloudflare account.

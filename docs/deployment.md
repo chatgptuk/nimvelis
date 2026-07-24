@@ -18,6 +18,56 @@ Cloudflare reads `package.json` and `wrangler.jsonc`, runs the build through Wor
 deploys the generated static assets. The copied repository stays in your account, so you can
 customize Nimvelis and use Workers Builds for later deployments.
 
+## Sync with Nimvelis upstream
+
+Cloudflare creates a normal cloned repository rather than a GitHub fork. GitHub therefore does
+not display a fork relationship or provide its usual **Sync fork** button.
+
+### One-click validated sync
+
+The generated repository includes `.github/workflows/sync-upstream.yml`.
+
+1. Open the generated repository on GitHub.
+2. Select **Actions**.
+3. Select **Sync from Nimvelis upstream**.
+4. Select **Run workflow**, choose the default branch, and confirm.
+
+The workflow:
+
+- fetches `https://github.com/chatgptuk/nimvelis.git`;
+- merges upstream `main` without discarding downstream commits;
+- preserves the generated repository's own GitHub workflow definitions;
+- runs `npm ci` and `npm run check`;
+- pushes the validated merge to the generated repository's default branch.
+
+Workers Builds sees the resulting push and deploys it using the existing Cloudflare project.
+If Git reports a conflict or validation fails, nothing is pushed.
+
+The workflow intentionally does not use a personal access token. GitHub workflow files are
+therefore kept unchanged during automated sync.
+
+Repositories created before this workflow was added need one full command-line sync first. If
+an organization policy or protected branch blocks the workflow's push, use the command-line
+flow below and open a pull request in the generated repository.
+
+### Full sync from the command line
+
+Use a local Git client when you also want upstream changes under `.github/workflows`, or when a
+merge conflict needs manual resolution:
+
+```bash
+git remote add upstream https://github.com/chatgptuk/nimvelis.git
+git fetch upstream
+git switch main
+git merge upstream/main
+npm ci
+npm run check
+git push origin main
+```
+
+If `upstream` already exists, verify it with `git remote -v` instead of adding it again. Resolve
+any reported conflicts, rerun the checks, and commit the merge before pushing.
+
 ## Deploy with Wrangler
 
 ### 1. Clone and install
