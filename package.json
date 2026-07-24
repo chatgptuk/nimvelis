@@ -4,6 +4,7 @@
   "version": "0.1.0",
   "type": "module",
   "description": "Nimvelis Aurora — a browser-native personal workspace.",
+  "license": "MIT",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "tsc -b && vite build",

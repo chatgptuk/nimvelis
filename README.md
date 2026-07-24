@@ -4,6 +4,7 @@
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/chatgptuk/nimvelis)
 [![CI](https://github.com/chatgptuk/nimvelis/actions/workflows/ci.yml/badge.svg)](https://github.com/chatgptuk/nimvelis/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Nimvelis Aurora 0.1 is a browser-native personal workspace with a desktop interface. The
 current milestone is intentionally local-first: a custom window manager, desktop shell, app
@@ -63,3 +64,8 @@ routes fall back to `index.html`.
 
 Aurora 0.1 does not include accounts, cloud files, AI, collaboration, or third-party apps.
 See [`docs/architecture.md`](docs/architecture.md) for the component boundaries and data flow.
+
+## License
+
+Nimvelis is available under the [MIT License](LICENSE). You may use, modify, distribute, and
+commercialize the software while preserving the copyright and license notice.
