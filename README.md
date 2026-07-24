@@ -3,8 +3,12 @@
 **Your world, anywhere.**
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/chatgptuk/nimvelis)
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Open_Nimvelis-6574e6)](https://nimvelis.malstyne.workers.dev/)
 [![CI](https://github.com/chatgptuk/nimvelis/actions/workflows/ci.yml/badge.svg)](https://github.com/chatgptuk/nimvelis/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+**[Open the live demo →](https://nimvelis.malstyne.workers.dev/)** Explore Nimvelis before
+deploying your own copy.
 
 Nimvelis Aurora 0.8 is a browser-native personal workspace with a desktop interface. It combines
 a local-first window manager, IndexedDB file system, Files, Browser, Text, Tasks, Calendar, Clock,
