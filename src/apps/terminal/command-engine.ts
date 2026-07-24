@@ -224,12 +224,12 @@ export async function executeTerminalCommand(
       case 'whoami':
         return output('local-user', 'accent');
       case 'uname':
-        return output('Nimvelis Aurora 0.7 · browser-native local workspace', 'accent');
+        return output('Nimvelis Aurora 0.8 · browser-native local workspace', 'accent');
       case 'version':
         return {
           lines: [
             { text: 'Nimvelis Local Shell 1.0', tone: 'accent' },
-            { text: 'Aurora 0.7 · virtual file and system command environment', tone: 'muted' },
+            { text: 'Aurora 0.8 · virtual file and system command environment', tone: 'muted' },
           ],
         };
       case 'neofetch':
@@ -728,7 +728,7 @@ function neofetchCommand(environment: TerminalCommandEnvironment): TerminalComma
       { text: '      ╱  N I M V E L I S ╲', tone: 'accent' },
       { text: '      ╲    A U R O R A   ╱', tone: 'accent' },
       { text: '        ╰──────────────╯', tone: 'accent' },
-      { text: 'OS        Aurora 0.7', tone: 'normal' },
+      { text: 'OS        Aurora 0.8', tone: 'normal' },
       { text: 'Shell     Local Shell 1.0', tone: 'normal' },
       { text: `Apps      ${environment.apps.length} installed`, tone: 'normal' },
       { text: `Zone      ${environment.timeZone}`, tone: 'normal' },

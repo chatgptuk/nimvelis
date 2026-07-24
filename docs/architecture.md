@@ -1,6 +1,6 @@
-# Nimvelis Aurora 0.7 architecture
+# Nimvelis Aurora 0.8 architecture
 
-Nimvelis is a long-running browser SPA with a small edge API. Aurora 0.7 preserves the local
+Nimvelis is a long-running browser SPA with a small edge API. Aurora 0.8 preserves the local
 desktop boundaries while adding Vela through a native Cloudflare Workers AI binding. It still has
 no account, remote file storage, or collaboration code.
 
@@ -10,7 +10,7 @@ no account, remote file storage, or collaboration code.
 flowchart LR
   Shell["Desktop Shell\nTop Bar · Overview · Shelf · Windows"] --> Store["Desktop Store\nZustand + versioned persistence"]
   Shell --> Registry["App Registry\nTyped manifests"]
-  Registry --> Apps["System Apps\nFiles · Text · Tasks · Calendar · Clock · Connections · Terminal · Vela"]
+  Registry --> Apps["System Apps\nFiles · Text · Tasks · Calendar · Clock · Connections · Terminal · Luma · Vela"]
   Apps --> API["Nimvelis System API"]
   API --> Store
   Store --> Persistence["Browser localStorage\nstable state only"]
@@ -24,6 +24,7 @@ flowchart LR
   Worker --> AI["Cloudflare Workers AI\nstreamed inference"]
   Connections["Connections app\nbrowser capability signals"] --> Browser["Network Information · Web Bluetooth"]
   Terminal["Local Shell\nparser · history · completion"] --> API
+  Luma["Luma puzzle\npure engine · local records"] --> Persistence
 ```
 
 - `src/kernel/window-manager` owns normalized window types and pure geometry functions.
@@ -45,6 +46,8 @@ flowchart LR
 - `src/apps/terminal` parses a fixed local command set. File commands use only the VFS capability;
   app, appearance, and time-zone commands use explicit System API methods. It cannot spawn host
   processes, access environment secrets, make remote shell connections, or run arbitrary code.
+- `src/apps/luma` contains a deterministic puzzle generator and solver plus the keyboard- and
+  touch-friendly system game. It has no network or system capability and stores only best scores.
 - `src/design` and `src/styles` own original Nimvelis icons and shared design tokens.
 - `worker/index.ts` is the only remote inference boundary. It validates chat size and roles,
   rate-limits per edge isolate, maps a short model key through an allowlist, and streams Workers AI.

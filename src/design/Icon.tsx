@@ -13,6 +13,7 @@ export type IconName =
   | 'clock'
   | 'connections'
   | 'terminal'
+  | 'luma'
   | 'wifi'
   | 'bluetooth'
   | 'search'
@@ -144,6 +145,13 @@ export function Icon({ name, size = 20, ...props }: IconProps) {
         <svg {...shared}>
           <rect x="3" y="4" width="18" height="16" rx="3" />
           <path d="m7 9 3 3-3 3M12.5 15H17" />
+        </svg>
+      );
+    case 'luma':
+      return (
+        <svg {...shared}>
+          <path d="M12 3.2c.6 4.8 3.2 7.4 8 8-.8.1-1.6.3-2.3.6M12 3.2c-.6 4.8-3.2 7.4-8 8 4.8.6 7.4 3.2 8 8 .3-2.2 1-4 2.2-5.2" />
+          <circle cx="18" cy="17.8" r="2.3" />
         </svg>
       );
     case 'wifi':
@@ -315,6 +323,7 @@ const APP_ICON_PALETTES = {
   clock: ['#4b2d51', '#d4776d', '#ffd39b'],
   connections: ['#173d5a', '#318db4', '#a9eeff'],
   terminal: ['#111a2b', '#354a6b', '#78f0d5'],
+  luma: ['#151b49', '#696ad3', '#94f6df'],
 } as const;
 
 export function AppIcon({ name, size = 56, className = '', ...props }: AppIconProps) {
@@ -376,6 +385,7 @@ export function AppIcon({ name, size = 56, className = '', ...props }: AppIconPr
       {name === 'clock' && <ClockArtwork accent={palette[2]} />}
       {name === 'connections' && <ConnectionsArtwork accent={palette[2]} />}
       {name === 'terminal' && <TerminalArtwork accent={palette[2]} />}
+      {name === 'luma' && <LumaArtwork accent={palette[2]} />}
       {![
         'calculator',
         'memo',
@@ -389,6 +399,7 @@ export function AppIcon({ name, size = 56, className = '', ...props }: AppIconPr
         'clock',
         'connections',
         'terminal',
+        'luma',
       ].includes(name) && (
         <g color="white">
           <rect x="15" y="15" width="34" height="34" rx="12" fill="white" fillOpacity=".1" />
@@ -715,6 +726,35 @@ function TerminalArtwork({ accent }: { accent: string }) {
         strokeLinejoin="round"
       />
       <circle cx="45" cy="31" r="3" fill={accent} fillOpacity=".82" />
+    </g>
+  );
+}
+
+function LumaArtwork({ accent }: { accent: string }) {
+  return (
+    <g>
+      <circle
+        cx="32"
+        cy="33"
+        r="20"
+        fill="#07101f"
+        fillOpacity=".58"
+        stroke="white"
+        strokeOpacity=".2"
+      />
+      <path
+        d="M32 14c.9 9.4 6.1 14.6 15.5 15.5C38.1 30.4 32.9 35.6 32 45c-.9-9.4-6.1-14.6-15.5-15.5C25.9 28.6 31.1 23.4 32 14Z"
+        fill="white"
+        fillOpacity=".9"
+      />
+      <path
+        d="M32 18c.7 6.9 4.6 10.8 11.5 11.5C36.6 30.2 32.7 34.1 32 41c-.7-6.9-4.6-10.8-11.5-11.5C27.4 28.8 31.3 24.9 32 18Z"
+        fill={accent}
+        fillOpacity=".68"
+      />
+      <circle cx="18" cy="19" r="2.4" fill="#f5a9d0" />
+      <circle cx="47" cy="43" r="3" fill={accent} />
+      <circle cx="48" cy="17" r="1.5" fill="white" fillOpacity=".9" />
     </g>
   );
 }

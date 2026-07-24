@@ -78,7 +78,7 @@ export function AboutDevice({
       : 0;
 
   const systemReport = [
-    'Nimvelis Aurora 0.7',
+    'Nimvelis Aurora 0.8',
     `Device: ${profile.device}`,
     `Browser: ${profile.browser}`,
     `Processor: ${profile.processor}`,
@@ -137,7 +137,7 @@ export function AboutDevice({
           <div>
             <p>NIMVELIS LOCAL SPACE</p>
             <h1 id="about-device-title">Nimvelis Aurora</h1>
-            <strong>Version 0.7</strong>
+            <strong>Version 0.8</strong>
             <span>Browser-native personal workspace</span>
           </div>
         </div>

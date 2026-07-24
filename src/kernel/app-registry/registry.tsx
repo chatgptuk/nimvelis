@@ -3,6 +3,7 @@ import { CalendarApp } from '../../apps/calendar/CalendarApp';
 import { ClockApp } from '../../apps/clock/ClockApp';
 import { ConnectionsApp } from '../../apps/connections/ConnectionsApp';
 import { FilesApp } from '../../apps/files/FilesApp';
+import { LumaApp } from '../../apps/luma/LumaApp';
 import { MemoApp } from '../../apps/memo/MemoApp';
 import { SettingsApp } from '../../apps/settings/SettingsApp';
 import { TasksApp } from '../../apps/tasks/TasksApp';
@@ -144,6 +145,20 @@ const manifests = [
       minHeight: 420,
     },
     allowMultipleInstances: true,
+  },
+  {
+    id: 'luma',
+    name: 'Luma',
+    description: 'An original built-in constellation game for quiet breaks.',
+    icon: 'luma',
+    component: LumaApp,
+    defaultWindow: {
+      width: 720,
+      height: 580,
+      minWidth: 430,
+      minHeight: 420,
+    },
+    allowMultipleInstances: false,
   },
   {
     id: 'memo',

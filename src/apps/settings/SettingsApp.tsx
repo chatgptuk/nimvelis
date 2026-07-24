@@ -62,7 +62,7 @@ export function SettingsApp({ system }: SystemAppProps) {
           </div>
           <div>
             <strong>Local space</strong>
-            <span>Aurora 0.7</span>
+            <span>Aurora 0.8</span>
           </div>
         </header>
         <nav aria-label="Settings sections">
@@ -441,10 +441,10 @@ function SystemSettings({ system }: Pick<SystemAppProps, 'system'>) {
           <div>
             <strong>Local-first by default</strong>
             <p>
-              Tasks, calendar events, notes, settings, Terminal history, and files stay in browser
-              storage on this device. Terminal commands are limited to Nimvelis capabilities,
-              Bluetooth always uses the browser permission picker, and Vela only sends a prompt when
-              you submit one.
+              Tasks, calendar events, notes, settings, Terminal history, Luma best scores, and files
+              stay in browser storage on this device. Terminal commands are limited to Nimvelis
+              capabilities, Bluetooth always uses the browser permission picker, and Vela only sends
+              a prompt when you submit one.
             </p>
           </div>
         </div>

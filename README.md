@@ -6,10 +6,11 @@
 [![CI](https://github.com/chatgptuk/nimvelis/actions/workflows/ci.yml/badge.svg)](https://github.com/chatgptuk/nimvelis/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Nimvelis Aurora 0.7 is a browser-native personal workspace with a desktop interface. It combines
+Nimvelis Aurora 0.8 is a browser-native personal workspace with a desktop interface. It combines
 a local-first window manager, IndexedDB file system, Files, Text, Tasks, Calendar, Clock,
-Connections, Terminal, local media preview, global search, system-wide personalization, and an
-installable offline shell with Vela, an optional text assistant powered by Cloudflare Workers AI.
+Connections, Terminal, Luma, local media preview, global search, system-wide personalization, and
+an installable offline shell with Vela, an optional text assistant powered by Cloudflare Workers
+AI.
 
 Nimvelis is an independent project and is not affiliated with or endorsed by Apple Inc. Its
 marks, icons, wallpaper, interface assets, naming, and visual system are original to Nimvelis;
@@ -95,6 +96,8 @@ resource IDs. It declares only portable `AI` and static asset bindings.
   connect an explicitly approved Bluetooth Low Energy device from Connections.
 - Use Terminal as a multi-instance local shell with history, Tab completion, app launching, system
   information, and commands that operate directly on the IndexedDB virtual file system.
+- Take a quiet break with Luma, an original keyboard- and touch-friendly constellation puzzle with
+  three board sizes, hints, undo, a timer, and device-local best scores.
 - Personalize interface density, desktop icon visibility, time zone, 12/24-hour clock, calendar
   week start, text scale, contrast, motion, appearance, and wallpaper from Settings.
 - Chat with Vela through Cloudflare Workers AI, choose between server-approved Llama and Gemma
@@ -112,7 +115,7 @@ resource IDs. It declares only portable `AI` and static asset bindings.
 - Inspect the current browser, device, display, and local storage from **About This Device**.
 - Install the app and reopen its shell offline after the first production visit.
 
-Aurora 0.7 does not yet include accounts, cloud files, collaboration, or third-party apps.
+Aurora 0.8 does not yet include accounts, cloud files, collaboration, or third-party apps.
 See [`docs/architecture.md`](docs/architecture.md) for the component boundaries and data flow.
 
 ## Device capability boundaries

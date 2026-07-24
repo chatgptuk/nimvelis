@@ -467,7 +467,7 @@ export function DesktopShell() {
         <div className="desktop-atmosphere" aria-hidden="true" />
         <div className="desktop-version" aria-hidden="true">
           <span>AURORA</span>
-          <strong>0.7</strong>
+          <strong>0.8</strong>
         </div>
         {preferences.showDesktopIcons ? (
           <DesktopIcons

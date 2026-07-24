@@ -94,7 +94,7 @@ export function TopBar({
                 <NimvelisMark size={40} />
                 <div>
                   <strong>Nimvelis</strong>
-                  <span>Aurora desktop · 0.7</span>
+                  <span>Aurora desktop · 0.8</span>
                 </div>
               </div>
               <p>An independent space for your local work.</p>
@@ -297,7 +297,7 @@ export function TopBar({
                 </span>
               </div>
               <div className="top-menu__separator" />
-              <div className="top-menu__footnote">Nimvelis Aurora 0.7</div>
+              <div className="top-menu__footnote">Nimvelis Aurora 0.8</div>
             </div>
           )}
         </div>

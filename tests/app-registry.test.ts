@@ -15,6 +15,7 @@ describe('app registry', () => {
       'connections',
       'terminal',
       'calculator',
+      'luma',
       'memo',
       'vela',
       'settings',
@@ -45,6 +46,13 @@ describe('app registry', () => {
       name: 'Terminal',
       permissions: ['files:read', 'files:write', 'window:open', 'window:write'],
       allowMultipleInstances: true,
+    });
+  });
+
+  it('registers Luma as a single-instance built-in game', () => {
+    expect(getAppManifest('luma')).toMatchObject({
+      name: 'Luma',
+      allowMultipleInstances: false,
     });
   });
 });

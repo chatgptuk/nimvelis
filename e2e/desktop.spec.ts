@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { solveLumaBoard } from '../src/apps/luma/game-engine';
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
@@ -107,10 +108,10 @@ test('tasks and calendar share a local agenda', async ({ page }) => {
     .last()
     .click();
   const tasksWindow = page.locator('[data-app-id="tasks"]');
-  await tasksWindow.getByRole('textbox', { name: 'Task title' }).fill('Ship Aurora 0.7');
+  await tasksWindow.getByRole('textbox', { name: 'Task title' }).fill('Ship Aurora 0.8');
   await tasksWindow.getByRole('textbox', { name: 'Task due date' }).fill('2026-07-23');
   await tasksWindow.getByRole('button', { name: 'Add task' }).click();
-  await expect(tasksWindow.getByText('Ship Aurora 0.7')).toBeVisible();
+  await expect(tasksWindow.getByText('Ship Aurora 0.8')).toBeVisible();
 
   await page
     .getByRole('button', { name: /^Calendar/ })
@@ -201,6 +202,54 @@ test('Terminal operates on local files with history and an honest sandbox bounda
   await expect(commandInput).toHaveValue('sudo whoami');
 });
 
+test('Luma plays as a keyboard-friendly local puzzle and keeps its best score', async ({
+  page,
+}) => {
+  await page.getByRole('button', { name: /^Luma/ }).last().click();
+  const lumaWindow = page.locator('[data-app-id="luma"]');
+  await expect(lumaWindow).toBeVisible();
+  await expect(lumaWindow.getByText('Quiet constellation puzzle')).toBeVisible();
+
+  await lumaWindow.getByRole('button', { name: 'Pocket 3 × 3' }).click();
+  const cells = lumaWindow.locator('[data-luma-cell]');
+  await expect(cells).toHaveCount(9);
+
+  await lumaWindow.getByRole('button', { name: 'Pause game' }).click();
+  await expect(lumaWindow.getByText('Sky paused')).toBeVisible();
+  await lumaWindow.getByRole('button', { name: 'Resume', exact: true }).click();
+
+  await cells.nth(0).focus();
+  await page.keyboard.press('ArrowRight');
+  await expect(cells.nth(1)).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(
+    lumaWindow.locator('.luma-stats article').filter({ hasText: 'Moves' }),
+  ).toContainText('01');
+  await lumaWindow.getByRole('button', { name: 'Undo' }).click();
+
+  const board = await cells.evaluateAll((elements) =>
+    elements.map((element) => element.getAttribute('data-lit') === 'true'),
+  );
+  const solution = solveLumaBoard(board, 3);
+  expect(solution).not.toBeNull();
+  for (const index of solution ?? []) {
+    await cells.nth(index).click();
+  }
+
+  await expect(lumaWindow.getByText('Quiet sky restored')).toBeVisible();
+  await expect
+    .poll(() => page.evaluate(() => localStorage.getItem('nimvelis.luma.best.v1')))
+    .not.toBeNull();
+
+  await page.reload();
+  const restoredLuma = page.locator('[data-app-id="luma"]');
+  await expect(restoredLuma).toBeVisible();
+  await restoredLuma.getByRole('button', { name: 'Pocket 3 × 3' }).click();
+  await expect(
+    restoredLuma.locator('.luma-stats article').filter({ hasText: 'Best' }),
+  ).not.toContainText('—');
+});
+
 test('desktop icons can be moved and keep their positions after reload', async ({ page }) => {
   const filesIcon = page.getByRole('button', { name: 'Open Files' });
   const before = await filesIcon.boundingBox();
@@ -238,7 +287,7 @@ test('system menus expose Nimvelis workflows and keyboard guidance', async ({ pa
   await page.getByRole('menuitem', { name: 'About This Device' }).click();
   const about = page.getByRole('dialog', { name: 'Nimvelis Aurora' });
   await expect(about).toBeVisible();
-  await expect(about).toContainText('Version 0.7');
+  await expect(about).toContainText('Version 0.8');
   await expect(about).toContainText('LOCAL STORAGE');
   await expect(about).toContainText('Display');
   await about.getByRole('button', { name: 'Close About This Device' }).click();

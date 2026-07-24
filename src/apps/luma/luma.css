@@ -1,0 +1,634 @@
+.luma-app {
+  --luma-ink: #07101f;
+  --luma-teal: #79f3dd;
+  --luma-blue: #89a7ff;
+  --luma-pink: #f5a9d0;
+  position: relative;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 76% 18%, rgba(111, 117, 255, 0.2), transparent 34%),
+    radial-gradient(circle at 22% 84%, rgba(63, 211, 190, 0.13), transparent 35%),
+    linear-gradient(145deg, #111a31 0%, #080f20 48%, #12112b 100%);
+  color: #f5f8ff;
+}
+
+.luma-app::before {
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle, rgba(255, 255, 255, 0.45) 0 1px, transparent 1.2px),
+    radial-gradient(circle, rgba(126, 242, 218, 0.28) 0 1px, transparent 1.2px);
+  background-position:
+    0 0,
+    19px 23px;
+  background-size:
+    47px 47px,
+    61px 61px;
+  content: '';
+  opacity: 0.22;
+  pointer-events: none;
+}
+
+.luma-header,
+.luma-footer {
+  position: relative;
+  z-index: 2;
+}
+
+.luma-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 64px;
+  padding: 11px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+  background: rgba(8, 13, 28, 0.45);
+  backdrop-filter: blur(18px);
+}
+
+.luma-title {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.luma-title__mark {
+  display: grid;
+  width: 39px;
+  height: 39px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 13px;
+  background:
+    radial-gradient(circle at 30% 20%, rgba(121, 243, 221, 0.38), transparent 52%),
+    rgba(110, 119, 255, 0.14);
+  color: var(--luma-teal);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.16);
+}
+
+.luma-title > span:last-child {
+  display: grid;
+  gap: 2px;
+}
+
+.luma-title strong {
+  font-size: 1rem;
+  font-weight: 680;
+  letter-spacing: 0.02em;
+}
+
+.luma-title small {
+  color: rgba(226, 234, 255, 0.58);
+  font-size: 0.72rem;
+}
+
+.luma-pause,
+.luma-actions button,
+.luma-overlay button {
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  color: #f5f8ff;
+  font: inherit;
+  cursor: pointer;
+  transition:
+    transform 130ms ease,
+    border-color 130ms ease,
+    background 130ms ease;
+}
+
+.luma-pause {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.065);
+  font-size: 0.76rem;
+  font-weight: 620;
+}
+
+.luma-pause span {
+  color: var(--luma-teal);
+  font-size: 0.72rem;
+}
+
+.luma-pause:hover,
+.luma-actions button:hover,
+.luma-overlay button:hover {
+  border-color: rgba(121, 243, 221, 0.42);
+  background: rgba(121, 243, 221, 0.11);
+}
+
+.luma-pause:active,
+.luma-actions button:active,
+.luma-overlay button:active {
+  transform: scale(0.97);
+}
+
+.luma-pause:disabled,
+.luma-actions button:disabled {
+  cursor: default;
+  opacity: 0.36;
+}
+
+.luma-main {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(210px, 0.8fr) minmax(280px, 1.25fr);
+  min-height: 0;
+}
+
+.luma-panel {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 14px;
+  padding: 17px;
+  overflow: auto;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(90deg, rgba(7, 12, 27, 0.78), rgba(7, 12, 27, 0.48));
+}
+
+.luma-difficulty {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  padding: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.luma-difficulty button {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  padding: 8px 5px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: rgba(231, 238, 255, 0.56);
+  font: inherit;
+  cursor: pointer;
+}
+
+.luma-difficulty button.is-active {
+  background: linear-gradient(145deg, rgba(116, 126, 255, 0.3), rgba(77, 218, 194, 0.16));
+  color: #fff;
+  box-shadow:
+    inset 0 0 0 1px rgba(151, 237, 224, 0.18),
+    0 5px 18px rgba(0, 0, 0, 0.16);
+}
+
+.luma-difficulty strong {
+  overflow: hidden;
+  font-size: 0.72rem;
+  font-weight: 640;
+  text-overflow: ellipsis;
+}
+
+.luma-difficulty small {
+  font-size: 0.61rem;
+  opacity: 0.55;
+}
+
+.luma-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.luma-stats article {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.085);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.luma-stats span,
+.luma-mission > span {
+  color: rgba(215, 224, 249, 0.48);
+  font-size: 0.59rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.luma-stats strong {
+  overflow: hidden;
+  font-size: 0.88rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 570;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.luma-mission {
+  display: grid;
+  gap: 6px;
+  padding: 15px;
+  border: 1px solid rgba(132, 164, 255, 0.16);
+  border-radius: 15px;
+  background:
+    radial-gradient(circle at 88% 8%, rgba(245, 169, 208, 0.14), transparent 36%),
+    rgba(120, 130, 255, 0.07);
+}
+
+.luma-mission > span {
+  color: rgba(121, 243, 221, 0.65);
+}
+
+.luma-mission strong {
+  font-size: 1.04rem;
+  font-weight: 640;
+}
+
+.luma-mission p {
+  margin: 0;
+  color: rgba(223, 230, 249, 0.62);
+  font-size: 0.74rem;
+  line-height: 1.5;
+}
+
+.luma-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  margin-top: auto;
+}
+
+.luma-actions button {
+  min-height: 36px;
+  padding: 0 10px;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.055);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.luma-actions button:first-child {
+  border-color: rgba(121, 243, 221, 0.25);
+  background: linear-gradient(145deg, rgba(104, 126, 255, 0.23), rgba(79, 218, 194, 0.14));
+}
+
+.luma-stage {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  place-items: center;
+  overflow: hidden;
+  padding: 24px;
+}
+
+.luma-stage__halo {
+  position: absolute;
+  width: min(78%, 430px);
+  aspect-ratio: 1;
+  border: 1px solid rgba(135, 164, 255, 0.13);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(105, 119, 255, 0.14), transparent 56%),
+    conic-gradient(
+      from 15deg,
+      rgba(121, 243, 221, 0.12),
+      transparent,
+      rgba(245, 169, 208, 0.09),
+      transparent,
+      rgba(121, 243, 221, 0.12)
+    );
+  filter: blur(0.2px);
+  opacity: 0.85;
+  animation: luma-orbit 24s linear infinite;
+}
+
+.luma-board {
+  --luma-gap: clamp(5px, 1.2vh, 10px);
+  position: relative;
+  z-index: 2;
+  display: grid;
+  width: min(88%, 430px);
+  max-height: 94%;
+  aspect-ratio: 1;
+  grid-template-columns: repeat(var(--luma-size), minmax(0, 1fr));
+  grid-template-rows: repeat(var(--luma-size), minmax(0, 1fr));
+  gap: var(--luma-gap);
+  padding: clamp(10px, 2.4vh, 19px);
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: clamp(22px, 5vw, 34px);
+  background:
+    radial-gradient(circle at 50% 0, rgba(123, 137, 255, 0.12), transparent 46%),
+    rgba(3, 8, 21, 0.67);
+  box-shadow:
+    0 28px 80px rgba(0, 0, 0, 0.34),
+    inset 0 1px rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(18px);
+}
+
+.luma-board button {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(149, 174, 255, 0.12);
+  border-radius: clamp(7px, 1.7vw, 14px);
+  background: rgba(111, 128, 190, 0.055);
+  color: white;
+  cursor: pointer;
+  transition:
+    transform 150ms ease,
+    border-color 180ms ease,
+    background 220ms ease,
+    box-shadow 220ms ease;
+}
+
+.luma-board button::before {
+  position: absolute;
+  width: 62%;
+  aspect-ratio: 1;
+  border: 1px solid currentColor;
+  border-radius: 38% 62% 54% 46%;
+  content: '';
+  opacity: 0.09;
+  transform: rotate(28deg);
+  transition:
+    opacity 220ms ease,
+    transform 220ms ease;
+}
+
+.luma-board button span {
+  width: clamp(5px, 23%, 17px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: rgba(150, 164, 205, 0.18);
+  box-shadow: 0 0 0 0 transparent;
+  transition:
+    background 220ms ease,
+    box-shadow 220ms ease,
+    transform 220ms ease;
+}
+
+.luma-board button:hover {
+  transform: translateY(-1px);
+  border-color: rgba(163, 192, 255, 0.3);
+  background: rgba(126, 143, 215, 0.1);
+}
+
+.luma-board button:active {
+  transform: scale(0.92);
+}
+
+.luma-board button:focus-visible {
+  outline: 2px solid rgba(121, 243, 221, 0.9);
+  outline-offset: 2px;
+}
+
+.luma-board button.is-lit {
+  border-color: rgba(137, 167, 255, 0.37);
+  background:
+    radial-gradient(circle at 50% 35%, rgba(255, 255, 255, 0.15), transparent 45%),
+    rgba(107, 121, 255, 0.14);
+  color: var(--luma-blue);
+  box-shadow:
+    0 0 18px rgba(104, 125, 255, 0.13),
+    inset 0 0 14px rgba(118, 245, 221, 0.06);
+}
+
+.luma-board button.is-lit::before {
+  opacity: 0.33;
+  transform: rotate(58deg) scale(1.08);
+}
+
+.luma-board button.is-lit span {
+  background: #f7fbff;
+  box-shadow:
+    0 0 8px #fff,
+    0 0 18px var(--luma-teal),
+    0 0 34px var(--luma-blue);
+  transform: scale(1.06);
+}
+
+.luma-board button.is-hint {
+  animation: luma-hint 1.05s ease-in-out infinite;
+  border-color: var(--luma-pink);
+}
+
+.luma-overlay {
+  position: absolute;
+  z-index: 4;
+  display: grid;
+  width: min(70%, 310px);
+  gap: 8px;
+  justify-items: center;
+  padding: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 50% 0, rgba(122, 244, 221, 0.13), transparent 45%),
+    rgba(6, 11, 27, 0.91);
+  box-shadow: 0 28px 85px rgba(0, 0, 0, 0.48);
+  text-align: center;
+  backdrop-filter: blur(20px);
+}
+
+.luma-overlay span {
+  color: var(--luma-teal);
+  font-size: 0.61rem;
+  font-weight: 750;
+  letter-spacing: 0.16em;
+}
+
+.luma-overlay strong {
+  font-size: 1.25rem;
+}
+
+.luma-overlay p {
+  margin: 0 0 5px;
+  color: rgba(230, 236, 255, 0.62);
+  font-size: 0.78rem;
+}
+
+.luma-overlay button {
+  min-height: 37px;
+  padding: 0 17px;
+  border-radius: 12px;
+  background: rgba(121, 243, 221, 0.1);
+  font-size: 0.74rem;
+  font-weight: 650;
+}
+
+.luma-overlay.is-win {
+  border-color: rgba(121, 243, 221, 0.27);
+}
+
+.luma-app[data-game-status='paused'] .luma-board,
+.luma-app[data-game-status='won'] .luma-board {
+  filter: blur(3px) saturate(0.7);
+  opacity: 0.52;
+  pointer-events: none;
+}
+
+.luma-footer {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 34px;
+  padding: 0 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(5, 10, 23, 0.62);
+  color: rgba(219, 227, 248, 0.42);
+  font-size: 0.62rem;
+}
+
+.luma-footer strong {
+  margin-left: auto;
+  color: rgba(121, 243, 221, 0.48);
+  font-size: 0.58rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+@keyframes luma-orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes luma-hint {
+  50% {
+    box-shadow:
+      0 0 0 4px rgba(245, 169, 208, 0.12),
+      0 0 24px rgba(245, 169, 208, 0.28);
+  }
+}
+
+@media (max-width: 620px), (max-height: 530px) {
+  .luma-header {
+    min-height: 53px;
+    padding: 7px 11px;
+  }
+
+  .luma-title__mark {
+    width: 34px;
+    height: 34px;
+  }
+
+  .luma-title small,
+  .luma-pause {
+    display: none;
+  }
+
+  .luma-main {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(240px, 1fr);
+  }
+
+  .luma-panel {
+    display: grid;
+    grid-template-columns: minmax(150px, 0.95fr) minmax(165px, 1.05fr);
+    gap: 8px;
+    padding: 9px 11px;
+    border-right: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    overflow: visible;
+  }
+
+  .luma-difficulty {
+    grid-column: 1 / -1;
+  }
+
+  .luma-stats {
+    grid-column: 1;
+  }
+
+  .luma-stats article {
+    padding: 7px;
+  }
+
+  .luma-stats span {
+    font-size: 0.52rem;
+  }
+
+  .luma-stats strong {
+    font-size: 0.72rem;
+  }
+
+  .luma-mission {
+    grid-column: 2;
+    grid-row: 2 / 4;
+    align-content: center;
+    padding: 10px;
+  }
+
+  .luma-mission strong {
+    font-size: 0.86rem;
+  }
+
+  .luma-mission p {
+    font-size: 0.64rem;
+  }
+
+  .luma-actions {
+    grid-column: 1;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 4px;
+  }
+
+  .luma-actions button {
+    min-height: 29px;
+    padding: 0 3px;
+    font-size: 0.58rem;
+  }
+
+  .luma-stage {
+    padding: 12px;
+  }
+
+  .luma-board {
+    width: min(90%, 380px);
+    max-height: 96%;
+    padding: 10px;
+    border-radius: 22px;
+  }
+
+  .luma-footer {
+    display: none;
+  }
+}
+
+@media (max-width: 430px) {
+  .luma-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .luma-mission {
+    display: none;
+  }
+
+  .luma-actions {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .luma-stage__halo,
+  .luma-board button.is-hint {
+    animation: none;
+  }
+
+  .luma-board button,
+  .luma-board button::before,
+  .luma-board button span {
+    transition: none;
+  }
+}
