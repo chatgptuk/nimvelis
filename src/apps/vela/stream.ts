@@ -3,6 +3,31 @@ export interface VelaStreamChunk {
   done: boolean;
 }
 
+export function extractVelaText(value: unknown): string {
+  if (typeof value === 'string') return value;
+  if (!isRecord(value)) return '';
+
+  if (typeof value.response === 'string') return value.response;
+  if (typeof value.text === 'string') return value.text;
+  if (!Array.isArray(value.choices)) return '';
+
+  return value.choices
+    .map((choice) => {
+      if (!isRecord(choice)) return '';
+
+      if (isRecord(choice.delta) && typeof choice.delta.content === 'string') {
+        return choice.delta.content;
+      }
+
+      if (isRecord(choice.message) && typeof choice.message.content === 'string') {
+        return choice.message.content;
+      }
+
+      return typeof choice.text === 'string' ? choice.text : '';
+    })
+    .join('');
+}
+
 export function consumeVelaStreamLine(line: string): VelaStreamChunk {
   const trimmed = line.trim();
   if (!trimmed.startsWith('data:')) return { text: '', done: false };
@@ -13,18 +38,10 @@ export function consumeVelaStreamLine(line: string): VelaStreamChunk {
 
   try {
     const parsed: unknown = JSON.parse(data);
-    if (typeof parsed === 'string') return { text: parsed, done: false };
-    if (isRecord(parsed) && typeof parsed.response === 'string') {
-      return { text: parsed.response, done: false };
-    }
-    if (isRecord(parsed) && typeof parsed.text === 'string') {
-      return { text: parsed.text, done: false };
-    }
+    return { text: extractVelaText(parsed), done: false };
   } catch {
     return { text: data, done: false };
   }
-
-  return { text: '', done: false };
 }
 
 export async function readVelaResponse(
@@ -37,16 +54,19 @@ export async function readVelaResponse(
   if (!contentType.includes('text/event-stream')) {
     const payload = await response.text();
     if (!payload) throw new Error('Workers AI returned an empty response.');
+
+    let parsed: unknown;
     try {
-      const parsed: unknown = JSON.parse(payload);
-      if (isRecord(parsed) && typeof parsed.response === 'string') {
-        onText(parsed.response);
-        return;
-      }
+      parsed = JSON.parse(payload);
     } catch {
       // A plain-text response is still valid.
+      onText(payload);
+      return;
     }
-    onText(payload);
+
+    const text = extractVelaText(parsed);
+    if (!text) throw new Error('Workers AI returned an empty response.');
+    onText(text);
     return;
   }
 
