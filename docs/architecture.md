@@ -20,7 +20,7 @@ flowchart LR
   Sync --> VFS
   Search["System Search\napps + local content"] --> Registry
   Search --> VFS
-  Vela["Vela text app\nlocal conversation history"] --> Worker["Worker API\nvalidation + model allowlist"]
+  Vela["Vela multimodal app\nlocal text history"] --> Worker["Worker API\nvalidation + model allowlist"]
   Worker --> AI["Cloudflare Workers AI\nstreamed inference"]
   Connections["Connections app\nbrowser capability signals"] --> Browser["Network Information · Web Bluetooth"]
   Terminal["Local Shell\nparser · history · completion"] --> API
@@ -120,11 +120,12 @@ The production service worker caches the application shell and same-origin built
 workers are surfaced through Device space so the user controls when to refresh. It does not cache
 or upload virtual-file content: IndexedDB remains the source of truth for local files.
 
-Vela stores completed messages and the selected model key in localStorage. Sending a message posts
-only the visible conversation slice and selected key to `/api/vela/chat`; it has no VFS capability
-and cannot read files or device details. The Worker holds the system prompt and Cloudflare model
-IDs, rejects unsupported models and cross-origin browser requests, and returns a no-store SSE
-stream.
+Vela stores completed text messages in localStorage. Sending a message posts only the visible
+conversation slice and, when the user explicitly chooses one, a browser-scaled image to
+`/api/vela/chat`; it has no VFS capability and cannot read files or device details. Attached image
+data remains session-only. The Worker holds the system prompt and Cloudflare model IDs, validates
+image MIME type and decoded size, rejects unsupported models and cross-origin browser requests,
+and returns a no-store SSE stream.
 
 Connections does not persist Bluetooth devices or network details. Network estimates are read
 from the browser when available, and the latency check fetches a same-origin static manifest with

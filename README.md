@@ -9,8 +9,8 @@
 Nimvelis Aurora 0.8 is a browser-native personal workspace with a desktop interface. It combines
 a local-first window manager, IndexedDB file system, Files, Text, Tasks, Calendar, Clock,
 Connections, Terminal, Luma, local media preview, global search, system-wide personalization, and
-an installable offline shell with Vela, an optional text assistant powered by Cloudflare Workers
-AI.
+an installable offline shell with Vela, an optional text-and-image assistant powered by
+Cloudflare Workers AI.
 
 Nimvelis is an independent project and is not affiliated with or endorsed by Apple Inc. Its
 marks, icons, wallpaper, interface assets, naming, and visual system are original to Nimvelis;
@@ -101,8 +101,9 @@ resource IDs. It declares only portable `AI` and static asset bindings.
   three board sizes, hints, undo, a timer, and device-local best scores.
 - Personalize interface density, desktop icon visibility, time zone, 12/24-hour clock, calendar
   week start, text scale, contrast, motion, appearance, and wallpaper from Settings.
-- Chat with Vela through Cloudflare Workers AI, choose between server-approved Llama and Gemma
-  models, stream replies, stop generation, copy responses, and keep conversation history locally.
+- Chat with Vela through the server-approved Gemma 4 model, explicitly attach a PNG, JPEG, or WebP
+  image for visual analysis, stream replies, stop generation, copy responses, and keep text
+  conversation history locally.
 - Multi-select, copy, cut, paste, move, sort, favorite, and drag files between folders; switch
   between list and grid views; browse Recent and undo moves to Trash.
 - Edit documents in tabs with automatic local saving, find and replace, Markdown preview, recent
@@ -144,10 +145,11 @@ Cloudflare account to this app. Terminal therefore rejects host commands such as
 
 ## AI and privacy
 
-Vela sends the conversation messages shown in its window and the selected model key to
-`/api/vela/chat`. The Worker validates the request, maps the key to an approved Cloudflare model,
-and streams the Workers AI response back. Vela never reads or uploads Nimvelis files
-automatically. Its chat history and model choice stay in the browser's local storage. Prompts are
+Vela sends the visible conversation slice and, only when explicitly attached, one browser-scaled
+image to `/api/vela/chat`. The Worker validates text, image type and size, maps the model key to
+the approved Gemma 4 deployment, and streams the Workers AI response back. Vela never reads or
+uploads Nimvelis files automatically. Completed text messages stay in browser local storage;
+attached image data is not added to persistent chat history. Prompts and attachments are
 processed under the deploying Cloudflare account's Workers AI service and policies.
 
 ## License

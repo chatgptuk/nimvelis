@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildWorkersAiMessages,
   GEMMA_CONTEXT_WINDOW_TOKENS,
   getVelaMaxCompletionTokens,
   readModelKey,
+  sanitizeChatImage,
   sanitizeChatMessages,
 } from '../worker';
 
@@ -35,5 +37,45 @@ describe('Vela Worker request validation', () => {
     expect(getVelaMaxCompletionTokens(0)).toBe(253_952);
     expect(getVelaMaxCompletionTokens(12_000)).toBe(241_952);
     expect(getVelaMaxCompletionTokens(48_000)).toBe(205_952);
+    expect(getVelaMaxCompletionTokens(12_000, true)).toBe(209_184);
+  });
+
+  it('validates an attached image and adds it only to the latest user turn', () => {
+    const image = sanitizeChatImage({
+      image: { dataUrl: 'data:image/png;base64,iVBORw0KGgo=' },
+    });
+    expect(image).toMatchObject({ mimeType: 'image/png', byteLength: 8 });
+
+    const messages = buildWorkersAiMessages(
+      [
+        { role: 'assistant', content: 'What would you like to inspect?' },
+        { role: 'user', content: 'Describe the colors.' },
+      ],
+      image,
+    );
+
+    expect(messages.at(-1)).toEqual({
+      role: 'user',
+      content: [
+        { type: 'text', text: 'Describe the colors.' },
+        {
+          type: 'image_url',
+          image_url: {
+            url: 'data:image/png;base64,iVBORw0KGgo=',
+            detail: 'auto',
+          },
+        },
+      ],
+    });
+    expect(messages.at(-2)?.content).toBe('What would you like to inspect?');
+  });
+
+  it('rejects malformed or unsupported image data', () => {
+    expect(
+      sanitizeChatImage({ image: { dataUrl: 'data:image/svg+xml;base64,PHN2Zz4=' } }),
+    ).toBeNull();
+    expect(
+      sanitizeChatImage({ image: { dataUrl: 'data:image/png;base64,not base64' } }),
+    ).toBeNull();
   });
 });

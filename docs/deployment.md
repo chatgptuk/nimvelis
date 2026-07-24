@@ -163,10 +163,11 @@ Confirm that the deployed copy still contains:
 ### Local desktop state does not appear on another device
 
 Aurora 0.8 stores windows, workspaces, desktop icon positions, preferences (including time zone
-and week start), tasks, calendar events, notifications, Vela conversation history and model
-choice, Terminal command history, Luma best scores, Memo content, appearance, and wallpaper in
+and week start), tasks, calendar events, notifications, Vela text conversation history, Terminal
+command history, Luma best scores, Memo content, appearance, and wallpaper in
 localStorage. Files and their content live in IndexedDB in the same browser. Terminal uses only
 those local files and explicit system-app capabilities; it cannot run host or Cloudflare account
 commands. Luma never sends gameplay or scores to a server. Network details and Bluetooth devices
 are not stored. Deploying the app does not synchronize state across browsers or devices. Vela
-sends only its visible conversation to Workers AI when the user sends a message.
+sends only its visible conversation and an image the user explicitly attaches to Workers AI when
+the user sends a message; attached image data is not persisted in chat history.

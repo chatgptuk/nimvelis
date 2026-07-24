@@ -1,7 +1,13 @@
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type KeyboardEvent } from 'react';
 import { AppIcon, Icon } from '../../design/Icon';
 import { MarkdownContent } from '../../design/MarkdownContent';
 import type { SystemAppProps } from '../../kernel/app-registry/types';
+import {
+  formatVelaImageSize,
+  prepareVelaImage,
+  VELA_IMAGE_ACCEPT,
+  type VelaImageAttachment,
+} from './image';
 import { readVelaResponse } from './stream';
 import './vela.css';
 
@@ -14,6 +20,7 @@ interface VelaMessage {
   content: string;
   createdAt: number;
   state: VelaMessageState;
+  image?: VelaImageAttachment;
 }
 
 const STORAGE_KEY = 'nimvelis.aurora.vela';
@@ -37,8 +44,11 @@ export function VelaApp({ system }: SystemAppProps) {
   const [messages, setMessages] = useState<VelaMessage[]>(readHistory);
   const [draft, setDraft] = useState('');
   const [responseModel, setResponseModel] = useState<string>(VELA_MODEL.modelId);
+  const [attachment, setAttachment] = useState<VelaImageAttachment | null>(null);
+  const [isPreparingImage, setIsPreparingImage] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const isResponding = messages.some((message) => message.state === 'streaming');
   const requestMessages = useMemo(
     () =>
@@ -50,7 +60,10 @@ export function VelaApp({ system }: SystemAppProps) {
   );
 
   useEffect(() => {
-    const saved = messages.filter((message) => message.state === 'complete').slice(-HISTORY_LIMIT);
+    const saved = messages
+      .filter((message) => message.state === 'complete')
+      .slice(-HISTORY_LIMIT)
+      .map(({ id, role, content, createdAt, state }) => ({ id, role, content, createdAt, state }));
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
     } catch {
@@ -71,16 +84,20 @@ export function VelaApp({ system }: SystemAppProps) {
   );
 
   const send = async (suggestion?: string) => {
-    const content = (suggestion ?? draft).trim();
-    if (!content || isResponding) return;
+    const selectedImage = suggestion ? null : attachment;
+    const content =
+      (suggestion ?? draft).trim() ||
+      (selectedImage ? 'Describe this image and call out the important details.' : '');
+    if (!content || isResponding || isPreparingImage) return;
 
-    const userMessage = createMessage('user', content);
+    const userMessage = createMessage('user', content, 'complete', selectedImage ?? undefined);
     const assistantMessage = createMessage('assistant', '', 'streaming');
     const nextRequest = [...requestMessages, { role: 'user' as const, content }].slice(
       -REQUEST_HISTORY_LIMIT,
     );
 
     setDraft('');
+    setAttachment(null);
     setMessages((current) => [...current, userMessage, assistantMessage].slice(-HISTORY_LIMIT));
     const controller = new AbortController();
     abortRef.current = controller;
@@ -89,7 +106,16 @@ export function VelaApp({ system }: SystemAppProps) {
       const response = await fetch('/api/vela/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: nextRequest, model: VELA_MODEL.id }),
+        body: JSON.stringify({
+          messages: nextRequest,
+          model: VELA_MODEL.id,
+          image: selectedImage
+            ? {
+                dataUrl: selectedImage.dataUrl,
+                name: selectedImage.name,
+              }
+            : undefined,
+        }),
         signal: controller.signal,
       });
 
@@ -156,6 +182,25 @@ export function VelaApp({ system }: SystemAppProps) {
     abortRef.current?.abort();
     setMessages([createWelcomeMessage()]);
     setDraft('');
+    setAttachment(null);
+  };
+
+  const handleImageSelection = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.currentTarget.files?.[0];
+    event.currentTarget.value = '';
+    if (!file || isResponding) return;
+
+    setIsPreparingImage(true);
+    try {
+      setAttachment(await prepareVelaImage(file));
+    } catch (error) {
+      system.notify(
+        error instanceof Error ? error.message : 'This image could not be attached.',
+        'error',
+      );
+    } finally {
+      setIsPreparingImage(false);
+    }
   };
 
   const handleDraftKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -175,7 +220,7 @@ export function VelaApp({ system }: SystemAppProps) {
           <span>
             <small>NIMVELIS INTELLIGENCE</small>
             <strong>Vela</strong>
-            <span>Text assistant powered by Workers AI</span>
+            <span>Text + image assistant powered by Workers AI</span>
           </span>
         </div>
         <div className="vela-hero__actions">
@@ -202,6 +247,12 @@ export function VelaApp({ system }: SystemAppProps) {
           >
             <span className="vela-message__role">{message.role === 'user' ? 'You' : 'Vela'}</span>
             <div>
+              {message.image ? (
+                <figure className="vela-message__image">
+                  <img src={message.image.dataUrl} alt={`Attached ${message.image.name}`} />
+                  <figcaption>{message.image.name}</figcaption>
+                </figure>
+              ) : null}
               {message.content ? (
                 message.role === 'assistant' && message.state !== 'error' ? (
                   <MarkdownContent
@@ -262,11 +313,55 @@ export function VelaApp({ system }: SystemAppProps) {
 
       <footer className="vela-composer">
         <div className="vela-composer__box">
+          {attachment ? (
+            <div className="vela-attachment" aria-label="Attached image">
+              <img src={attachment.dataUrl} alt="" />
+              <span>
+                <strong>{attachment.name}</strong>
+                <small>
+                  {attachment.width} × {attachment.height} · {formatVelaImageSize(attachment.size)}
+                </small>
+              </span>
+              <button
+                type="button"
+                aria-label={`Remove attached ${attachment.name}`}
+                onClick={() => setAttachment(null)}
+                disabled={isResponding}
+              >
+                <Icon name="close" size={14} />
+              </button>
+            </div>
+          ) : null}
+          <input
+            ref={imageInputRef}
+            className="vela-image-input"
+            type="file"
+            accept={VELA_IMAGE_ACCEPT}
+            aria-label="Choose an image for Vela"
+            onChange={(event) => {
+              void handleImageSelection(event);
+            }}
+            disabled={isResponding || isPreparingImage}
+          />
+          <button
+            type="button"
+            className="vela-attach"
+            aria-label={isPreparingImage ? 'Preparing image' : 'Attach image'}
+            title="Attach PNG, JPEG, or WebP"
+            disabled={isResponding || isPreparingImage}
+            onClick={() => imageInputRef.current?.click()}
+          >
+            {isPreparingImage ? (
+              <span className="vela-attach__spinner" />
+            ) : (
+              <Icon name="wallpaper" size={18} />
+            )}
+          </button>
           <textarea
             value={draft}
             onChange={(event) => setDraft(event.target.value.slice(0, 6_000))}
             onKeyDown={handleDraftKeyDown}
-            placeholder="Message Vela…"
+            placeholder={attachment ? 'Ask Vela about this image…' : 'Message Vela…'}
             aria-label="Message Vela"
             rows={2}
             disabled={isResponding}
@@ -285,7 +380,7 @@ export function VelaApp({ system }: SystemAppProps) {
               type="button"
               className="vela-send"
               aria-label="Send message"
-              disabled={!draft.trim()}
+              disabled={(!draft.trim() && !attachment) || isPreparingImage}
               onClick={() => {
                 void send();
               }}
@@ -295,9 +390,7 @@ export function VelaApp({ system }: SystemAppProps) {
           )}
         </div>
         <div className="vela-privacy">
-          <span>
-            Prompts are sent to Cloudflare Workers AI. Nimvelis does not send your local files.
-          </span>
+          <span>Only prompts and images you attach are sent to Cloudflare Workers AI.</span>
           <span title={responseModel}>{VELA_MODEL.label} · local history</span>
         </div>
       </footer>
@@ -338,8 +431,9 @@ function createMessage(
   role: VelaRole,
   content: string,
   state: VelaMessageState = 'complete',
+  image?: VelaImageAttachment,
 ): VelaMessage {
-  return { id: createId(), role, content, createdAt: Date.now(), state };
+  return { id: createId(), role, content, createdAt: Date.now(), state, image };
 }
 
 function createId(): string {

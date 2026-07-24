@@ -178,7 +178,7 @@ const manifests = [
   {
     id: 'vela',
     name: 'Vela',
-    description: 'A private-by-design text assistant powered by Cloudflare Workers AI.',
+    description: 'A private-by-design text and image assistant powered by Workers AI.',
     icon: 'vela',
     component: VelaApp,
     defaultWindow: {

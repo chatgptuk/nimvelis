@@ -445,6 +445,43 @@ test('Vela exposes only the server-approved Gemma 4 model', async ({ page }) => 
   );
 });
 
+test('Vela compresses and sends one explicitly attached image to Gemma', async ({ page }) => {
+  let sentImage = '';
+  await page.route('**/api/vela/chat', async (route) => {
+    const body = route.request().postDataJSON() as {
+      image?: { dataUrl?: string };
+    };
+    sentImage = body.image?.dataUrl ?? '';
+    await route.fulfill({
+      status: 200,
+      headers: {
+        'Content-Type': 'text/event-stream; charset=utf-8',
+        'X-Nimvelis-AI-Model': '@cf/google/gemma-4-26b-a4b-it',
+      },
+      body: 'data: {"response":"The attached image is ready."}\n\ndata: [DONE]\n\n',
+    });
+  });
+
+  await page.getByRole('button', { name: /^Vela/ }).last().click();
+  const velaWindow = page.locator('[data-app-id="vela"]');
+  await velaWindow.getByLabel('Choose an image for Vela').setInputFiles({
+    name: 'test-image.png',
+    mimeType: 'image/png',
+    buffer: Buffer.from(
+      'iVBORw0KGgoAAAANSUhEUgAAABAAAAAMCAYAAABr5z2BAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAAGklEQVQokWNQ6LvznxLMMGrA/9EwuDMcwgAAnsjm0CzoJUoAAAAASUVORK5CYII=',
+      'base64',
+    ),
+  });
+
+  await expect(velaWindow.getByText('test-image.png', { exact: true })).toBeVisible();
+  await expect(velaWindow.getByRole('button', { name: 'Send message' })).toBeEnabled();
+  await velaWindow.getByRole('button', { name: 'Send message' }).click();
+
+  await expect(velaWindow.getByText('The attached image is ready.')).toBeVisible();
+  await expect(velaWindow.getByRole('img', { name: 'Attached test-image.png' })).toBeVisible();
+  expect(sentImage).toMatch(/^data:image\/webp;base64,/);
+});
+
 test('system menus expose Nimvelis workflows and keyboard guidance', async ({ page }) => {
   await expect(page.locator('.top-bar__active-mark .app-icon-art--memo')).toBeVisible();
   await page.locator('.desktop-workspace').dispatchEvent('pointerdown');
