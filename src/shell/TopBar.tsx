@@ -11,6 +11,7 @@ interface TopBarProps {
   onToggleMaximize: () => void;
   onToggleFullscreen: () => void;
   onClose: () => void;
+  onOpenAbout: () => void;
   onOpenSettings: () => void;
   onOpenSearch: () => void;
 }
@@ -25,6 +26,7 @@ export function TopBar({
   onToggleMaximize,
   onToggleFullscreen,
   onClose,
+  onOpenAbout,
   onOpenSettings,
   onOpenSearch,
 }: TopBarProps) {
@@ -72,6 +74,11 @@ export function TopBar({
                 </div>
               </div>
               <p>An independent space for your local work.</p>
+              <div className="top-menu__separator" />
+              <button type="button" role="menuitem" onClick={() => runAndClose(onOpenAbout)}>
+                About This Device
+                <Icon name="chevron" size={14} />
+              </button>
               <div className="top-menu__separator" />
               <button type="button" role="menuitem" onClick={() => runAndClose(onOpenSettings)}>
                 Personalize Nimvelis

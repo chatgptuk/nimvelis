@@ -5,6 +5,7 @@ import type { NimvelisSystemApi } from '../kernel/system-api';
 import { isTextMimeType, localFileSystem, type VfsNode } from '../kernel/vfs';
 import type { DesktopViewport, WindowInstance } from '../kernel/window-manager/types';
 import { useDesktopStore, type AppearanceMode } from '../state/desktop-store';
+import { AboutDevice } from './AboutDevice';
 import { DesktopIcons } from './DesktopIcons';
 import { Shelf } from './Shelf';
 import { SystemSearch } from './SystemSearch';
@@ -55,6 +56,7 @@ export function DesktopShell() {
     })),
   );
   const [viewport, setViewport] = useState<DesktopViewport>(() => readViewport());
+  const [aboutOpen, setAboutOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [notifications, setNotifications] = useState<
     Array<{ id: number; message: string; tone: 'neutral' | 'success' | 'error' }>
@@ -127,6 +129,12 @@ export function DesktopShell() {
         return;
       }
 
+      if (event.key === 'Escape' && aboutOpen) {
+        event.preventDefault();
+        setAboutOpen(false);
+        return;
+      }
+
       if (event.key === 'Escape' && activeWindow?.state === 'fullscreen') {
         event.preventDefault();
         toggleFullscreen(activeWindow.id);
@@ -135,7 +143,7 @@ export function DesktopShell() {
 
     globalThis.addEventListener('keydown', handleKeyboard);
     return () => globalThis.removeEventListener('keydown', handleKeyboard);
-  }, [activeWindow, cycleFocus, searchOpen, toggleFullscreen]);
+  }, [aboutOpen, activeWindow, cycleFocus, searchOpen, toggleFullscreen]);
 
   const handleShelfLaunch = (appId: string, forceNew: boolean) => {
     const manifest = getAppManifest(appId);
@@ -172,6 +180,7 @@ export function DesktopShell() {
         onToggleMaximize={() => activeWindow && toggleMaximize(activeWindow.id)}
         onToggleFullscreen={() => activeWindow && toggleFullscreen(activeWindow.id)}
         onClose={() => activeWindow && closeWindow(activeWindow.id)}
+        onOpenAbout={() => setAboutOpen(true)}
         onOpenSettings={() => openApp('settings')}
         onOpenSearch={() => setSearchOpen(true)}
       />
@@ -217,6 +226,15 @@ export function DesktopShell() {
           onClose={() => setSearchOpen(false)}
           onOpenApp={(appId) => openApp(appId)}
           onOpenFile={openFile}
+        />
+      ) : null}
+      {aboutOpen ? (
+        <AboutDevice
+          appearance={resolvedAppearance}
+          openWindowCount={windows.filter((window) => window.state !== 'minimized').length}
+          wallpaper={wallpaper}
+          onClose={() => setAboutOpen(false)}
+          onOpenSettings={() => openApp('settings')}
         />
       ) : null}
       <div className="notification-stack" aria-live="polite">

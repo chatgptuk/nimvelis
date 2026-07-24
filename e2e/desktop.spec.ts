@@ -69,6 +69,16 @@ test('appearance settings update the desktop immediately', async ({ page }) => {
 });
 
 test('system menus expose Nimvelis workflows and keyboard guidance', async ({ page }) => {
+  await page.getByRole('button', { name: 'Open Nimvelis menu' }).click();
+  await page.getByRole('menuitem', { name: 'About This Device' }).click();
+  const about = page.getByRole('dialog', { name: 'Nimvelis Aurora' });
+  await expect(about).toBeVisible();
+  await expect(about).toContainText('Version 0.2');
+  await expect(about).toContainText('LOCAL STORAGE');
+  await expect(about).toContainText('Display');
+  await about.getByRole('button', { name: 'Close About This Device' }).click();
+  await expect(about).toBeHidden();
+
   await page.getByRole('button', { name: 'Space', exact: true }).click();
   const spaceMenu = page.getByRole('menu');
   await expect(spaceMenu).toContainText('Saved on this device');

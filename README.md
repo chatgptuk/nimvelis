@@ -89,6 +89,7 @@ routes fall back to `index.html`.
 - Edit plain-text documents with automatic local saving.
 - Preview images, PDFs, audio, and video without uploading them.
 - Search applications, file names, and the content of small text documents with `⌘/Ctrl + K`.
+- Inspect the current browser, device, display, and local storage from **About This Device**.
 - Install the app and reopen its shell offline after the first production visit.
 
 Aurora 0.2 does not yet include accounts, cloud files, AI, collaboration, or third-party apps.
