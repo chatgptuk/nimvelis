@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { useDesktopStore } from '../src/state/desktop-store';
+import { DEFAULT_DESKTOP_PREFERENCES, useDesktopStore } from '../src/state/desktop-store';
 
 describe('desktop store', () => {
   beforeEach(() => {
@@ -13,6 +13,7 @@ describe('desktop store', () => {
       workspaces: [{ id: 'space-main', name: 'Main', createdAt: 0 }],
       activeWorkspaceId: 'space-main',
       desktopIconPositions: {},
+      preferences: DEFAULT_DESKTOP_PREFERENCES,
     });
   });
 
@@ -118,5 +119,22 @@ describe('desktop store', () => {
 
     useDesktopStore.getState().resetDesktopIconPositions();
     expect(useDesktopStore.getState().desktopIconPositions).toEqual({});
+  });
+
+  it('updates and resets system preferences', () => {
+    useDesktopStore.getState().updatePreferences({
+      interfaceDensity: 'compact',
+      showSeconds: true,
+      textScale: 'large',
+    });
+
+    expect(useDesktopStore.getState().preferences).toMatchObject({
+      interfaceDensity: 'compact',
+      showSeconds: true,
+      textScale: 'large',
+    });
+
+    useDesktopStore.getState().resetPreferences();
+    expect(useDesktopStore.getState().preferences).toEqual(DEFAULT_DESKTOP_PREFERENCES);
   });
 });

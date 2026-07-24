@@ -162,7 +162,8 @@ Confirm that the deployed copy still contains:
 
 ### Local desktop state does not appear on another device
 
-Aurora 0.4 stores windows, workspaces, desktop icon positions, notifications, Vela conversation
+Aurora 0.5 stores windows, workspaces, desktop icon positions, preferences, tasks, calendar
+events, notifications, Vela conversation
 history and model choice, Memo content, appearance, and wallpaper in localStorage. Files and their
 content live in IndexedDB in the same browser. Deploying the app does not synchronize state across
 browsers or devices. Vela sends only its visible conversation to Workers AI when the user sends a

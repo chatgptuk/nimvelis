@@ -1,7 +1,10 @@
 import { CalculatorApp } from '../../apps/calculator/CalculatorApp';
+import { CalendarApp } from '../../apps/calendar/CalendarApp';
+import { ClockApp } from '../../apps/clock/ClockApp';
 import { FilesApp } from '../../apps/files/FilesApp';
 import { MemoApp } from '../../apps/memo/MemoApp';
 import { SettingsApp } from '../../apps/settings/SettingsApp';
+import { TasksApp } from '../../apps/tasks/TasksApp';
 import { TextApp } from '../../apps/text/TextApp';
 import { VelaApp } from '../../apps/vela/VelaApp';
 import { ViewApp } from '../../apps/view/ViewApp';
@@ -56,6 +59,48 @@ const manifests = [
     allowMultipleInstances: true,
   },
   {
+    id: 'tasks',
+    name: 'Tasks',
+    description: 'Plan and complete local tasks with dates and priorities.',
+    icon: 'tasks',
+    component: TasksApp,
+    defaultWindow: {
+      width: 760,
+      height: 560,
+      minWidth: 520,
+      minHeight: 380,
+    },
+    allowMultipleInstances: false,
+  },
+  {
+    id: 'calendar',
+    name: 'Calendar',
+    description: 'A private local calendar connected to your task agenda.',
+    icon: 'calendar',
+    component: CalendarApp,
+    defaultWindow: {
+      width: 860,
+      height: 610,
+      minWidth: 620,
+      minHeight: 440,
+    },
+    allowMultipleInstances: false,
+  },
+  {
+    id: 'clock',
+    name: 'Clock',
+    description: 'World clocks, a focus timer, and a precise stopwatch.',
+    icon: 'clock',
+    component: ClockApp,
+    defaultWindow: {
+      width: 700,
+      height: 540,
+      minWidth: 480,
+      minHeight: 380,
+    },
+    allowMultipleInstances: false,
+  },
+  {
     id: 'calculator',
     name: 'Calculator',
     description: 'A calm, capable everyday calculator.',
@@ -106,10 +151,10 @@ const manifests = [
     icon: 'settings',
     component: SettingsApp,
     defaultWindow: {
-      width: 780,
-      height: 570,
-      minWidth: 560,
-      minHeight: 410,
+      width: 820,
+      height: 610,
+      minWidth: 590,
+      minHeight: 440,
     },
     permissions: ['appearance:write'],
     allowMultipleInstances: false,

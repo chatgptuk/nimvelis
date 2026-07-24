@@ -1,4 +1,5 @@
 import { useDesktopStore, type DesktopStore } from './desktop-store';
+import { useProductivityStore, type ProductivitySnapshot } from './productivity-store';
 import { useSystemStore } from './system-store';
 
 const CHANNEL_NAME = 'nimvelis.aurora.desktop-sync';
@@ -14,6 +15,7 @@ type DesktopSnapshot = Pick<
   | 'workspaces'
   | 'activeWorkspaceId'
   | 'desktopIconPositions'
+  | 'preferences'
 >;
 
 interface SyncMessage {
@@ -91,6 +93,47 @@ export function startSystemSync() {
   };
 }
 
+export function startProductivitySync() {
+  if (typeof BroadcastChannel === 'undefined') return () => {};
+  const channel = new BroadcastChannel('nimvelis.aurora.productivity-sync');
+  let receiving = false;
+  const unsubscribe = useProductivityStore.subscribe((state) => {
+    if (!receiving) {
+      channel.postMessage({
+        sourceId: SOURCE_ID,
+        snapshot: { tasks: state.tasks, events: state.events } satisfies ProductivitySnapshot,
+      });
+    }
+  });
+  channel.addEventListener(
+    'message',
+    (
+      event: MessageEvent<{
+        sourceId?: string;
+        snapshot?: ProductivitySnapshot;
+      }>,
+    ) => {
+      const snapshot = event.data?.snapshot;
+      if (
+        event.data?.sourceId === SOURCE_ID ||
+        !Array.isArray(snapshot?.tasks) ||
+        !Array.isArray(snapshot.events)
+      ) {
+        return;
+      }
+      receiving = true;
+      useProductivityStore.setState(snapshot);
+      queueMicrotask(() => {
+        receiving = false;
+      });
+    },
+  );
+  return () => {
+    unsubscribe();
+    channel.close();
+  };
+}
+
 function pickSnapshot(state: DesktopStore): DesktopSnapshot {
   return {
     windows: state.windows,
@@ -101,6 +144,7 @@ function pickSnapshot(state: DesktopStore): DesktopSnapshot {
     workspaces: state.workspaces,
     activeWorkspaceId: state.activeWorkspaceId,
     desktopIconPositions: state.desktopIconPositions,
+    preferences: state.preferences,
   };
 }
 

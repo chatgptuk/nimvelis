@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Icon, NimvelisMark } from '../design/Icon';
 import type { AppManifest } from '../kernel/app-registry/types';
 import type { WindowInstance } from '../kernel/window-manager/types';
+import type { ClockFormat } from '../state/desktop-store';
 
 interface TopBarProps {
   activeWindow?: WindowInstance;
@@ -21,6 +22,9 @@ interface TopBarProps {
   onResetDesktopIcons: () => void;
   activeWorkspaceName: string;
   unreadNotifications: number;
+  clockFormat: ClockFormat;
+  showDate: boolean;
+  showSeconds: boolean;
 }
 
 type MenuId = 'nimvelis' | 'space' | 'view' | 'window' | 'help' | null;
@@ -43,10 +47,13 @@ export function TopBar({
   onResetDesktopIcons,
   activeWorkspaceName,
   unreadNotifications,
+  clockFormat,
+  showDate,
+  showSeconds,
 }: TopBarProps) {
   const [openMenu, setOpenMenu] = useState<MenuId>(null);
   const barRef = useRef<HTMLElement>(null);
-  const now = useClock();
+  const now = useClock(showSeconds);
 
   useEffect(() => {
     const closeOnOutsideClick = (event: PointerEvent) => {
@@ -84,7 +91,7 @@ export function TopBar({
                 <NimvelisMark size={40} />
                 <div>
                   <strong>Nimvelis</strong>
-                  <span>Aurora desktop · 0.4</span>
+                  <span>Aurora desktop · 0.5</span>
                 </div>
               </div>
               <p>An independent space for your local work.</p>
@@ -287,7 +294,7 @@ export function TopBar({
                 </span>
               </div>
               <div className="top-menu__separator" />
-              <div className="top-menu__footnote">Nimvelis Aurora 0.4</div>
+              <div className="top-menu__footnote">Nimvelis Aurora 0.5</div>
             </div>
           )}
         </div>
@@ -313,15 +320,19 @@ export function TopBar({
           ) : null}
         </button>
         <time dateTime={now.toISOString()}>
-          {new Intl.DateTimeFormat(undefined, {
-            weekday: 'short',
-            month: 'short',
-            day: 'numeric',
-          }).format(now)}
+          {showDate
+            ? new Intl.DateTimeFormat(undefined, {
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric',
+              }).format(now)
+            : null}
           <strong>
             {new Intl.DateTimeFormat(undefined, {
               hour: 'numeric',
               minute: '2-digit',
+              second: showSeconds ? '2-digit' : undefined,
+              hour12: clockFormat === 'system' ? undefined : clockFormat === '12h',
             }).format(now)}
           </strong>
         </time>
@@ -330,13 +341,13 @@ export function TopBar({
   );
 }
 
-function useClock() {
+function useClock(showSeconds: boolean) {
   const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
-    const interval = globalThis.setInterval(() => setNow(new Date()), 30_000);
+    const interval = globalThis.setInterval(() => setNow(new Date()), showSeconds ? 1_000 : 30_000);
     return () => globalThis.clearInterval(interval);
-  }, []);
+  }, [showSeconds]);
 
   return now;
 }

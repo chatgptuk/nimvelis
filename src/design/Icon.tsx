@@ -8,6 +8,9 @@ export type IconName =
   | 'text'
   | 'view'
   | 'vela'
+  | 'tasks'
+  | 'calendar'
+  | 'clock'
   | 'search'
   | 'folder'
   | 'file'
@@ -101,6 +104,27 @@ export function Icon({ name, size = 20, ...props }: IconProps) {
         <svg {...shared}>
           <path d="M12 3.3c4.9 0 8.7 3.4 8.7 8s-3.8 8-8.7 8c-1.1 0-2.2-.2-3.2-.5L4 21l1.4-4.3a7.7 7.7 0 0 1-2.1-5.4c0-4.6 3.8-8 8.7-8Z" />
           <path d="M7.8 11.6c2.7-.4 4.2-1.9 4.6-4.5.4 2.6 1.9 4.1 4.5 4.5-2.6.4-4.1 1.9-4.5 4.5-.4-2.6-1.9-4.1-4.6-4.5Z" />
+        </svg>
+      );
+    case 'tasks':
+      return (
+        <svg {...shared}>
+          <rect x="4" y="3" width="16" height="18" rx="4" />
+          <path d="m7.5 8 1.5 1.5L12 6.5M14 8h2.5M7.5 14 9 15.5l3-3M14 14h2.5" />
+        </svg>
+      );
+    case 'calendar':
+      return (
+        <svg {...shared}>
+          <rect x="3" y="5" width="18" height="16" rx="3" />
+          <path d="M7 3v4M17 3v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 17.5h.01M12 17.5h.01" />
+        </svg>
+      );
+    case 'clock':
+      return (
+        <svg {...shared}>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 7v5l3.5 2" />
         </svg>
       );
     case 'search':
@@ -248,6 +272,9 @@ const APP_ICON_PALETTES = {
   text: ['#353368', '#8a67d3', '#f1c0ff'],
   view: ['#59344b', '#d26d7b', '#ffd391'],
   vela: ['#15365d', '#38b9b7', '#a9ffef'],
+  tasks: ['#163f4a', '#2da18c', '#a2f3d8'],
+  calendar: ['#253b68', '#507fd1', '#b7dfff'],
+  clock: ['#4b2d51', '#d4776d', '#ffd39b'],
 } as const;
 
 export function AppIcon({ name, size = 56, className = '', ...props }: AppIconProps) {
@@ -304,7 +331,21 @@ export function AppIcon({ name, size = 56, className = '', ...props }: AppIconPr
       {name === 'text' && <TextArtwork accent={palette[2]} />}
       {name === 'view' && <ViewArtwork accent={palette[2]} />}
       {name === 'vela' && <VelaArtwork accent={palette[2]} />}
-      {!['calculator', 'memo', 'settings', 'files', 'text', 'view', 'vela'].includes(name) && (
+      {name === 'tasks' && <TasksArtwork accent={palette[2]} />}
+      {name === 'calendar' && <CalendarArtwork accent={palette[2]} />}
+      {name === 'clock' && <ClockArtwork accent={palette[2]} />}
+      {![
+        'calculator',
+        'memo',
+        'settings',
+        'files',
+        'text',
+        'view',
+        'vela',
+        'tasks',
+        'calendar',
+        'clock',
+      ].includes(name) && (
         <g color="white">
           <rect x="15" y="15" width="34" height="34" rx="12" fill="white" fillOpacity=".1" />
           <path
@@ -499,6 +540,81 @@ function VelaArtwork({ accent }: { accent: string }) {
       />
       <circle cx="20" cy="21" r="2.4" fill={accent} />
       <circle cx="46" cy="39" r="1.8" fill="white" fillOpacity=".88" />
+    </g>
+  );
+}
+
+function TasksArtwork({ accent }: { accent: string }) {
+  return (
+    <g>
+      <path
+        d="M17 13h30a4 4 0 0 1 4 4v31a5 5 0 0 1-5 5H18a5 5 0 0 1-5-5V17a4 4 0 0 1 4-4Z"
+        fill="#f5fffb"
+        fillOpacity=".92"
+      />
+      <path
+        d="m20 25 3 3 6-7M20 37l3 3 6-7"
+        stroke="#167669"
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M34 25h10M34 37h10M20 47h22"
+        stroke="#23534f"
+        strokeOpacity=".72"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+      />
+      <circle cx="46" cy="17" r="4" fill={accent} />
+    </g>
+  );
+}
+
+function CalendarArtwork({ accent }: { accent: string }) {
+  return (
+    <g>
+      <path
+        d="M14 19a5 5 0 0 1 5-5h27a5 5 0 0 1 5 5v28a5 5 0 0 1-5 5H19a5 5 0 0 1-5-5Z"
+        fill="#f7fbff"
+        fillOpacity=".94"
+      />
+      <path d="M14 25h37v-6a5 5 0 0 0-5-5H19a5 5 0 0 0-5 5Z" fill={accent} fillOpacity=".82" />
+      <path d="M22 11v7M43 11v7" stroke="white" strokeWidth="3" strokeLinecap="round" />
+      <g fill="#365c91">
+        <rect x="21" y="31" width="6" height="6" rx="2" />
+        <rect x="30" y="31" width="6" height="6" rx="2" opacity=".55" />
+        <rect x="39" y="31" width="6" height="6" rx="2" opacity=".55" />
+        <rect x="21" y="40" width="6" height="6" rx="2" opacity=".55" />
+        <rect x="30" y="40" width="6" height="6" rx="2" />
+      </g>
+    </g>
+  );
+}
+
+function ClockArtwork({ accent }: { accent: string }) {
+  return (
+    <g>
+      <circle
+        cx="32"
+        cy="32"
+        r="20"
+        fill="#fff9f2"
+        fillOpacity=".94"
+        stroke="white"
+        strokeOpacity=".46"
+        strokeWidth="2"
+      />
+      <circle cx="32" cy="32" r="14" fill="#4a304e" fillOpacity=".14" />
+      <path
+        d="M32 20v12l8 5"
+        stroke="#573c56"
+        strokeWidth="3.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="32" cy="32" r="3.2" fill={accent} />
+      <path d="M32 15v3M49 32h-3M32 49v-3M15 32h3" stroke="#6b4b61" strokeWidth="2" />
     </g>
   );
 }

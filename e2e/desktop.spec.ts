@@ -1,7 +1,11 @@
 import { expect, test } from '@playwright/test';
 
 test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => localStorage.clear());
+  await page.addInitScript(() => {
+    if (sessionStorage.getItem('nimvelis-e2e-ready')) return;
+    localStorage.clear();
+    sessionStorage.setItem('nimvelis-e2e-ready', 'true');
+  });
   await page.goto('/');
 });
 
@@ -68,6 +72,69 @@ test('appearance settings update the desktop immediately', async ({ page }) => {
   await expect(page.locator('.desktop-shell')).toHaveAttribute('data-wallpaper', 'solstice');
 });
 
+test('desktop and accessibility settings update persisted shell preferences', async ({ page }) => {
+  await page
+    .getByRole('button', { name: /^Settings/ })
+    .last()
+    .click();
+  const settingsWindow = page.locator('[data-app-id="settings"]');
+
+  await settingsWindow.getByRole('button', { name: /Desktop/ }).click();
+  await settingsWindow.getByRole('button', { name: 'Compact' }).click();
+  await settingsWindow.getByRole('switch', { name: 'Show seconds' }).click();
+  await expect(page.locator('.desktop-shell')).toHaveAttribute('data-density', 'compact');
+
+  await settingsWindow.getByRole('button', { name: /Accessibility/ }).click();
+  await settingsWindow.getByRole('button', { name: 'Large' }).click();
+  await settingsWindow.getByRole('switch', { name: 'Higher contrast' }).click();
+  await settingsWindow.getByRole('switch', { name: 'Reduce motion' }).click();
+  await expect(page.locator('.desktop-shell')).toHaveAttribute('data-high-contrast', 'true');
+  await expect(page.locator('.desktop-shell')).toHaveAttribute('data-reduce-motion', 'true');
+  await expect(page.locator('html')).toHaveAttribute('data-text-scale', 'large');
+
+  await page.reload();
+  await expect(page.locator('.desktop-shell')).toHaveAttribute('data-density', 'compact');
+  await expect(page.locator('.desktop-shell')).toHaveAttribute('data-high-contrast', 'true');
+});
+
+test('tasks and calendar share a local agenda', async ({ page }) => {
+  await page
+    .getByRole('button', { name: /^Tasks/ })
+    .last()
+    .click();
+  const tasksWindow = page.locator('[data-app-id="tasks"]');
+  await tasksWindow.getByRole('textbox', { name: 'Task title' }).fill('Ship Aurora 0.5');
+  await tasksWindow.getByRole('textbox', { name: 'Task due date' }).fill('2026-07-23');
+  await tasksWindow.getByRole('button', { name: 'Add task' }).click();
+  await expect(tasksWindow.getByText('Ship Aurora 0.5')).toBeVisible();
+
+  await page
+    .getByRole('button', { name: /^Calendar/ })
+    .last()
+    .click();
+  const calendarWindow = page.locator('[data-app-id="calendar"]');
+  await calendarWindow.getByRole('textbox', { name: 'Event title' }).fill('Release review');
+  await calendarWindow.getByRole('button', { name: 'Add event' }).click();
+  await expect(calendarWindow.getByText('Release review')).toBeVisible();
+});
+
+test('clock includes world clocks, timer, and stopwatch', async ({ page }) => {
+  await page
+    .getByRole('button', { name: /^Clock/ })
+    .last()
+    .click();
+  const clockWindow = page.locator('[data-app-id="clock"]');
+  await expect(clockWindow.getByText('Vancouver')).toBeVisible();
+
+  await clockWindow.getByRole('button', { name: 'Timer' }).click();
+  await clockWindow.getByRole('button', { name: 'Start' }).click();
+  await expect(clockWindow.getByRole('button', { name: 'Pause' })).toBeVisible();
+
+  await clockWindow.getByRole('button', { name: 'Stopwatch' }).click();
+  await clockWindow.getByRole('button', { name: 'Start' }).click();
+  await expect(clockWindow.getByRole('button', { name: 'Pause' })).toBeVisible();
+});
+
 test('desktop icons can be moved and keep their positions after reload', async ({ page }) => {
   const filesIcon = page.getByRole('button', { name: 'Open Files' });
   const before = await filesIcon.boundingBox();
@@ -105,7 +172,7 @@ test('system menus expose Nimvelis workflows and keyboard guidance', async ({ pa
   await page.getByRole('menuitem', { name: 'About This Device' }).click();
   const about = page.getByRole('dialog', { name: 'Nimvelis Aurora' });
   await expect(about).toBeVisible();
-  await expect(about).toContainText('Version 0.4');
+  await expect(about).toContainText('Version 0.5');
   await expect(about).toContainText('LOCAL STORAGE');
   await expect(about).toContainText('Display');
   await about.getByRole('button', { name: 'Close About This Device' }).click();

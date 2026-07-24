@@ -4,8 +4,12 @@ import { getAppManifest, listAppManifests } from '../kernel/app-registry/registr
 import type { NimvelisSystemApi } from '../kernel/system-api';
 import { isTextMimeType, localFileSystem, type VfsNode } from '../kernel/vfs';
 import type { DesktopViewport, WindowInstance } from '../kernel/window-manager/types';
-import { useDesktopStore, type AppearanceMode } from '../state/desktop-store';
-import { startDesktopSync, startSystemSync } from '../state/desktop-sync';
+import {
+  useDesktopStore,
+  type AppearanceMode,
+  type DesktopPreferences,
+} from '../state/desktop-store';
+import { startDesktopSync, startProductivitySync, startSystemSync } from '../state/desktop-sync';
 import { useSystemStore } from '../state/system-store';
 import { AboutDevice } from './AboutDevice';
 import { DesktopOverview } from './DesktopOverview';
@@ -52,6 +56,9 @@ export function DesktopShell() {
     desktopIconPositions,
     setDesktopIconPosition,
     resetDesktopIconPositions,
+    preferences,
+    updatePreferences,
+    resetPreferences,
   } = useDesktopStore(
     useShallow((state) => ({
       windows: state.windows,
@@ -84,6 +91,9 @@ export function DesktopShell() {
       desktopIconPositions: state.desktopIconPositions,
       setDesktopIconPosition: state.setDesktopIconPosition,
       resetDesktopIconPositions: state.resetDesktopIconPositions,
+      preferences: state.preferences,
+      updatePreferences: state.updatePreferences,
+      resetPreferences: state.resetPreferences,
     })),
   );
   const {
@@ -122,6 +132,36 @@ export function DesktopShell() {
   const activeManifest = activeWindow ? getAppManifest(activeWindow.appId) : undefined;
   const searchCommands = useMemo<SystemCommand[]>(
     () => [
+      {
+        id: 'new-task',
+        title: 'Add a task',
+        description: 'Open your local task list',
+        keywords: 'todo reminder productivity plan',
+        icon: 'tasks',
+        run: () => {
+          openApp('tasks');
+        },
+      },
+      {
+        id: 'open-calendar',
+        title: 'Open calendar',
+        description: 'Plan events and see task due dates',
+        keywords: 'date schedule agenda event',
+        icon: 'calendar',
+        run: () => {
+          openApp('calendar');
+        },
+      },
+      {
+        id: 'focus-timer',
+        title: 'Start a focus timer',
+        description: 'Open Clock for a focused work session',
+        keywords: 'clock countdown pomodoro stopwatch focus',
+        icon: 'clock',
+        run: () => {
+          openApp('clock');
+        },
+      },
       {
         id: 'ask-vela',
         title: 'Ask Vela',
@@ -238,9 +278,11 @@ export function DesktopShell() {
   useEffect(() => {
     const stopDesktopSync = startDesktopSync();
     const stopSystemSync = startSystemSync();
+    const stopProductivitySync = startProductivitySync();
     return () => {
       stopDesktopSync();
       stopSystemSync();
+      stopProductivitySync();
     };
   }, []);
 
@@ -253,6 +295,13 @@ export function DesktopShell() {
       globalThis.removeEventListener('offline', updateOnline);
     };
   }, []);
+
+  useEffect(() => {
+    document.documentElement.dataset.textScale = preferences.textScale;
+    return () => {
+      delete document.documentElement.dataset.textScale;
+    };
+  }, [preferences.textScale]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -352,6 +401,10 @@ export function DesktopShell() {
       className={`desktop-shell wallpaper-${wallpaper}`}
       data-appearance={resolvedAppearance}
       data-wallpaper={wallpaper}
+      data-density={preferences.interfaceDensity}
+      data-high-contrast={preferences.highContrast}
+      data-reduce-motion={preferences.reduceMotion}
+      data-text-scale={preferences.textScale}
     >
       <TopBar
         activeWindow={activeWindow}
@@ -379,6 +432,9 @@ export function DesktopShell() {
         unreadNotifications={
           notificationHistory.filter((notification) => !notification.read).length
         }
+        clockFormat={preferences.clockFormat}
+        showDate={preferences.showDate}
+        showSeconds={preferences.showSeconds}
       />
       <section
         className="desktop-workspace"
@@ -390,15 +446,17 @@ export function DesktopShell() {
         <div className="desktop-atmosphere" aria-hidden="true" />
         <div className="desktop-version" aria-hidden="true">
           <span>AURORA</span>
-          <strong>0.4</strong>
+          <strong>0.5</strong>
         </div>
-        <DesktopIcons
-          apps={apps}
-          viewport={viewport}
-          positions={desktopIconPositions}
-          onMove={setDesktopIconPosition}
-          onOpen={(appId) => openApp(appId)}
-        />
+        {preferences.showDesktopIcons ? (
+          <DesktopIcons
+            apps={apps}
+            viewport={viewport}
+            positions={desktopIconPositions}
+            onMove={setDesktopIconPosition}
+            onOpen={(appId) => openApp(appId)}
+          />
+        ) : null}
         {workspaceWindows.map((window) => (
           <WindowHost
             key={window.id}
@@ -406,12 +464,16 @@ export function DesktopShell() {
             viewport={viewport}
             appearance={appearance}
             wallpaper={wallpaper}
+            preferences={preferences}
             openApp={openApp}
             closeWindow={closeWindow}
             setWindowTitle={setWindowTitle}
             updateWindowData={updateWindowData}
             setAppearance={setAppearance}
             setWallpaper={setWallpaper}
+            updatePreferences={updatePreferences}
+            resetPreferences={resetPreferences}
+            resetDesktopIconPositions={resetDesktopIconPositions}
             openFile={openFile}
             notify={notify}
           />
@@ -516,12 +578,16 @@ interface WindowHostProps {
   viewport: DesktopViewport;
   appearance: AppearanceMode;
   wallpaper: 'aurora' | 'solstice' | 'stillness';
+  preferences: DesktopPreferences;
   openApp: NimvelisSystemApi['openApp'];
   closeWindow: NimvelisSystemApi['closeWindow'];
   setWindowTitle: NimvelisSystemApi['setWindowTitle'];
   updateWindowData: NimvelisSystemApi['updateWindowData'];
   setAppearance: NimvelisSystemApi['setAppearance'];
   setWallpaper: NimvelisSystemApi['setWallpaper'];
+  updatePreferences: NimvelisSystemApi['updatePreferences'];
+  resetPreferences: NimvelisSystemApi['resetPreferences'];
+  resetDesktopIconPositions: NimvelisSystemApi['resetDesktopIconPositions'];
   openFile: NimvelisSystemApi['openFile'];
   notify: NimvelisSystemApi['notify'];
 }
@@ -531,12 +597,16 @@ function WindowHost({
   viewport,
   appearance,
   wallpaper,
+  preferences,
   openApp,
   closeWindow,
   setWindowTitle,
   updateWindowData,
   setAppearance,
   setWallpaper,
+  updatePreferences,
+  resetPreferences,
+  resetDesktopIconPositions,
   openFile,
   notify,
 }: WindowHostProps) {
@@ -544,6 +614,7 @@ function WindowHost({
     () => ({
       appearance,
       wallpaper,
+      preferences,
       files: localFileSystem,
       openApp,
       openFile,
@@ -553,16 +624,23 @@ function WindowHost({
       updateWindowData,
       setAppearance,
       setWallpaper,
+      updatePreferences,
+      resetPreferences,
+      resetDesktopIconPositions,
     }),
     [
       appearance,
       closeWindow,
       openApp,
       openFile,
+      preferences,
+      resetDesktopIconPositions,
+      resetPreferences,
       notify,
       setAppearance,
       setWallpaper,
       setWindowTitle,
+      updatePreferences,
       updateWindowData,
       wallpaper,
     ],

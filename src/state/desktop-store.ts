@@ -15,6 +15,31 @@ import type {
 
 export type AppearanceMode = 'system' | 'light' | 'dark';
 export type WallpaperId = 'aurora' | 'solstice' | 'stillness';
+export type InterfaceDensity = 'comfortable' | 'compact';
+export type TextScale = 'small' | 'standard' | 'large';
+export type ClockFormat = 'system' | '12h' | '24h';
+
+export interface DesktopPreferences {
+  showDesktopIcons: boolean;
+  interfaceDensity: InterfaceDensity;
+  reduceMotion: boolean;
+  highContrast: boolean;
+  textScale: TextScale;
+  clockFormat: ClockFormat;
+  showDate: boolean;
+  showSeconds: boolean;
+}
+
+export const DEFAULT_DESKTOP_PREFERENCES: DesktopPreferences = {
+  showDesktopIcons: true,
+  interfaceDensity: 'comfortable',
+  reduceMotion: false,
+  highContrast: false,
+  textScale: 'standard',
+  clockFormat: 'system',
+  showDate: true,
+  showSeconds: false,
+};
 
 interface PersistedDesktopState {
   windows: WindowInstance[];
@@ -25,6 +50,7 @@ interface PersistedDesktopState {
   workspaces: DesktopWorkspace[];
   activeWorkspaceId: string;
   desktopIconPositions: Record<string, DesktopIconPosition>;
+  preferences: DesktopPreferences;
 }
 
 interface DesktopActions {
@@ -54,6 +80,8 @@ interface DesktopActions {
   minimizeAppWindows: (appId: string) => void;
   setDesktopIconPosition: (appId: string, position: DesktopIconPosition) => void;
   resetDesktopIconPositions: () => void;
+  updatePreferences: (preferences: Partial<DesktopPreferences>) => void;
+  resetPreferences: () => void;
 }
 
 export type DesktopStore = PersistedDesktopState & DesktopActions;
@@ -99,6 +127,7 @@ const INITIAL_STATE: PersistedDesktopState = {
   workspaces: INITIAL_WORKSPACES,
   activeWorkspaceId: 'space-main',
   desktopIconPositions: {},
+  preferences: DEFAULT_DESKTOP_PREFERENCES,
 };
 
 export const useDesktopStore = create<DesktopStore>()(
@@ -527,11 +556,21 @@ export const useDesktopStore = create<DesktopStore>()(
       },
 
       resetDesktopIconPositions: () => set({ desktopIconPositions: {} }),
+
+      updatePreferences: (preferences) =>
+        set((state) => ({
+          preferences: {
+            ...state.preferences,
+            ...preferences,
+          },
+        })),
+
+      resetPreferences: () => set({ preferences: DEFAULT_DESKTOP_PREFERENCES }),
     }),
     {
       name: 'nimvelis.aurora.desktop',
       storage: createJSONStorage(() => window.localStorage),
-      version: 3,
+      version: 4,
       migrate: (persistedState) => persistedState,
       partialize: (state): PersistedDesktopState => ({
         windows: state.windows,
@@ -542,6 +581,7 @@ export const useDesktopStore = create<DesktopStore>()(
         workspaces: state.workspaces,
         activeWorkspaceId: state.activeWorkspaceId,
         desktopIconPositions: state.desktopIconPositions,
+        preferences: state.preferences,
       }),
       merge: (persistedState, currentState) => {
         const persisted = isRecord(persistedState)
@@ -581,6 +621,7 @@ export const useDesktopStore = create<DesktopStore>()(
           workspaces: resolvedWorkspaces,
           activeWorkspaceId,
           desktopIconPositions: sanitizeDesktopIconPositions(persisted.desktopIconPositions),
+          preferences: sanitizePreferences(persisted.preferences),
         };
       },
     },
@@ -709,4 +750,40 @@ function isDesktopIconPosition(value: unknown): value is DesktopIconPosition {
     typeof value.y === 'number' &&
     Number.isFinite(value.y)
   );
+}
+
+function sanitizePreferences(value: unknown): DesktopPreferences {
+  if (!isRecord(value)) return DEFAULT_DESKTOP_PREFERENCES;
+  return {
+    showDesktopIcons:
+      typeof value.showDesktopIcons === 'boolean'
+        ? value.showDesktopIcons
+        : DEFAULT_DESKTOP_PREFERENCES.showDesktopIcons,
+    interfaceDensity:
+      value.interfaceDensity === 'compact' || value.interfaceDensity === 'comfortable'
+        ? value.interfaceDensity
+        : DEFAULT_DESKTOP_PREFERENCES.interfaceDensity,
+    reduceMotion:
+      typeof value.reduceMotion === 'boolean'
+        ? value.reduceMotion
+        : DEFAULT_DESKTOP_PREFERENCES.reduceMotion,
+    highContrast:
+      typeof value.highContrast === 'boolean'
+        ? value.highContrast
+        : DEFAULT_DESKTOP_PREFERENCES.highContrast,
+    textScale:
+      value.textScale === 'small' || value.textScale === 'standard' || value.textScale === 'large'
+        ? value.textScale
+        : DEFAULT_DESKTOP_PREFERENCES.textScale,
+    clockFormat:
+      value.clockFormat === 'system' || value.clockFormat === '12h' || value.clockFormat === '24h'
+        ? value.clockFormat
+        : DEFAULT_DESKTOP_PREFERENCES.clockFormat,
+    showDate:
+      typeof value.showDate === 'boolean' ? value.showDate : DEFAULT_DESKTOP_PREFERENCES.showDate,
+    showSeconds:
+      typeof value.showSeconds === 'boolean'
+        ? value.showSeconds
+        : DEFAULT_DESKTOP_PREFERENCES.showSeconds,
+  };
 }

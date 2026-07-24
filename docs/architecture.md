@@ -1,6 +1,6 @@
-# Nimvelis Aurora 0.4 architecture
+# Nimvelis Aurora 0.5 architecture
 
-Nimvelis is a long-running browser SPA with a small edge API. Aurora 0.4 preserves the local
+Nimvelis is a long-running browser SPA with a small edge API. Aurora 0.5 preserves the local
 desktop boundaries while adding Vela through a native Cloudflare Workers AI binding. It still has
 no account, remote file storage, or collaboration code.
 
@@ -10,7 +10,7 @@ no account, remote file storage, or collaboration code.
 flowchart LR
   Shell["Desktop Shell\nTop Bar · Overview · Shelf · Windows"] --> Store["Desktop Store\nZustand + versioned persistence"]
   Shell --> Registry["App Registry\nTyped manifests"]
-  Registry --> Apps["System Apps\nFiles · Text · View · Vela · Utilities"]
+  Registry --> Apps["System Apps\nFiles · Text · Tasks · Calendar · Clock · Vela"]
   Apps --> API["Nimvelis System API"]
   API --> Store
   Store --> Persistence["Browser localStorage\nstable state only"]
@@ -28,8 +28,8 @@ flowchart LR
 - `src/kernel/app-registry` is the only list of installed applications. A manifest defines the
   component, identity, initial size, minimum size, permissions, and instance policy.
 - `src/state/desktop-store.ts` owns durable desktop state, named workspaces, desktop icon
-  positions, snapping, and window lifecycle actions. `system-store.ts` owns durable notification
-  history.
+  positions, system preferences, snapping, and window lifecycle actions. `productivity-store.ts`
+  owns local tasks and calendar events; `system-store.ts` owns durable notification history.
 - `src/shell` turns the kernel state into the desktop UI and implements Pointer Events.
 - `src/apps` receives a window record and a capability-shaped System API. Apps do not import or
   mutate the desktop store.
@@ -76,9 +76,10 @@ The Zustand `persist` middleware stores only stable user state:
 - the z-index counter;
 - appearance mode;
 - wallpaper choice;
-- welcome completion.
-- named workspaces and the active workspace.
-- desktop icon positions.
+- welcome completion;
+- named workspaces and the active workspace;
+- desktop icon positions;
+- interface, clock, desktop, and accessibility preferences.
 
 Transient pointer data, animation state, menu state, current time, and resolved system color
 scheme are not persisted. Rehydration validates records, application IDs, bounds, visual states,
@@ -91,9 +92,10 @@ directory treats its descendants as one tree, and Trash keeps recoverable record
 permanently removed. The search boundary reads names and the contents of small text-compatible
 files; it ignores trashed items.
 
-`BroadcastChannel` synchronizes stable desktop state, notification history, and VFS change
-signals between same-origin tabs. Every IndexedDB write remains the source of truth; receiving
-tabs reload records from IndexedDB instead of transferring file Blobs through the channel.
+`BroadcastChannel` synchronizes stable desktop state, local tasks and calendar events,
+notification history, and VFS change signals between same-origin tabs. Every IndexedDB write
+remains the source of truth; receiving tabs reload records from IndexedDB instead of transferring
+file Blobs through the channel.
 
 The production service worker caches the application shell and same-origin built assets. Waiting
 workers are surfaced through Device space so the user controls when to refresh. It does not cache

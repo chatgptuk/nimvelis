@@ -1,4 +1,4 @@
-import type { AppearanceMode, WallpaperId } from '../state/desktop-store';
+import type { AppearanceMode, DesktopPreferences, WallpaperId } from '../state/desktop-store';
 import type { VfsNode, VirtualFileSystem } from './vfs';
 import type { WindowBounds } from './window-manager/types';
 
@@ -10,6 +10,7 @@ export interface OpenAppOptions {
 export interface NimvelisSystemApi {
   appearance: AppearanceMode;
   wallpaper: WallpaperId;
+  preferences: DesktopPreferences;
   files: VirtualFileSystem;
   openApp: (appId: string, options?: OpenAppOptions) => string | null;
   openFile: (node: VfsNode) => string | null;
@@ -19,4 +20,7 @@ export interface NimvelisSystemApi {
   updateWindowData: (windowId: string, data: unknown) => void;
   setAppearance: (appearance: AppearanceMode) => void;
   setWallpaper: (wallpaper: WallpaperId) => void;
+  updatePreferences: (preferences: Partial<DesktopPreferences>) => void;
+  resetPreferences: () => void;
+  resetDesktopIconPositions: () => void;
 }

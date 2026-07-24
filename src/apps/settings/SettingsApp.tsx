@@ -1,7 +1,34 @@
+import { useEffect, useState, type ReactNode } from 'react';
 import { Icon, type IconName } from '../../design/Icon';
+import { listAppManifests } from '../../kernel/app-registry/registry';
 import type { SystemAppProps } from '../../kernel/app-registry/types';
-import type { AppearanceMode, WallpaperId } from '../../state/desktop-store';
+import type {
+  AppearanceMode,
+  ClockFormat,
+  InterfaceDensity,
+  TextScale,
+  WallpaperId,
+} from '../../state/desktop-store';
 import './settings.css';
+
+type SettingsSection = 'appearance' | 'desktop' | 'accessibility' | 'system';
+
+const SECTIONS: Array<{
+  id: SettingsSection;
+  label: string;
+  description: string;
+  icon: IconName;
+}> = [
+  { id: 'appearance', label: 'Appearance', description: 'Theme and atmosphere', icon: 'wallpaper' },
+  { id: 'desktop', label: 'Desktop', description: 'Icons, clock, and density', icon: 'window' },
+  {
+    id: 'accessibility',
+    label: 'Accessibility',
+    description: 'Reading and motion',
+    icon: 'sparkle',
+  },
+  { id: 'system', label: 'System', description: 'Storage and reset', icon: 'system' },
+];
 
 const APPEARANCES: { id: AppearanceMode; label: string; icon: IconName }[] = [
   { id: 'system', label: 'Auto', icon: 'system' },
@@ -16,92 +43,465 @@ const WALLPAPERS: { id: WallpaperId; name: string; subtitle: string }[] = [
 ];
 
 export function SettingsApp({ system }: SystemAppProps) {
+  const [section, setSection] = useState<SettingsSection>('appearance');
+
   return (
     <div className="settings-app">
       <aside className="settings-sidebar">
-        <div className="settings-avatar">
-          <Icon name="sparkle" size={18} />
-        </div>
-        <div>
-          <strong>Local space</strong>
-          <span>Aurora 0.4</span>
-        </div>
+        <header>
+          <div className="settings-avatar">
+            <Icon name="settings" size={19} />
+          </div>
+          <div>
+            <strong>Local space</strong>
+            <span>Aurora 0.5</span>
+          </div>
+        </header>
         <nav aria-label="Settings sections">
-          <button type="button" className="settings-nav-item is-active">
-            <Icon name="wallpaper" size={18} />
-            Appearance
-          </button>
-          <button type="button" className="settings-nav-item" disabled>
-            <Icon name="window" size={18} />
-            Desktop
-            <span>Soon</span>
-          </button>
+          {SECTIONS.map((item) => (
+            <button
+              type="button"
+              key={item.id}
+              className={`settings-nav-item ${section === item.id ? 'is-active' : ''}`}
+              aria-current={section === item.id ? 'page' : undefined}
+              onClick={() => setSection(item.id)}
+            >
+              <Icon name={item.icon} size={18} />
+              <span>
+                <strong>{item.label}</strong>
+                <small>{item.description}</small>
+              </span>
+              <Icon name="chevron" size={13} />
+            </button>
+          ))}
         </nav>
+        <footer>
+          <span className="status-dot" />
+          Saved on this device
+        </footer>
       </aside>
       <main className="settings-content">
-        <div className="settings-heading">
-          <span className="settings-eyebrow">PERSONALIZE</span>
-          <h2>Make the space yours.</h2>
-          <p>Appearance and wallpaper stay on this device.</p>
-        </div>
-
-        <section className="settings-section" aria-labelledby="appearance-heading">
-          <h3 id="appearance-heading">Appearance</h3>
-          <div className="appearance-options">
-            {APPEARANCES.map((appearance) => (
-              <button
-                type="button"
-                key={appearance.id}
-                className={`appearance-option ${
-                  system.appearance === appearance.id ? 'is-selected' : ''
-                }`}
-                aria-pressed={system.appearance === appearance.id}
-                onClick={() => system.setAppearance(appearance.id)}
-              >
-                <span className={`appearance-preview appearance-preview--${appearance.id}`}>
-                  <span />
-                  <span />
-                </span>
-                <span>
-                  <Icon name={appearance.icon} size={16} />
-                  {appearance.label}
-                </span>
-                {system.appearance === appearance.id && (
-                  <Icon name="check" className="settings-check" size={16} />
-                )}
-              </button>
-            ))}
-          </div>
-        </section>
-
-        <section className="settings-section" aria-labelledby="wallpaper-heading">
-          <h3 id="wallpaper-heading">Atmosphere</h3>
-          <div className="wallpaper-options">
-            {WALLPAPERS.map((wallpaper) => (
-              <button
-                type="button"
-                key={wallpaper.id}
-                className={`wallpaper-option wallpaper-option--${wallpaper.id} ${
-                  system.wallpaper === wallpaper.id ? 'is-selected' : ''
-                }`}
-                aria-pressed={system.wallpaper === wallpaper.id}
-                onClick={() => system.setWallpaper(wallpaper.id)}
-              >
-                <span className="wallpaper-swatch" />
-                <span className="wallpaper-copy">
-                  <strong>{wallpaper.name}</strong>
-                  <small>{wallpaper.subtitle}</small>
-                </span>
-                {system.wallpaper === wallpaper.id && (
-                  <span className="wallpaper-selected">
-                    <Icon name="check" size={14} />
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-        </section>
+        {section === 'appearance' ? <AppearanceSettings system={system} /> : null}
+        {section === 'desktop' ? <DesktopSettings system={system} /> : null}
+        {section === 'accessibility' ? <AccessibilitySettings system={system} /> : null}
+        {section === 'system' ? <SystemSettings system={system} /> : null}
       </main>
     </div>
   );
+}
+
+function AppearanceSettings({ system }: Pick<SystemAppProps, 'system'>) {
+  return (
+    <>
+      <SettingsHeading
+        eyebrow="PERSONALIZE"
+        title="Make the space yours."
+        description="Appearance and wallpaper stay on this device."
+      />
+      <SettingsGroup title="Appearance" description="Choose how windows and apps are rendered.">
+        <div className="appearance-options">
+          {APPEARANCES.map((appearance) => (
+            <button
+              type="button"
+              key={appearance.id}
+              className={`appearance-option ${
+                system.appearance === appearance.id ? 'is-selected' : ''
+              }`}
+              aria-pressed={system.appearance === appearance.id}
+              onClick={() => system.setAppearance(appearance.id)}
+            >
+              <span className={`appearance-preview appearance-preview--${appearance.id}`}>
+                <span />
+                <span />
+              </span>
+              <span>
+                <Icon name={appearance.icon} size={16} />
+                {appearance.label}
+              </span>
+              {system.appearance === appearance.id ? (
+                <Icon name="check" className="settings-check" size={16} />
+              ) : null}
+            </button>
+          ))}
+        </div>
+      </SettingsGroup>
+      <SettingsGroup title="Atmosphere" description="Set the background for every workspace.">
+        <div className="wallpaper-options">
+          {WALLPAPERS.map((wallpaper) => (
+            <button
+              type="button"
+              key={wallpaper.id}
+              className={`wallpaper-option wallpaper-option--${wallpaper.id} ${
+                system.wallpaper === wallpaper.id ? 'is-selected' : ''
+              }`}
+              aria-pressed={system.wallpaper === wallpaper.id}
+              onClick={() => system.setWallpaper(wallpaper.id)}
+            >
+              <span className="wallpaper-swatch" />
+              <span className="wallpaper-copy">
+                <strong>{wallpaper.name}</strong>
+                <small>{wallpaper.subtitle}</small>
+              </span>
+              {system.wallpaper === wallpaper.id ? (
+                <span className="wallpaper-selected">
+                  <Icon name="check" size={14} />
+                </span>
+              ) : null}
+            </button>
+          ))}
+        </div>
+      </SettingsGroup>
+    </>
+  );
+}
+
+function DesktopSettings({ system }: Pick<SystemAppProps, 'system'>) {
+  const preferences = system.preferences;
+  return (
+    <>
+      <SettingsHeading
+        eyebrow="WORKSPACE"
+        title="Shape your desktop."
+        description="Control what stays visible and how much space the interface uses."
+      />
+      <SettingsGroup title="Desktop" description="Manage app icons and their layout.">
+        <div className="settings-list">
+          <SettingsRow
+            title="Show desktop icons"
+            description="Keep application shortcuts on every workspace."
+            control={
+              <Toggle
+                label="Show desktop icons"
+                checked={preferences.showDesktopIcons}
+                onChange={(checked) => system.updatePreferences({ showDesktopIcons: checked })}
+              />
+            }
+          />
+          <SettingsRow
+            title="Icon layout"
+            description="Return every app icon to its original position."
+            control={
+              <button
+                type="button"
+                className="settings-action"
+                onClick={() => {
+                  system.resetDesktopIconPositions();
+                  system.notify('Desktop icon layout reset', 'success');
+                }}
+              >
+                Reset layout
+              </button>
+            }
+          />
+        </div>
+      </SettingsGroup>
+      <SettingsGroup title="Interface" description="Adjust spacing across windows and the shelf.">
+        <SegmentedControl<InterfaceDensity>
+          label="Interface density"
+          value={preferences.interfaceDensity}
+          options={[
+            { value: 'comfortable', label: 'Comfortable' },
+            { value: 'compact', label: 'Compact' },
+          ]}
+          onChange={(interfaceDensity) => system.updatePreferences({ interfaceDensity })}
+        />
+      </SettingsGroup>
+      <SettingsGroup title="Menu bar clock" description="Choose how time appears at the top.">
+        <div className="settings-list">
+          <SegmentedControl<ClockFormat>
+            label="Clock format"
+            value={preferences.clockFormat}
+            options={[
+              { value: 'system', label: 'System' },
+              { value: '12h', label: '12-hour' },
+              { value: '24h', label: '24-hour' },
+            ]}
+            onChange={(clockFormat) => system.updatePreferences({ clockFormat })}
+          />
+          <SettingsRow
+            title="Show date"
+            description="Display the weekday and date beside the time."
+            control={
+              <Toggle
+                label="Show date"
+                checked={preferences.showDate}
+                onChange={(showDate) => system.updatePreferences({ showDate })}
+              />
+            }
+          />
+          <SettingsRow
+            title="Show seconds"
+            description="Update the menu bar clock every second."
+            control={
+              <Toggle
+                label="Show seconds"
+                checked={preferences.showSeconds}
+                onChange={(showSeconds) => system.updatePreferences({ showSeconds })}
+              />
+            }
+          />
+        </div>
+      </SettingsGroup>
+    </>
+  );
+}
+
+function AccessibilitySettings({ system }: Pick<SystemAppProps, 'system'>) {
+  const preferences = system.preferences;
+  return (
+    <>
+      <SettingsHeading
+        eyebrow="ACCESSIBILITY"
+        title="Tune Nimvelis for you."
+        description="Reading, contrast, and motion preferences apply immediately."
+      />
+      <SettingsGroup title="Reading" description="Scale text throughout the desktop.">
+        <SegmentedControl<TextScale>
+          label="Text size"
+          value={preferences.textScale}
+          options={[
+            { value: 'small', label: 'Small' },
+            { value: 'standard', label: 'Standard' },
+            { value: 'large', label: 'Large' },
+          ]}
+          onChange={(textScale) => system.updatePreferences({ textScale })}
+        />
+        <div className={`settings-type-preview is-${preferences.textScale}`}>
+          <span>Aa</span>
+          <div>
+            <strong>A clearer view of your work</strong>
+            <small>Changes apply across system apps.</small>
+          </div>
+        </div>
+      </SettingsGroup>
+      <SettingsGroup title="Display & motion" description="Increase separation or quiet animation.">
+        <div className="settings-list">
+          <SettingsRow
+            title="Higher contrast"
+            description="Strengthen borders, text, and selected controls."
+            control={
+              <Toggle
+                label="Higher contrast"
+                checked={preferences.highContrast}
+                onChange={(highContrast) => system.updatePreferences({ highContrast })}
+              />
+            }
+          />
+          <SettingsRow
+            title="Reduce motion"
+            description="Minimize transitions and decorative animation."
+            control={
+              <Toggle
+                label="Reduce motion"
+                checked={preferences.reduceMotion}
+                onChange={(reduceMotion) => system.updatePreferences({ reduceMotion })}
+              />
+            }
+          />
+        </div>
+      </SettingsGroup>
+    </>
+  );
+}
+
+function SystemSettings({ system }: Pick<SystemAppProps, 'system'>) {
+  const [storage, setStorage] = useState<{ usage: number; quota: number } | null>(null);
+  const appCount = listAppManifests().length;
+
+  useEffect(() => {
+    let active = true;
+    void navigator.storage?.estimate().then((estimate) => {
+      if (active && estimate.usage !== undefined && estimate.quota !== undefined) {
+        setStorage({ usage: estimate.usage, quota: estimate.quota });
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  return (
+    <>
+      <SettingsHeading
+        eyebrow="SYSTEM"
+        title="This local space."
+        description="A transparent summary of what Nimvelis stores and provides."
+      />
+      <div className="settings-summary">
+        <article>
+          <Icon name="window" size={20} />
+          <strong>{appCount}</strong>
+          <span>Built-in apps</span>
+        </article>
+        <article>
+          <Icon name="files" size={20} />
+          <strong>{storage ? formatBytes(storage.usage) : 'Local'}</strong>
+          <span>{storage ? `of ${formatBytes(storage.quota)}` : 'Private storage'}</span>
+        </article>
+        <article>
+          <Icon name="vela" size={20} />
+          <strong>Optional</strong>
+          <span>Workers AI</span>
+        </article>
+      </div>
+      <SettingsGroup title="Data & privacy" description="Your local apps work without an account.">
+        <div className="settings-info">
+          <span>
+            <Icon name="check" size={15} />
+          </span>
+          <div>
+            <strong>Local-first by default</strong>
+            <p>
+              Tasks, calendar events, notes, settings, and files stay in browser storage on this
+              device. Vela only sends a prompt when you choose to submit one.
+            </p>
+          </div>
+        </div>
+      </SettingsGroup>
+      <SettingsGroup
+        title="Restore defaults"
+        description="Keep your content while resetting display preferences."
+      >
+        <div className="settings-danger-zone">
+          <div>
+            <strong>Reset system settings</strong>
+            <p>Restores appearance, wallpaper, clock, accessibility, and desktop icon layout.</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              if (!globalThis.confirm('Reset system settings and desktop icon layout?')) return;
+              system.setAppearance('system');
+              system.setWallpaper('aurora');
+              system.resetPreferences();
+              system.resetDesktopIconPositions();
+              system.notify('System settings restored', 'success');
+            }}
+          >
+            Reset settings
+          </button>
+        </div>
+      </SettingsGroup>
+    </>
+  );
+}
+
+function SettingsHeading({
+  eyebrow,
+  title,
+  description,
+}: {
+  eyebrow: string;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="settings-heading">
+      <span className="settings-eyebrow">{eyebrow}</span>
+      <h2>{title}</h2>
+      <p>{description}</p>
+    </div>
+  );
+}
+
+function SettingsGroup({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description: string;
+  children: ReactNode;
+}) {
+  const id = `settings-${title.toLocaleLowerCase().replaceAll(/[^a-z0-9]+/g, '-')}`;
+  return (
+    <section className="settings-section" aria-labelledby={id}>
+      <header>
+        <h3 id={id}>{title}</h3>
+        <p>{description}</p>
+      </header>
+      {children}
+    </section>
+  );
+}
+
+function SettingsRow({
+  title,
+  description,
+  control,
+}: {
+  title: string;
+  description: string;
+  control: ReactNode;
+}) {
+  return (
+    <div className="settings-row">
+      <span>
+        <strong>{title}</strong>
+        <small>{description}</small>
+      </span>
+      {control}
+    </div>
+  );
+}
+
+function Toggle({
+  checked,
+  label,
+  onChange,
+}: {
+  checked: boolean;
+  label: string;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      className={`settings-toggle ${checked ? 'is-on' : ''}`}
+      aria-label={label}
+      aria-checked={checked}
+      onClick={() => onChange(!checked)}
+    >
+      <span />
+    </button>
+  );
+}
+
+function SegmentedControl<T extends string>({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: T;
+  options: Array<{ value: T; label: string }>;
+  onChange: (value: T) => void;
+}) {
+  return (
+    <div className="settings-segmented-row">
+      <strong>{label}</strong>
+      <div className="settings-segmented" aria-label={label}>
+        {options.map((option) => (
+          <button
+            type="button"
+            key={option.value}
+            className={option.value === value ? 'is-selected' : ''}
+            aria-pressed={option.value === value}
+            onClick={() => onChange(option.value)}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function formatBytes(value: number) {
+  if (value < 1024) return `${value} B`;
+  if (value < 1024 ** 2) return `${Math.round(value / 1024)} KB`;
+  if (value < 1024 ** 3) return `${(value / 1024 ** 2).toFixed(1)} MB`;
+  return `${(value / 1024 ** 3).toFixed(1)} GB`;
 }

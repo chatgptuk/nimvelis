@@ -24,6 +24,14 @@
   box-shadow: var(--shadow-window-inactive);
 }
 
+.desktop-shell[data-density='compact'] .system-window {
+  grid-template-rows: 40px minmax(0, 1fr);
+}
+
+.desktop-shell[data-density='compact'] .window-titlebar {
+  padding-inline: 9px;
+}
+
 .system-window[data-interacting] {
   user-select: none;
   transition: box-shadow 120ms ease;

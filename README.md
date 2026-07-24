@@ -6,10 +6,10 @@
 [![CI](https://github.com/chatgptuk/nimvelis/actions/workflows/ci.yml/badge.svg)](https://github.com/chatgptuk/nimvelis/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Nimvelis Aurora 0.4 is a browser-native personal workspace with a desktop interface. It combines
-a local-first window manager, IndexedDB file system, Files, Text, local media preview, global
-search, everyday utilities, appearance controls, and an installable offline shell with Vela, an
-optional text assistant powered by Cloudflare Workers AI.
+Nimvelis Aurora 0.5 is a browser-native personal workspace with a desktop interface. It combines
+a local-first window manager, IndexedDB file system, Files, Text, Tasks, Calendar, Clock, local
+media preview, global search, system-wide personalization, and an installable offline shell with
+Vela, an optional text assistant powered by Cloudflare Workers AI.
 
 Nimvelis is an independent project and is not affiliated with or endorsed by Apple Inc. Its
 marks, icons, wallpaper, interface assets, naming, and visual system are original to Nimvelis;
@@ -89,6 +89,10 @@ resource IDs. It declares only portable `AI` and static asset bindings.
 
 - Organize windows across named workspaces, use Overview to switch tasks, snap windows left or
   right, move desktop icons with mouse or touch, and use per-app Shelf menus.
+- Plan private tasks with dates and priorities, schedule local calendar events beside task due
+  dates, and use world clocks, a focus timer, stopwatch, and laps without creating an account.
+- Personalize interface density, desktop icon visibility, menu bar clock, text scale, contrast,
+  motion, appearance, and wallpaper from the expanded Settings app.
 - Chat with Vela through Cloudflare Workers AI, choose between server-approved Llama and Gemma
   models, stream replies, stop generation, copy responses, and keep conversation history locally.
 - Multi-select, copy, cut, paste, move, sort, favorite, and drag files between folders; switch
@@ -104,7 +108,7 @@ resource IDs. It declares only portable `AI` and static asset bindings.
 - Inspect the current browser, device, display, and local storage from **About This Device**.
 - Install the app and reopen its shell offline after the first production visit.
 
-Aurora 0.4 does not yet include accounts, cloud files, collaboration, or third-party apps.
+Aurora 0.5 does not yet include accounts, cloud files, collaboration, or third-party apps.
 See [`docs/architecture.md`](docs/architecture.md) for the component boundaries and data flow.
 
 ## AI and privacy

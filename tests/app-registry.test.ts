@@ -9,6 +9,9 @@ describe('app registry', () => {
       'files',
       'text',
       'view',
+      'tasks',
+      'calendar',
+      'clock',
       'calculator',
       'memo',
       'vela',
@@ -19,6 +22,12 @@ describe('app registry', () => {
 
   it('declares Settings as single-instance', () => {
     expect(getAppManifest('settings')?.allowMultipleInstances).toBe(false);
+  });
+
+  it('registers the local productivity suite as single-instance apps', () => {
+    for (const appId of ['tasks', 'calendar', 'clock']) {
+      expect(getAppManifest(appId)?.allowMultipleInstances).toBe(false);
+    }
   });
 
   it('declares Vela as a single-instance Workers AI app', () => {

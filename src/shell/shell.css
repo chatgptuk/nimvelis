@@ -560,6 +560,52 @@
   box-shadow: none;
 }
 
+.desktop-shell[data-density='compact'] .top-bar {
+  font-size: 0.72rem;
+}
+
+.desktop-shell[data-density='compact'] .shelf {
+  min-height: 66px;
+  padding: 6px 8px;
+}
+
+.desktop-shell[data-density='compact'] .shelf__brand {
+  width: 48px;
+  height: 50px;
+}
+
+.desktop-shell[data-density='compact'] .shelf-app {
+  width: 52px;
+  height: 51px;
+}
+
+.desktop-shell[data-density='compact'] .shelf-app__icon {
+  width: 49px;
+  height: 49px;
+}
+
+.desktop-shell[data-density='compact'] .shelf-app__icon > svg {
+  width: 49px;
+  height: 49px;
+}
+
+.desktop-shell[data-high-contrast='true'] {
+  --border-soft: color-mix(in srgb, var(--text-primary) 24%, transparent);
+  --border-strong: color-mix(in srgb, var(--text-primary) 44%, transparent);
+  --text-secondary: color-mix(in srgb, var(--text-primary) 84%, transparent);
+  --text-tertiary: color-mix(in srgb, var(--text-primary) 67%, transparent);
+  --window-border: color-mix(in srgb, var(--text-primary) 42%, transparent);
+}
+
+.desktop-shell[data-reduce-motion='true'] *,
+.desktop-shell[data-reduce-motion='true'] *::before,
+.desktop-shell[data-reduce-motion='true'] *::after {
+  scroll-behavior: auto !important;
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
 .shelf-context {
   position: absolute;
   bottom: calc(100% + 10px);
@@ -711,6 +757,24 @@
   .shelf {
     bottom: 9px;
     max-width: calc(100vw - 18px);
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+  }
+
+  .shelf::-webkit-scrollbar {
+    display: none;
+  }
+
+  .shelf-app {
+    width: 50px;
+    flex: 0 0 50px;
+  }
+
+  .shelf-app__icon,
+  .shelf-app__icon > svg {
+    width: 48px;
+    height: 48px;
   }
 }
 
