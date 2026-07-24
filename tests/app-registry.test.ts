@@ -41,6 +41,13 @@ describe('app registry', () => {
     });
   });
 
+  it('grants Memo access to its real local files', () => {
+    expect(getAppManifest('memo')).toMatchObject({
+      permissions: ['files:read', 'files:write', 'window:open', 'window:write'],
+      allowMultipleInstances: true,
+    });
+  });
+
   it('registers Terminal as a multi-instance local shell', () => {
     expect(getAppManifest('terminal')).toMatchObject({
       name: 'Terminal',

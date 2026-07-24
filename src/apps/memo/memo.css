@@ -32,6 +32,13 @@
   letter-spacing: 0.13em;
 }
 
+.memo-toolbar__actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--space-2);
+}
+
 .app-toolbar-button {
   display: inline-flex;
   align-items: center;
@@ -89,7 +96,48 @@
   font-size: var(--font-xs);
 }
 
+.memo-file-location {
+  min-width: 0;
+  overflow: hidden;
+  padding: 2px 0;
+  border: 0;
+  color: var(--text-secondary);
+  background: transparent;
+  font: inherit;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.memo-file-location:hover {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .memo-local-badge {
   margin-left: auto;
+  flex: 0 0 auto;
   color: var(--positive);
+}
+
+@container (max-width: 520px) {
+  .memo-toolbar {
+    padding-left: 52px;
+  }
+
+  .memo-toolbar__actions .app-toolbar-button:first-child:not(:last-child) {
+    width: 34px;
+    overflow: hidden;
+    padding: 0 8px;
+    white-space: nowrap;
+  }
+
+  .memo-footer {
+    padding-left: 52px;
+  }
+
+  .memo-footer > span:not(.memo-local-badge) {
+    display: none;
+  }
 }

@@ -58,6 +58,35 @@ test('desktop window can be dragged, minimized, restored, and duplicated', async
   await expect(page.locator('[data-app-id="memo"]')).toHaveCount(2);
 });
 
+test('Memo saves a discoverable Markdown file in Files', async ({ page }) => {
+  const originalMemo = page.locator('[data-app-id="memo"]').first();
+  await originalMemo.getByRole('button', { name: 'New memo' }).click();
+  const memoWindow = page.locator('[data-app-id="memo"]').last();
+  const memoContent = 'Memo discovery check\n\nThis content lives in the virtual file system.';
+
+  await memoWindow.getByRole('textbox', { name: 'Memo content' }).fill(memoContent);
+  await expect(memoWindow.getByText('Saved in Files › Memos')).toBeVisible();
+  await expect(
+    memoWindow.getByRole('button', { name: 'Files › Memos › Memo discovery check.md' }),
+  ).toBeVisible();
+
+  await page
+    .getByRole('button', { name: /^Files/ })
+    .last()
+    .click();
+  const filesWindow = page.locator('[data-app-id="files"]').last();
+  await filesWindow.getByRole('button', { name: 'Memos', exact: true }).click();
+  await expect(
+    filesWindow.getByRole('button', { name: 'Memo discovery check.md', exact: true }),
+  ).toBeVisible();
+
+  await filesWindow.getByRole('button', { name: 'Memo discovery check.md', exact: true }).click();
+  const textWindow = page.locator('[data-app-id="text"]').last();
+  await expect(textWindow.getByRole('textbox', { name: 'Document content' })).toHaveValue(
+    memoContent,
+  );
+});
+
 test('appearance settings update the desktop immediately', async ({ page }) => {
   await page
     .getByRole('button', { name: /^Settings/ })
@@ -362,18 +391,12 @@ test('Shelf apps can be reordered, removed, restored, and kept above windows', a
   await expect(finalShelf.getByRole('button', { name: 'Luma', exact: true })).toBeVisible();
 });
 
-test('Vela exposes a persistent server-approved model picker', async ({ page }) => {
+test('Vela exposes only the server-approved Gemma 4 model', async ({ page }) => {
   await page.getByRole('button', { name: /^Vela/ }).last().click();
   const velaWindow = page.locator('[data-app-id="vela"]');
   await expect(velaWindow).toBeVisible();
-  const modelPicker = velaWindow.getByRole('combobox', { name: 'Vela model' });
-  await modelPicker.selectOption('llama-4-scout');
-  await expect(modelPicker).toHaveValue('llama-4-scout');
-
-  await page.reload();
-  await expect(page.locator('[data-app-id="vela"]').getByRole('combobox')).toHaveValue(
-    'llama-4-scout',
-  );
+  await expect(velaWindow.getByLabel('Vela model')).toContainText('Gemma 4 26B · Deep');
+  await expect(velaWindow.getByRole('combobox')).toHaveCount(0);
 });
 
 test('system menus expose Nimvelis workflows and keyboard guidance', async ({ page }) => {

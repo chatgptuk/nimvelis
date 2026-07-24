@@ -172,7 +172,7 @@ const manifests = [
       minWidth: 390,
       minHeight: 300,
     },
-    permissions: ['window:open', 'window:write'],
+    permissions: ['files:read', 'files:write', 'window:open', 'window:write'],
     allowMultipleInstances: true,
   },
   {

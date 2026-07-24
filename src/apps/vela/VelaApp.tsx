@@ -16,7 +16,6 @@ interface VelaMessage {
 }
 
 const STORAGE_KEY = 'nimvelis.aurora.vela';
-const MODEL_STORAGE_KEY = 'nimvelis.aurora.vela-model';
 const HISTORY_LIMIT = 30;
 const REQUEST_HISTORY_LIMIT = 18;
 const WELCOME_MESSAGE =
@@ -26,35 +25,17 @@ const SUGGESTIONS = [
   'Help me write a concise project update',
   'Explain a difficult topic simply',
 ] as const;
-const VELA_MODELS = [
-  {
-    id: 'llama-3.1-fast',
-    label: 'Llama 3.1 Fast',
-    detail: 'Fast',
-    modelId: '@cf/meta/llama-3.1-8b-instruct-fast',
-  },
-  {
-    id: 'llama-4-scout',
-    label: 'Llama 4 Scout',
-    detail: 'Balanced',
-    modelId: '@cf/meta/llama-4-scout-17b-16e-instruct',
-  },
-  {
-    id: 'gemma-4-26b',
-    label: 'Gemma 4 26B',
-    detail: 'Deep',
-    modelId: '@cf/google/gemma-4-26b-a4b-it',
-  },
-] as const;
-type VelaModelId = (typeof VELA_MODELS)[number]['id'];
+const VELA_MODEL = {
+  id: 'gemma-4-26b',
+  label: 'Gemma 4 26B',
+  detail: 'Deep',
+  modelId: '@cf/google/gemma-4-26b-a4b-it',
+} as const;
 
 export function VelaApp({ system }: SystemAppProps) {
   const [messages, setMessages] = useState<VelaMessage[]>(readHistory);
   const [draft, setDraft] = useState('');
-  const [selectedModel, setSelectedModel] = useState<VelaModelId>(readSelectedModel);
-  const [responseModel, setResponseModel] = useState(
-    () => VELA_MODELS.find((model) => model.id === readSelectedModel())?.modelId ?? '',
-  );
+  const [responseModel, setResponseModel] = useState<string>(VELA_MODEL.modelId);
   const abortRef = useRef<AbortController | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const isResponding = messages.some((message) => message.state === 'streaming');
@@ -107,7 +88,7 @@ export function VelaApp({ system }: SystemAppProps) {
       const response = await fetch('/api/vela/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: nextRequest, model: selectedModel }),
+        body: JSON.stringify({ messages: nextRequest, model: VELA_MODEL.id }),
         signal: controller.signal,
       });
 
@@ -197,33 +178,12 @@ export function VelaApp({ system }: SystemAppProps) {
           </span>
         </div>
         <div className="vela-hero__actions">
-          <label className="vela-model">
+          <div className="vela-model" aria-label="Vela model">
             <span>Model</span>
-            <select
-              value={selectedModel}
-              disabled={isResponding}
-              onChange={(event) => {
-                const nextModel = event.target.value as VelaModelId;
-                if (!VELA_MODELS.some((model) => model.id === nextModel)) return;
-                setSelectedModel(nextModel);
-                try {
-                  localStorage.setItem(MODEL_STORAGE_KEY, nextModel);
-                } catch {
-                  // Keep the selection for this open session when storage is unavailable.
-                }
-                setResponseModel(
-                  VELA_MODELS.find((model) => model.id === nextModel)?.modelId ?? '',
-                );
-              }}
-              aria-label="Vela model"
-            >
-              {VELA_MODELS.map((model) => (
-                <option key={model.id} value={model.id}>
-                  {model.label} · {model.detail}
-                </option>
-              ))}
-            </select>
-          </label>
+            <strong title={VELA_MODEL.modelId}>
+              {VELA_MODEL.label} · {VELA_MODEL.detail}
+            </strong>
+          </div>
           <button type="button" className="vela-clear" onClick={clearConversation}>
             <Icon name="plus" size={15} />
             New chat
@@ -329,9 +289,7 @@ export function VelaApp({ system }: SystemAppProps) {
           <span>
             Prompts are sent to Cloudflare Workers AI. Nimvelis does not send your local files.
           </span>
-          <span title={responseModel}>
-            {VELA_MODELS.find((model) => model.id === selectedModel)?.label} · local history
-          </span>
+          <span title={responseModel}>{VELA_MODEL.label} · local history</span>
         </div>
       </footer>
     </div>
@@ -361,14 +319,6 @@ function readHistory(): VelaMessage[] {
   } catch {
     return [createWelcomeMessage()];
   }
-}
-
-function readSelectedModel(): VelaModelId {
-  if (typeof localStorage === 'undefined') return 'llama-3.1-fast';
-  const saved = localStorage.getItem(MODEL_STORAGE_KEY);
-  return VELA_MODELS.some((model) => model.id === saved)
-    ? (saved as VelaModelId)
-    : 'llama-3.1-fast';
 }
 
 function createWelcomeMessage(): VelaMessage {

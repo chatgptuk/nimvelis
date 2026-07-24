@@ -1,7 +1,5 @@
-const DEFAULT_VELA_MODEL = 'llama-3.1-fast';
+const DEFAULT_VELA_MODEL = 'gemma-4-26b';
 const VELA_MODELS = {
-  'llama-3.1-fast': '@cf/meta/llama-3.1-8b-instruct-fast',
-  'llama-4-scout': '@cf/meta/llama-4-scout-17b-16e-instruct',
   'gemma-4-26b': '@cf/google/gemma-4-26b-a4b-it',
 } as const;
 const MAX_BODY_BYTES = 48_000;
@@ -128,7 +126,7 @@ async function handleVelaChat(request: Request, env: Env): Promise<Response> {
   }
   const modelKey = readModelKey(body);
   if (!modelKey) {
-    return jsonError('Choose one of the supported Vela models.', 400);
+    return jsonError('Gemma 4 is the only supported Vela model.', 400);
   }
   const model = VELA_MODELS[modelKey];
 
