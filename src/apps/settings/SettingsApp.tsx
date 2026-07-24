@@ -1,7 +1,8 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { Icon, type IconName } from '../../design/Icon';
+import { AppIcon, Icon, type IconName } from '../../design/Icon';
 import { listAppManifests } from '../../kernel/app-registry/registry';
 import type { SystemAppProps } from '../../kernel/app-registry/types';
+import { DEFAULT_SHELF_APP_IDS } from '../../kernel/shelf/order';
 import {
   getSystemTimeZone,
   resolveTimeZone,
@@ -166,6 +167,16 @@ function AppearanceSettings({ system }: Pick<SystemAppProps, 'system'>) {
 
 function DesktopSettings({ system }: Pick<SystemAppProps, 'system'>) {
   const preferences = system.preferences;
+  const apps = listAppManifests();
+  const appById = new Map(apps.map((app) => [app.id, app]));
+  const orderedApps = [
+    ...preferences.shelfAppIds.flatMap((appId) => {
+      const app = appById.get(appId);
+      return app ? [app] : [];
+    }),
+    ...apps.filter((app) => !preferences.shelfAppIds.includes(app.id)),
+  ];
+
   return (
     <>
       <SettingsHeading
@@ -214,6 +225,55 @@ function DesktopSettings({ system }: Pick<SystemAppProps, 'system'>) {
           ]}
           onChange={(interfaceDensity) => system.updatePreferences({ interfaceDensity })}
         />
+      </SettingsGroup>
+      <SettingsGroup
+        title="Shelf"
+        description="Drag icons directly on the Shelf to reorder them. Removed apps stay available on the desktop, in Search, and in Overview."
+      >
+        <div className="shelf-settings">
+          <header>
+            <span>
+              <strong>{preferences.shelfAppIds.length} apps in Shelf</strong>
+              <small>Your order is saved on this device.</small>
+            </span>
+            <button
+              type="button"
+              className="settings-action"
+              onClick={() => system.updatePreferences({ shelfAppIds: [...DEFAULT_SHELF_APP_IDS] })}
+            >
+              Restore default
+            </button>
+          </header>
+          <div className="shelf-settings__apps">
+            {orderedApps.map((app) => {
+              const isInShelf = preferences.shelfAppIds.includes(app.id);
+              return (
+                <article key={app.id}>
+                  <AppIcon name={app.icon} size={38} />
+                  <span>
+                    <strong>{app.name}</strong>
+                    <small>{isInShelf ? 'Shown in Shelf' : 'Available from Overview'}</small>
+                  </span>
+                  <button
+                    type="button"
+                    className={isInShelf ? 'is-remove' : 'is-add'}
+                    aria-label={
+                      isInShelf ? `Remove ${app.name} from Shelf` : `Add ${app.name} to Shelf`
+                    }
+                    onClick={() => {
+                      const shelfAppIds = isInShelf
+                        ? preferences.shelfAppIds.filter((appId) => appId !== app.id)
+                        : [...preferences.shelfAppIds, app.id];
+                      system.updatePreferences({ shelfAppIds });
+                    }}
+                  >
+                    {isInShelf ? 'Remove' : 'Add'}
+                  </button>
+                </article>
+              );
+            })}
+          </div>
+        </div>
       </SettingsGroup>
     </>
   );
@@ -456,7 +516,9 @@ function SystemSettings({ system }: Pick<SystemAppProps, 'system'>) {
         <div className="settings-danger-zone">
           <div>
             <strong>Reset system settings</strong>
-            <p>Restores appearance, wallpaper, clock, accessibility, and desktop icon layout.</p>
+            <p>
+              Restores appearance, wallpaper, Shelf, clock, accessibility, and desktop icon layout.
+            </p>
           </div>
           <button
             type="button"

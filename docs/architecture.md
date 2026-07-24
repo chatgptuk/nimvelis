@@ -28,6 +28,10 @@ flowchart LR
 ```
 
 - `src/kernel/window-manager` owns normalized window types and pure geometry functions.
+- `src/kernel/desktop-layout.ts` defines the usable windowing viewport. Normal and maximized
+  windows stay above the floating Shelf; fullscreen windows intentionally cover shell chrome.
+- `src/kernel/shelf` owns pure order normalization and movement helpers. Shelf customization never
+  mutates the installed application registry.
 - `src/kernel/app-registry` is the only list of installed applications. A manifest defines the
   component, identity, initial size, minimum size, permissions, and instance policy.
 - `src/state/desktop-store.ts` owns durable desktop state, named workspaces, desktop icon
@@ -76,7 +80,8 @@ Move and resize start from a Pointer Event and capture that pointer. During the 
 
 The final bounds are committed once on `pointerup` or `pointercancel`. Desktop icons use the same
 pointer-capture and animation-frame pattern, clamp to the usable desktop, and persist only the
-final position. The titlebar also supports
+final position. Shelf icons use a separate Pointer Event gesture, commit only the final app order,
+and remain operable through context-menu move commands. The titlebar also supports
 keyboard movement with `Alt + Arrow`, keyboard resizing with `Alt + Shift + Arrow`, and maximize
 with `Alt + Enter`.
 
@@ -91,7 +96,8 @@ The Zustand `persist` middleware stores only stable user state:
 - welcome completion;
 - named workspaces and the active workspace;
 - desktop icon positions;
-- interface, clock, time zone, week-start, desktop, and accessibility preferences;
+- Shelf app order plus interface, clock, time zone, week-start, desktop, and accessibility
+  preferences;
 - each Terminal window's current VFS folder in its normal window instance data.
 
 Transient pointer data, animation state, menu state, current time, and resolved system color

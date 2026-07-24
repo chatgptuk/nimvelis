@@ -124,6 +124,7 @@ describe('desktop store', () => {
   it('updates and resets system preferences', () => {
     useDesktopStore.getState().updatePreferences({
       interfaceDensity: 'compact',
+      shelfAppIds: ['vela', 'files'],
       showSeconds: true,
       textScale: 'large',
       timeZone: 'Asia/Tokyo',
@@ -132,6 +133,7 @@ describe('desktop store', () => {
 
     expect(useDesktopStore.getState().preferences).toMatchObject({
       interfaceDensity: 'compact',
+      shelfAppIds: ['vela', 'files'],
       showSeconds: true,
       textScale: 'large',
       timeZone: 'Asia/Tokyo',

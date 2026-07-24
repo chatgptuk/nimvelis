@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { getAppManifest, hasApp } from '../kernel/app-registry/registry';
+import { getWindowingViewport } from '../kernel/desktop-layout';
+import { DEFAULT_SHELF_APP_IDS, normalizeShelfAppIds } from '../kernel/shelf/order';
 import type { OpenAppOptions } from '../kernel/system-api';
 import { isTimeZoneId, type TimeZoneId, type WeekStartsOn } from '../kernel/time';
 import type { DesktopIconPosition } from '../kernel/desktop-icons/geometry';
@@ -22,6 +24,7 @@ export type ClockFormat = 'system' | '12h' | '24h';
 
 export interface DesktopPreferences {
   showDesktopIcons: boolean;
+  shelfAppIds: string[];
   interfaceDensity: InterfaceDensity;
   reduceMotion: boolean;
   highContrast: boolean;
@@ -35,6 +38,7 @@ export interface DesktopPreferences {
 
 export const DEFAULT_DESKTOP_PREFERENCES: DesktopPreferences = {
   showDesktopIcons: true,
+  shelfAppIds: [...DEFAULT_SHELF_APP_IDS],
   interfaceDensity: 'comfortable',
   reduceMotion: false,
   highContrast: false,
@@ -564,10 +568,10 @@ export const useDesktopStore = create<DesktopStore>()(
 
       updatePreferences: (preferences) =>
         set((state) => ({
-          preferences: {
+          preferences: sanitizePreferences({
             ...state.preferences,
             ...preferences,
-          },
+          }),
         })),
 
       resetPreferences: () => set({ preferences: DEFAULT_DESKTOP_PREFERENCES }),
@@ -642,11 +646,8 @@ function createWindowId(appId: string): string {
 }
 
 function readViewport(): DesktopViewport {
-  if (typeof window === 'undefined') return { width: 1280, height: 760 };
-  return {
-    width: Math.max(320, window.innerWidth),
-    height: Math.max(240, window.innerHeight - 44),
-  };
+  if (typeof window === 'undefined') return getWindowingViewport(1280, 900);
+  return getWindowingViewport(window.innerWidth, window.innerHeight);
 }
 
 function sanitizeWindows(value: unknown): WindowInstance[] | null {
@@ -764,6 +765,7 @@ function sanitizePreferences(value: unknown): DesktopPreferences {
       typeof value.showDesktopIcons === 'boolean'
         ? value.showDesktopIcons
         : DEFAULT_DESKTOP_PREFERENCES.showDesktopIcons,
+    shelfAppIds: normalizeShelfAppIds(value.shelfAppIds),
     interfaceDensity:
       value.interfaceDensity === 'compact' || value.interfaceDensity === 'comfortable'
         ? value.interfaceDensity

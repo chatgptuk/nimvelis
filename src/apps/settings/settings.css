@@ -399,6 +399,87 @@
   background: var(--control-hover);
 }
 
+.shelf-settings {
+  overflow: hidden;
+  border: 1px solid var(--border-soft);
+  border-radius: 15px 10px 15px 10px;
+  background: var(--control-bg);
+}
+
+.shelf-settings > header {
+  min-height: 62px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 10px 13px;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.shelf-settings > header span,
+.shelf-settings__apps article > span {
+  min-width: 0;
+  display: grid;
+}
+
+.shelf-settings > header strong,
+.shelf-settings__apps article strong {
+  font-size: var(--font-sm);
+}
+
+.shelf-settings > header small,
+.shelf-settings__apps article small {
+  margin-top: 3px;
+  color: var(--text-tertiary);
+  font-size: var(--font-xs);
+}
+
+.shelf-settings__apps {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.shelf-settings__apps article {
+  min-width: 0;
+  min-height: 58px;
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 11px;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.shelf-settings__apps article:nth-child(odd) {
+  border-right: 1px solid var(--border-soft);
+}
+
+.shelf-settings__apps article > svg {
+  filter: drop-shadow(0 6px 8px rgb(8 14 32 / 20%));
+}
+
+.shelf-settings__apps article button {
+  min-height: 28px;
+  padding: 0 9px;
+  border: 1px solid var(--border-soft);
+  border-radius: 9px 6px 9px 6px;
+  background: var(--surface-solid);
+  color: var(--text-secondary);
+  font-size: 0.65rem;
+  font-weight: 720;
+  cursor: pointer;
+}
+
+.shelf-settings__apps article button:hover {
+  color: var(--text-primary);
+  background: var(--control-hover);
+}
+
+.shelf-settings__apps article button.is-add {
+  border-color: color-mix(in srgb, var(--settings-accent) 36%, var(--border-soft));
+  color: var(--settings-accent);
+}
+
 .settings-segmented-row {
   padding-inline: 0;
 }
@@ -645,6 +726,14 @@
   .settings-select-row select {
     width: 100%;
     max-width: none;
+  }
+
+  .shelf-settings__apps {
+    grid-template-columns: 1fr;
+  }
+
+  .shelf-settings__apps article:nth-child(odd) {
+    border-right: 0;
   }
 }
 

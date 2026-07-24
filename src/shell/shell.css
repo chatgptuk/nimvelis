@@ -436,14 +436,17 @@
   gap: 6px;
   min-height: 76px;
   padding: 8px 10px;
-  border: 1px solid rgb(255 255 255 / 19%);
+  border: 1px solid rgb(255 255 255 / 24%);
   border-radius: 25px 18px 25px 18px;
   background:
-    linear-gradient(180deg, rgb(255 255 255 / 11%), rgb(255 255 255 / 3%)), rgb(9 14 32 / 62%);
+    linear-gradient(180deg, rgb(255 255 255 / 14%), rgb(255 255 255 / 4%) 46%, transparent),
+    radial-gradient(circle at 50% -20%, rgb(133 217 255 / 14%), transparent 58%), rgb(8 13 30 / 68%);
   box-shadow:
-    inset 0 1px rgb(255 255 255 / 16%),
-    0 24px 76px rgb(1 4 14 / 48%);
-  backdrop-filter: blur(32px) saturate(170%);
+    inset 0 1px rgb(255 255 255 / 22%),
+    inset 0 -1px rgb(2 5 15 / 38%),
+    0 24px 76px rgb(1 4 14 / 48%),
+    0 2px 7px rgb(1 4 14 / 24%);
+  backdrop-filter: blur(34px) saturate(185%);
   transform: translateX(-50%);
 }
 
@@ -498,10 +501,12 @@
   border-radius: 18px 12px 18px 12px;
   background: transparent;
   color: white;
-  cursor: pointer;
+  cursor: grab;
+  touch-action: none;
   transition:
     transform 180ms var(--ease-spring),
-    filter 150ms ease;
+    filter 150ms ease,
+    opacity 120ms ease;
 }
 
 .shelf-app:hover,
@@ -515,7 +520,54 @@
   height: 56px;
   display: grid;
   place-items: center;
-  filter: drop-shadow(0 10px 14px rgb(1 4 14 / 36%));
+  filter: drop-shadow(0 10px 14px rgb(1 4 14 / 36%)) drop-shadow(0 1px 1px rgb(255 255 255 / 10%));
+}
+
+.shelf-app__icon > svg,
+.desktop-icon__tile > svg,
+.window-app-icon > svg {
+  shape-rendering: geometricPrecision;
+}
+
+.shelf-app.is-dragging {
+  z-index: 3;
+  opacity: 0.82;
+  cursor: grabbing;
+  filter: saturate(1.15);
+  transform: translateY(-14px) scale(1.12);
+}
+
+.shelf-app.is-dragging.is-removing {
+  opacity: 0.58;
+  filter: grayscale(0.25) saturate(0.7);
+  transform: translateY(-22px) scale(0.84) rotate(-4deg);
+}
+
+.shelf-app.is-dragging.is-removing::after {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  padding: 4px 7px;
+  border: 1px solid rgb(255 255 255 / 20%);
+  border-radius: 8px 6px 8px 6px;
+  background: rgb(20 22 35 / 88%);
+  color: white;
+  content: 'Remove';
+  font-size: 9px;
+  font-weight: 720;
+  transform: translateX(-50%);
+}
+
+.shelf-app.is-drop-target::before {
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  left: -5px;
+  width: 2px;
+  border-radius: 3px;
+  background: linear-gradient(#a8fff0, #859cff);
+  box-shadow: 0 0 12px rgb(130 229 255 / 80%);
+  content: '';
 }
 
 .shelf-app__label {
@@ -610,7 +662,7 @@
   position: absolute;
   bottom: calc(100% + 10px);
   left: 4px;
-  width: 190px;
+  width: 208px;
   display: grid;
   padding: 7px;
   border: 1px solid rgb(255 255 255 / 20%);

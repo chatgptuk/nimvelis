@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
+import { getWindowingViewport } from '../kernel/desktop-layout';
 import { getAppManifest, listAppManifests } from '../kernel/app-registry/registry';
 import type { NimvelisSystemApi } from '../kernel/system-api';
 import { isTextMimeType, localFileSystem, type VfsNode } from '../kernel/vfs';
@@ -21,8 +22,6 @@ import type { SystemCommand } from './SystemSearch';
 import { SystemWindow } from './SystemWindow';
 import { TopBar } from './TopBar';
 import './shell.css';
-
-const TOP_BAR_HEIGHT = 44;
 
 export function DesktopShell() {
   const {
@@ -123,6 +122,10 @@ export function DesktopShell() {
   >([]);
   const resolvedAppearance = useResolvedAppearance(appearance);
   const apps = listAppManifests();
+  const shelfApps = preferences.shelfAppIds.flatMap((appId) => {
+    const app = getAppManifest(appId);
+    return app ? [app] : [];
+  });
   const activeWorkspace =
     workspaces.find((workspace) => workspace.id === activeWorkspaceId) ?? workspaces[0];
   const workspaceWindows = windows.filter((window) => window.workspaceId === activeWorkspaceId);
@@ -501,7 +504,7 @@ export function DesktopShell() {
         ))}
       </section>
       <Shelf
-        apps={apps}
+        apps={shelfApps}
         windows={workspaceWindows}
         onLaunch={handleShelfLaunch}
         onOpenOverview={(appFilter) => {
@@ -510,6 +513,14 @@ export function DesktopShell() {
         }}
         onMinimizeAll={minimizeAppWindows}
         onCloseAll={closeAppWindows}
+        onOrderChange={(shelfAppIds) => updatePreferences({ shelfAppIds })}
+        onRemove={(appId) => {
+          const app = getAppManifest(appId);
+          updatePreferences({
+            shelfAppIds: preferences.shelfAppIds.filter((candidate) => candidate !== appId),
+          });
+          if (app) addNotification(`${app.name} removed from Shelf`, 'neutral');
+        }}
       />
       <div className="desktop-tagline" aria-hidden="true">
         Your world, anywhere.
@@ -673,11 +684,8 @@ function WindowHost({
 }
 
 function readViewport(): DesktopViewport {
-  if (typeof window === 'undefined') return { width: 1280, height: 760 };
-  return {
-    width: Math.max(320, window.innerWidth),
-    height: Math.max(240, window.innerHeight - TOP_BAR_HEIGHT),
-  };
+  if (typeof window === 'undefined') return getWindowingViewport(1280, 900);
+  return getWindowingViewport(window.innerWidth, window.innerHeight);
 }
 
 function useResolvedAppearance(appearance: AppearanceMode): 'light' | 'dark' {

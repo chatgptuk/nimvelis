@@ -67,7 +67,7 @@ export function SystemWindow({ window, viewport, system }: SystemWindowProps) {
   const visibleBounds = window.state === 'maximized' ? getMaximizedBounds(viewport) : window.bounds;
   const isFullscreen = window.state === 'fullscreen';
   const style: CSSProperties = isFullscreen
-    ? { zIndex: 20_000 + window.zIndex }
+    ? { zIndex: 40_000 + window.zIndex }
     : {
         width: visibleBounds.width,
         height: visibleBounds.height,

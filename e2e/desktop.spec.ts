@@ -268,6 +268,100 @@ test('desktop icons can be moved and keep their positions after reload', async (
   expect(restored?.y).toBeCloseTo(moved?.y ?? 0, 0);
 });
 
+test('Shelf apps can be reordered, removed, restored, and kept above windows', async ({ page }) => {
+  const shelf = page.getByRole('navigation', { name: 'Application Shelf' });
+  const settingsButton = shelf.getByRole('button', { name: 'Settings', exact: true });
+  await settingsButton.click();
+  const settingsWindow = page.locator('[data-app-id="settings"]');
+  await expect(settingsWindow).toBeVisible();
+  await settingsWindow.getByRole('button', { name: /Maximize Settings/ }).click();
+
+  const windowBox = await settingsWindow.boundingBox();
+  const shelfBox = await shelf.boundingBox();
+  if (!windowBox || !shelfBox) throw new Error('Shelf-safe window bounds were not measurable');
+  expect(windowBox.y + windowBox.height).toBeLessThan(shelfBox.y);
+
+  const lumaButton = shelf.getByRole('button', { name: 'Luma', exact: true });
+  const velaButton = shelf.getByRole('button', { name: 'Vela', exact: true });
+  const lumaBox = await lumaButton.boundingBox();
+  const velaBox = await velaButton.boundingBox();
+  if (!lumaBox || !velaBox) throw new Error('Shelf app positions were not measurable');
+
+  await page.mouse.move(velaBox.x + velaBox.width / 2, velaBox.y + velaBox.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(lumaBox.x + lumaBox.width / 2, lumaBox.y + lumaBox.height / 2, {
+    steps: 12,
+  });
+  await page.mouse.up();
+
+  const shelfAppIds = shelf.locator('[data-shelf-app-id]');
+  const expectedShelfOrder = [
+    'files',
+    'text',
+    'view',
+    'tasks',
+    'calendar',
+    'clock',
+    'connections',
+    'terminal',
+    'calculator',
+    'vela',
+    'luma',
+    'memo',
+    'settings',
+  ];
+  await expect
+    .poll(async () =>
+      shelfAppIds.evaluateAll((items) => items.map((item) => item.dataset.shelfAppId)),
+    )
+    .toEqual(expectedShelfOrder);
+
+  await page.reload();
+  await expect
+    .poll(async () =>
+      page
+        .getByRole('navigation', { name: 'Application Shelf' })
+        .locator('[data-shelf-app-id]')
+        .evaluateAll((items) => items.map((item) => item.dataset.shelfAppId)),
+    )
+    .toEqual(expectedShelfOrder);
+  const restoredShelf = page.getByRole('navigation', { name: 'Application Shelf' });
+  const restoredVela = restoredShelf.getByRole('button', { name: 'Vela', exact: true });
+  await restoredVela.click({ button: 'right' });
+  await page.getByRole('menuitem', { name: 'Remove from Shelf' }).click();
+  await expect(restoredShelf.getByRole('button', { name: 'Vela', exact: true })).toHaveCount(0);
+
+  const restoredLuma = restoredShelf.getByRole('button', { name: 'Luma', exact: true });
+  const restoredLumaBox = await restoredLuma.boundingBox();
+  const restoredShelfBox = await restoredShelf.boundingBox();
+  if (!restoredLumaBox || !restoredShelfBox) {
+    throw new Error('Shelf drag-to-remove positions were not measurable');
+  }
+  await page.mouse.move(
+    restoredLumaBox.x + restoredLumaBox.width / 2,
+    restoredLumaBox.y + restoredLumaBox.height / 2,
+  );
+  await page.mouse.down();
+  await page.mouse.move(restoredLumaBox.x + restoredLumaBox.width / 2, restoredShelfBox.y - 60, {
+    steps: 10,
+  });
+  await page.mouse.up();
+  await expect(restoredShelf.getByRole('button', { name: 'Luma', exact: true })).toHaveCount(0);
+
+  await restoredShelf.getByRole('button', { name: 'Settings', exact: true }).click();
+  const restoredSettings = page.locator('[data-app-id="settings"]');
+  await restoredSettings.getByRole('button', { name: /Desktop/ }).click();
+  await restoredSettings.getByRole('button', { name: 'Add Vela to Shelf' }).click();
+  await restoredSettings.getByRole('button', { name: 'Add Luma to Shelf' }).click();
+  await expect(restoredShelf.getByRole('button', { name: 'Vela', exact: true })).toBeVisible();
+  await expect(restoredShelf.getByRole('button', { name: 'Luma', exact: true })).toBeVisible();
+
+  await page.reload();
+  const finalShelf = page.getByRole('navigation', { name: 'Application Shelf' });
+  await expect(finalShelf.getByRole('button', { name: 'Vela', exact: true })).toBeVisible();
+  await expect(finalShelf.getByRole('button', { name: 'Luma', exact: true })).toBeVisible();
+});
+
 test('Vela exposes a persistent server-approved model picker', async ({ page }) => {
   await page.getByRole('button', { name: /^Vela/ }).last().click();
   const velaWindow = page.locator('[data-app-id="vela"]');

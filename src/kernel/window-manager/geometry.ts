@@ -27,7 +27,7 @@ export function constrainBounds(
             DESKTOP_INSET - width + MIN_VISIBLE_TITLEBAR,
             viewport.width - MIN_VISIBLE_TITLEBAR,
           ),
-    y: clamp(bounds.y, DESKTOP_INSET, Math.max(DESKTOP_INSET, viewport.height - 48)),
+    y: clamp(bounds.y, DESKTOP_INSET, Math.max(DESKTOP_INSET, viewport.height - height)),
     width,
     height,
   };

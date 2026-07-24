@@ -89,7 +89,8 @@ resource IDs. It declares only portable `AI` and static asset bindings.
 ## What works today
 
 - Organize windows across named workspaces, use Overview to switch tasks, snap windows left or
-  right, move desktop icons with mouse or touch, and use per-app Shelf menus.
+  right, keep windows above the floating Shelf, move desktop icons with mouse or touch, and drag,
+  reorder, remove, or restore Shelf apps.
 - Plan private tasks with dates and priorities, schedule local calendar events beside task due
   dates, and use world clocks, a focus timer, stopwatch, and laps without creating an account.
 - Inspect online state and browser-provided connection quality, measure same-origin latency, and

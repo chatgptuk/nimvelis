@@ -311,19 +311,19 @@ interface AppIconProps extends Omit<SVGProps<SVGSVGElement>, 'name'> {
 }
 
 const APP_ICON_PALETTES = {
-  calculator: ['#163b53', '#149a9f', '#78f0d5'],
-  memo: ['#542f55', '#cf6d68', '#ffd68c'],
-  settings: ['#272b65', '#796ee8', '#d5a8ff'],
-  files: ['#153d59', '#2e8cca', '#92f2ed'],
-  text: ['#353368', '#8a67d3', '#f1c0ff'],
-  view: ['#59344b', '#d26d7b', '#ffd391'],
-  vela: ['#15365d', '#38b9b7', '#a9ffef'],
-  tasks: ['#163f4a', '#2da18c', '#a2f3d8'],
-  calendar: ['#253b68', '#507fd1', '#b7dfff'],
-  clock: ['#4b2d51', '#d4776d', '#ffd39b'],
-  connections: ['#173d5a', '#318db4', '#a9eeff'],
-  terminal: ['#111a2b', '#354a6b', '#78f0d5'],
-  luma: ['#151b49', '#696ad3', '#94f6df'],
+  calculator: ['#083844', '#0ca08f', '#7dffe0'],
+  memo: ['#6d3147', '#ee8c67', '#ffe1a3'],
+  settings: ['#273142', '#71809a', '#d7e8ff'],
+  files: ['#075175', '#26aee2', '#a9f7ff'],
+  text: ['#45346f', '#9a67de', '#f6d1ff'],
+  view: ['#692f4b', '#eb6f78', '#ffd59d'],
+  vela: ['#062d61', '#12a6c2', '#a8fff0'],
+  tasks: ['#0b4b43', '#26af83', '#b8ffe0'],
+  calendar: ['#173f7d', '#4b8bea', '#cce8ff'],
+  clock: ['#783928', '#ef8c56', '#ffe2a7'],
+  connections: ['#064b6e', '#2a9fd1', '#b8f4ff'],
+  terminal: ['#07151e', '#263c4a', '#72f5c7'],
+  luma: ['#211354', '#7545d8', '#ffd772'],
 } as const;
 
 export function AppIcon({ name, size = 56, className = '', ...props }: AppIconProps) {
@@ -332,6 +332,10 @@ export function AppIcon({ name, size = 56, className = '', ...props }: AppIconPr
     APP_ICON_PALETTES[name as keyof typeof APP_ICON_PALETTES] ?? APP_ICON_PALETTES.settings;
   const backgroundId = `${rawId}-background`;
   const glowId = `${rawId}-glow`;
+  const glossId = `${rawId}-gloss`;
+  const rimId = `${rawId}-rim`;
+  const surfaceShadowId = `${rawId}-surface-shadow`;
+  const artworkShadowId = `${rawId}-artwork-shadow`;
 
   return (
     <svg
@@ -360,57 +364,86 @@ export function AppIcon({ name, size = 56, className = '', ...props }: AppIconPr
           <stop offset=".62" stopColor={palette[1]} stopOpacity=".08" />
           <stop offset="1" stopColor={palette[0]} stopOpacity="0" />
         </radialGradient>
+        <linearGradient id={glossId} x1="18" y1="3" x2="39" y2="43">
+          <stop stopColor="white" stopOpacity=".38" />
+          <stop offset=".45" stopColor="white" stopOpacity=".06" />
+          <stop offset="1" stopColor="white" stopOpacity="0" />
+        </linearGradient>
+        <linearGradient id={rimId} x1="8" y1="5" x2="56" y2="59">
+          <stop stopColor="white" stopOpacity=".48" />
+          <stop offset=".5" stopColor="white" stopOpacity=".12" />
+          <stop offset="1" stopColor="white" stopOpacity=".28" />
+        </linearGradient>
+        <filter id={surfaceShadowId} x="-24%" y="-20%" width="148%" height="158%">
+          <feDropShadow dx="0" dy="3" stdDeviation="3" floodColor="#030714" floodOpacity=".42" />
+        </filter>
+        <filter id={artworkShadowId} x="-30%" y="-30%" width="160%" height="170%">
+          <feDropShadow dx="0" dy="2" stdDeviation="1.8" floodColor="#020612" floodOpacity=".3" />
+        </filter>
       </defs>
-      <path
-        d="M14 4h35c7 0 11 5 11 12v34c0 6-4 10-10 10H14C8 60 4 56 4 50V15C4 8.5 8 4 14 4Z"
-        fill={`url(#${backgroundId})`}
-      />
-      <path
-        d="M14 4.75h35c6.4 0 10.25 4.55 10.25 11.25v34c0 5.6-3.65 9.25-9.25 9.25H14c-5.6 0-9.25-3.65-9.25-9.25V15c0-6.1 3.65-10.25 9.25-10.25Z"
-        fill={`url(#${glowId})`}
-        stroke="white"
-        strokeOpacity=".18"
-        strokeWidth="1.5"
-      />
-      <path d="M9 15C22 6 42 5 56 15" stroke="white" strokeOpacity=".16" strokeWidth="1.5" />
-      {name === 'calculator' && <CalculatorArtwork accent={palette[2]} />}
-      {name === 'memo' && <MemoArtwork accent={palette[2]} />}
-      {name === 'settings' && <SettingsArtwork accent={palette[2]} />}
-      {name === 'files' && <FilesArtwork accent={palette[2]} />}
-      {name === 'text' && <TextArtwork accent={palette[2]} />}
-      {name === 'view' && <ViewArtwork accent={palette[2]} />}
-      {name === 'vela' && <VelaArtwork accent={palette[2]} />}
-      {name === 'tasks' && <TasksArtwork accent={palette[2]} />}
-      {name === 'calendar' && <CalendarArtwork accent={palette[2]} />}
-      {name === 'clock' && <ClockArtwork accent={palette[2]} />}
-      {name === 'connections' && <ConnectionsArtwork accent={palette[2]} />}
-      {name === 'terminal' && <TerminalArtwork accent={palette[2]} />}
-      {name === 'luma' && <LumaArtwork accent={palette[2]} />}
-      {![
-        'calculator',
-        'memo',
-        'settings',
-        'files',
-        'text',
-        'view',
-        'vela',
-        'tasks',
-        'calendar',
-        'clock',
-        'connections',
-        'terminal',
-        'luma',
-      ].includes(name) && (
-        <g color="white">
-          <rect x="15" y="15" width="34" height="34" rx="12" fill="white" fillOpacity=".1" />
-          <path
-            d="M23 32h18M32 23v18"
-            stroke="currentColor"
-            strokeWidth="3"
-            strokeLinecap="round"
-          />
-        </g>
-      )}
+      <g filter={`url(#${surfaceShadowId})`}>
+        <path
+          d="M14 4h35c7 0 11 5 11 12v34c0 6-4 10-10 10H14C8 60 4 56 4 50V15C4 8.5 8 4 14 4Z"
+          fill={`url(#${backgroundId})`}
+        />
+        <path
+          d="M14 4.75h35c6.4 0 10.25 4.55 10.25 11.25v34c0 5.6-3.65 9.25-9.25 9.25H14c-5.6 0-9.25-3.65-9.25-9.25V15c0-6.1 3.65-10.25 9.25-10.25Z"
+          fill={`url(#${glowId})`}
+          stroke={`url(#${rimId})`}
+          strokeWidth="1.4"
+        />
+        <path
+          d="M8 25C13 9 32 3 50 9c4 1.3 7 3.5 9 6.4C44 9.8 25 12.5 8 25Z"
+          fill={`url(#${glossId})`}
+        />
+        <path
+          d="M9 49c12 5.5 32 6.7 46-1"
+          stroke="#020718"
+          strokeOpacity=".22"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+      </g>
+      <g filter={`url(#${artworkShadowId})`}>
+        {name === 'calculator' && <CalculatorArtwork accent={palette[2]} />}
+        {name === 'memo' && <MemoArtwork accent={palette[2]} />}
+        {name === 'settings' && <SettingsArtwork accent={palette[2]} />}
+        {name === 'files' && <FilesArtwork accent={palette[2]} />}
+        {name === 'text' && <TextArtwork accent={palette[2]} />}
+        {name === 'view' && <ViewArtwork accent={palette[2]} />}
+        {name === 'vela' && <VelaArtwork accent={palette[2]} />}
+        {name === 'tasks' && <TasksArtwork accent={palette[2]} />}
+        {name === 'calendar' && <CalendarArtwork accent={palette[2]} />}
+        {name === 'clock' && <ClockArtwork accent={palette[2]} />}
+        {name === 'connections' && <ConnectionsArtwork accent={palette[2]} />}
+        {name === 'terminal' && <TerminalArtwork accent={palette[2]} />}
+        {name === 'luma' && <LumaArtwork accent={palette[2]} />}
+        {![
+          'calculator',
+          'memo',
+          'settings',
+          'files',
+          'text',
+          'view',
+          'vela',
+          'tasks',
+          'calendar',
+          'clock',
+          'connections',
+          'terminal',
+          'luma',
+        ].includes(name) && (
+          <g color="white">
+            <rect x="15" y="15" width="34" height="34" rx="12" fill="white" fillOpacity=".1" />
+            <path
+              d="M23 32h18M32 23v18"
+              stroke="currentColor"
+              strokeWidth="3"
+              strokeLinecap="round"
+            />
+          </g>
+        )}
+      </g>
     </svg>
   );
 }
@@ -472,33 +505,41 @@ function MemoArtwork({ accent }: { accent: string }) {
 }
 
 function SettingsArtwork({ accent }: { accent: string }) {
+  const teeth = Array.from({ length: 8 }, (_, index) => index * 45);
+
   return (
     <g>
-      <ellipse
+      {teeth.map((rotation) => (
+        <rect
+          key={rotation}
+          x="28.5"
+          y="11"
+          width="7"
+          height="13"
+          rx="3.5"
+          fill="#edf3fb"
+          transform={`rotate(${rotation} 32 32)`}
+        />
+      ))}
+      <circle cx="32" cy="32" r="16.5" fill="#e7edf7" />
+      <circle
         cx="32"
         cy="32"
-        rx="19"
-        ry="10"
+        r="13"
+        fill="#8592a7"
         stroke="white"
-        strokeOpacity=".38"
-        strokeWidth="2"
-        transform="rotate(-28 32 32)"
+        strokeOpacity=".64"
+        strokeWidth="1.5"
       />
-      <ellipse
-        cx="32"
-        cy="32"
-        rx="19"
-        ry="10"
+      <circle cx="32" cy="32" r="7.5" fill="#263244" />
+      <circle cx="32" cy="32" r="3.6" fill={accent} />
+      <path
+        d="M22 24.5c4-5 11.5-7.2 17.5-3.2"
         stroke="white"
-        strokeOpacity=".26"
+        strokeOpacity=".68"
         strokeWidth="2"
-        transform="rotate(38 32 32)"
+        strokeLinecap="round"
       />
-      <path d="m32 20 10 12-10 12-10-12Z" fill="#f8f5ff" fillOpacity=".9" />
-      <path d="m32 20 10 12-10 2-10-2Z" fill={accent} fillOpacity=".58" />
-      <path d="m32 34 10-2-10 12Z" fill="#9b8dff" fillOpacity=".62" />
-      <circle cx="17" cy="22" r="3" fill={accent} />
-      <circle cx="48" cy="40" r="2.5" fill="white" fillOpacity=".9" />
     </g>
   );
 }
@@ -559,42 +600,27 @@ function ViewArtwork({ accent }: { accent: string }) {
 function VelaArtwork({ accent }: { accent: string }) {
   return (
     <g>
-      <circle
-        cx="32"
-        cy="32"
-        r="19"
-        fill="#071425"
-        fillOpacity=".56"
-        stroke="white"
-        strokeOpacity=".22"
-      />
-      <ellipse
-        cx="32"
-        cy="32"
-        rx="16"
-        ry="8"
-        stroke={accent}
-        strokeOpacity=".74"
-        strokeWidth="2"
-        transform="rotate(-31 32 32)"
-      />
-      <ellipse
-        cx="32"
-        cy="32"
-        rx="16"
-        ry="8"
-        stroke="white"
-        strokeOpacity=".42"
-        strokeWidth="1.5"
-        transform="rotate(36 32 32)"
+      <path
+        d="M13 19.5A7.5 7.5 0 0 1 20.5 12h23A7.5 7.5 0 0 1 51 19.5v19a7.5 7.5 0 0 1-7.5 7.5H30l-10.5 7v-7a7.4 7.4 0 0 1-6.5-7.4Z"
+        fill="#f3ffff"
+        fillOpacity=".94"
       />
       <path
-        d="M32 19c1.1 7.3 5.2 11.4 12.5 12.5C37.2 32.6 33.1 36.7 32 44c-1.1-7.3-5.2-11.4-12.5-12.5C26.8 30.4 30.9 26.3 32 19Z"
-        fill="white"
-        fillOpacity=".9"
+        d="M19 35c4.5-9.5 8.5-10 12.5-3.5 3.2 5.2 7 4.5 13.5-6"
+        stroke="#087d99"
+        strokeWidth="3.2"
+        strokeLinecap="round"
       />
-      <circle cx="20" cy="21" r="2.4" fill={accent} />
-      <circle cx="46" cy="39" r="1.8" fill="white" fillOpacity=".88" />
+      <path
+        d="M20 39c5.5-4.7 9.8-4.5 13 0 2.5 3.5 6 3.2 11-1.8"
+        stroke={accent}
+        strokeWidth="2.3"
+        strokeLinecap="round"
+      />
+      <path
+        d="M39 17.5c.5 3.5 2.5 5.5 6 6-3.5.5-5.5 2.5-6 6-.5-3.5-2.5-5.5-6-6 3.5-.5 5.5-2.5 6-6Z"
+        fill={accent}
+      />
     </g>
   );
 }
@@ -731,30 +757,47 @@ function TerminalArtwork({ accent }: { accent: string }) {
 }
 
 function LumaArtwork({ accent }: { accent: string }) {
+  const cells = [
+    { x: 17, y: 17, fill: '#ffd772', opacity: 1 },
+    { x: 27, y: 17, fill: '#fff7d1', opacity: 0.38 },
+    { x: 37, y: 17, fill: '#ff9ed2', opacity: 0.9 },
+    { x: 17, y: 27, fill: '#fff7d1', opacity: 0.25 },
+    { x: 27, y: 27, fill: accent, opacity: 1 },
+    { x: 37, y: 27, fill: '#fff7d1', opacity: 0.3 },
+    { x: 17, y: 37, fill: '#a8fff0', opacity: 0.84 },
+    { x: 27, y: 37, fill: '#fff7d1', opacity: 0.28 },
+    { x: 37, y: 37, fill: '#ffd772', opacity: 0.94 },
+  ];
+
   return (
     <g>
-      <circle
-        cx="32"
-        cy="33"
-        r="20"
-        fill="#07101f"
-        fillOpacity=".58"
+      <rect
+        x="12"
+        y="12"
+        width="40"
+        height="40"
+        rx="13"
+        fill="#090d2c"
+        fillOpacity=".8"
         stroke="white"
-        strokeOpacity=".2"
+        strokeOpacity=".24"
       />
-      <path
-        d="M32 14c.9 9.4 6.1 14.6 15.5 15.5C38.1 30.4 32.9 35.6 32 45c-.9-9.4-6.1-14.6-15.5-15.5C25.9 28.6 31.1 23.4 32 14Z"
-        fill="white"
-        fillOpacity=".9"
-      />
-      <path
-        d="M32 18c.7 6.9 4.6 10.8 11.5 11.5C36.6 30.2 32.7 34.1 32 41c-.7-6.9-4.6-10.8-11.5-11.5C27.4 28.8 31.3 24.9 32 18Z"
-        fill={accent}
-        fillOpacity=".68"
-      />
-      <circle cx="18" cy="19" r="2.4" fill="#f5a9d0" />
-      <circle cx="47" cy="43" r="3" fill={accent} />
-      <circle cx="48" cy="17" r="1.5" fill="white" fillOpacity=".9" />
+      <path d="m20 20 20 20M40 20 20 40" stroke="#9d7dff" strokeOpacity=".25" strokeWidth="1.2" />
+      {cells.map((cell) => (
+        <rect
+          key={`${cell.x}-${cell.y}`}
+          x={cell.x}
+          y={cell.y}
+          width="7"
+          height="7"
+          rx="2.4"
+          fill={cell.fill}
+          fillOpacity={cell.opacity}
+          stroke="white"
+          strokeOpacity={cell.opacity * 0.25}
+        />
+      ))}
+      <circle cx="47" cy="15" r="2.3" fill="#ff9ed2" />
     </g>
   );
 }

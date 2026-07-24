@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { getWindowingViewport } from '../src/kernel/desktop-layout';
 import { constrainBounds, moveBounds, resizeBounds } from '../src/kernel/window-manager/geometry';
 
 describe('window geometry', () => {
@@ -19,6 +20,17 @@ describe('window geometry', () => {
     );
 
     expect(result).toEqual({ x: 12, y: 12, width: 876, height: 576 });
+  });
+
+  it('keeps the entire window above the shelf-safe boundary', () => {
+    const viewport = getWindowingViewport(1280, 800);
+    const result = constrainBounds({ x: 100, y: 520, width: 700, height: 480 }, viewport, {
+      width: 420,
+      height: 320,
+    });
+
+    expect(viewport).toEqual({ width: 1280, height: 640 });
+    expect(result.y + result.height).toBeLessThanOrEqual(viewport.height);
   });
 
   it('resizes from the north-west while preserving the opposite corner', () => {
