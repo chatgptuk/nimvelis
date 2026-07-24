@@ -446,7 +446,10 @@ test('Vela exposes only the server-approved Gemma 4 model', async ({ page }) => 
 });
 
 test('system menus expose Nimvelis workflows and keyboard guidance', async ({ page }) => {
-  await expect(page.locator('.top-bar__active-mark .nimvelis-mark')).toBeVisible();
+  await expect(page.locator('.top-bar__active-mark .app-icon-art--memo')).toBeVisible();
+  await page.locator('.desktop-workspace').dispatchEvent('pointerdown');
+  await expect(page.locator('.top-bar__active-app')).toHaveText('Desktop');
+  await expect(page.locator('.top-bar__active-mark')).toHaveCount(0);
   await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href', '/nimvelis-mark.svg');
   await page.getByRole('button', { name: 'Open Nimvelis menu' }).click();
   await page.getByRole('menuitem', { name: 'About This Device' }).click();
@@ -463,7 +466,9 @@ test('system menus expose Nimvelis workflows and keyboard guidance', async ({ pa
   await expect(spaceMenu).toContainText('Saved on this device');
 
   await spaceMenu.getByRole('menuitem', { name: /Appearance/ }).click();
-  await expect(page.locator('[data-app-id="settings"]')).toBeVisible();
+  const settingsWindow = page.locator('[data-app-id="settings"]');
+  await expect(settingsWindow).toBeVisible();
+  await expect(page.locator('.top-bar__active-mark .app-icon-art--settings')).toBeVisible();
 
   await page.getByRole('button', { name: 'Help', exact: true }).click();
   const helpMenu = page.getByRole('menu');

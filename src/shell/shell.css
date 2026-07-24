@@ -103,16 +103,10 @@
 }
 
 .top-bar__active-mark {
-  width: 19px;
-  height: 19px;
+  width: 20px;
+  height: 20px;
   display: grid;
   place-items: center;
-  border: 1px solid rgb(255 255 255 / 14%);
-  border-radius: 7px 4px 7px 4px;
-  background: linear-gradient(145deg, rgb(119 232 224 / 32%), rgb(122 142 255 / 24%));
-}
-
-.top-bar__active-mark .nimvelis-mark {
   filter: drop-shadow(0 2px 4px rgb(2 6 18 / 36%));
 }
 

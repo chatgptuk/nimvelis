@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Icon, NimvelisMark } from '../design/Icon';
+import { AppIcon, Icon, NimvelisMark } from '../design/Icon';
 import type { AppManifest } from '../kernel/app-registry/types';
 import type { WindowInstance } from '../kernel/window-manager/types';
 import { resolveTimeZone, type TimeZoneId } from '../kernel/time';
@@ -116,9 +116,11 @@ export function TopBar({
           )}
         </div>
         <span className="top-bar__active-app">
-          <span className="top-bar__active-mark">
-            <NimvelisMark size={17} />
-          </span>
+          {activeManifest ? (
+            <span className="top-bar__active-mark" aria-hidden="true">
+              <AppIcon name={activeManifest.icon} size={20} />
+            </span>
+          ) : null}
           {activeManifest?.name ?? 'Desktop'}
         </span>
         <div className="top-menu">

@@ -7,6 +7,8 @@ const MAX_MESSAGES = 18;
 const MAX_MESSAGE_CHARACTERS = 6_000;
 const REQUESTS_PER_MINUTE = 12;
 const AI_START_TIMEOUT_MS = 45_000;
+export const GEMMA_CONTEXT_WINDOW_TOKENS = 256_000;
+const VELA_COMPLETION_RESERVE_TOKENS = 2_048;
 
 const VELA_SYSTEM_PROMPT = [
   'You are Vela, the concise, thoughtful text assistant built into Nimvelis Aurora.',
@@ -29,7 +31,7 @@ interface WorkersAiBinding {
     input: {
       messages: Array<{ role: 'system' | ChatRole; content: string }>;
       stream: true;
-      max_tokens: number;
+      max_completion_tokens: number;
     },
   ): Promise<ReadableStream<Uint8Array>>;
 }
@@ -109,7 +111,8 @@ async function handleVelaChat(request: Request, env: Env): Promise<Response> {
   } catch {
     return jsonError('The request body could not be read.', 400);
   }
-  if (new TextEncoder().encode(text).byteLength > MAX_BODY_BYTES) {
+  const bodyBytes = new TextEncoder().encode(text).byteLength;
+  if (bodyBytes > MAX_BODY_BYTES) {
     return jsonError('This conversation is too large.', 413);
   }
 
@@ -135,7 +138,7 @@ async function handleVelaChat(request: Request, env: Env): Promise<Response> {
       env.AI.run(model, {
         messages: [{ role: 'system', content: VELA_SYSTEM_PROMPT }, ...messages],
         stream: true,
-        max_tokens: 900,
+        max_completion_tokens: getVelaMaxCompletionTokens(bodyBytes),
       }),
       AI_START_TIMEOUT_MS,
     );
@@ -177,6 +180,18 @@ export function readModelKey(body: unknown): keyof typeof VELA_MODELS | null {
   if (body.model === undefined) return DEFAULT_VELA_MODEL;
   if (typeof body.model !== 'string' || !(body.model in VELA_MODELS)) return null;
   return body.model as keyof typeof VELA_MODELS;
+}
+
+export function getVelaMaxCompletionTokens(requestBodyBytes: number): number {
+  const conservativePromptTokens = Math.min(
+    MAX_BODY_BYTES,
+    Math.max(0, Math.floor(requestBodyBytes)),
+  );
+
+  return Math.max(
+    1,
+    GEMMA_CONTEXT_WINDOW_TOKENS - conservativePromptTokens - VELA_COMPLETION_RESERVE_TOKENS,
+  );
 }
 
 function takeRateLimit(request: Request): { allowed: boolean; retryAfter: number } {

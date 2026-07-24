@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { readModelKey, sanitizeChatMessages } from '../worker';
+import {
+  GEMMA_CONTEXT_WINDOW_TOKENS,
+  getVelaMaxCompletionTokens,
+  readModelKey,
+  sanitizeChatMessages,
+} from '../worker';
 
 describe('Vela Worker request validation', () => {
   it('accepts a compact chat and defaults to Gemma 4', () => {
@@ -23,5 +28,12 @@ describe('Vela Worker request validation', () => {
     expect(
       sanitizeChatMessages({ messages: [{ role: 'assistant', content: 'No user prompt' }] }),
     ).toBeNull();
+  });
+
+  it('uses Gemma 4 remaining context as the completion budget', () => {
+    expect(GEMMA_CONTEXT_WINDOW_TOKENS).toBe(256_000);
+    expect(getVelaMaxCompletionTokens(0)).toBe(253_952);
+    expect(getVelaMaxCompletionTokens(12_000)).toBe(241_952);
+    expect(getVelaMaxCompletionTokens(48_000)).toBe(205_952);
   });
 });
