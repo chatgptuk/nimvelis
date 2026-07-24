@@ -6,7 +6,7 @@ Nimvelis is a browser-native personal workspace with a desktop interface.
 
 It is inspired by familiar desktop interaction patterns, but it is not a macOS emulator or Apple product. Do not use Apple logos, proprietary icons, wallpapers, application names, bundled assets, or copied interface resources.
 
-The current release is Nimvelis Aurora 0.6.
+The current release is Nimvelis Aurora 0.7.
 
 ## Current Scope
 

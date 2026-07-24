@@ -107,10 +107,10 @@ test('tasks and calendar share a local agenda', async ({ page }) => {
     .last()
     .click();
   const tasksWindow = page.locator('[data-app-id="tasks"]');
-  await tasksWindow.getByRole('textbox', { name: 'Task title' }).fill('Ship Aurora 0.6');
+  await tasksWindow.getByRole('textbox', { name: 'Task title' }).fill('Ship Aurora 0.7');
   await tasksWindow.getByRole('textbox', { name: 'Task due date' }).fill('2026-07-23');
   await tasksWindow.getByRole('button', { name: 'Add task' }).click();
-  await expect(tasksWindow.getByText('Ship Aurora 0.6')).toBeVisible();
+  await expect(tasksWindow.getByText('Ship Aurora 0.7')).toBeVisible();
 
   await page
     .getByRole('button', { name: /^Calendar/ })
@@ -164,6 +164,43 @@ test('connections shows honest network diagnostics and Bluetooth availability', 
   await expect(connectionsWindow.getByRole('button', { name: 'Test connection' })).toBeEnabled();
 });
 
+test('Terminal operates on local files with history and an honest sandbox boundary', async ({
+  page,
+}) => {
+  await page
+    .getByRole('button', { name: /^Terminal/ })
+    .last()
+    .click();
+  const terminalWindow = page.locator('[data-app-id="terminal"]');
+  const commandInput = terminalWindow.getByRole('textbox', { name: 'Terminal command' });
+
+  await expect(terminalWindow).toBeVisible();
+  await expect(terminalWindow.getByText('Nimvelis Local Shell 1.0')).toBeVisible();
+
+  await commandInput.fill('mkdir "CLI Notes"');
+  await commandInput.press('Enter');
+  await expect(terminalWindow.getByText('Created /CLI Notes/')).toBeVisible();
+
+  await commandInput.fill('cd "CLI Notes"');
+  await commandInput.press('Enter');
+  await expect(commandInput).toBeEnabled();
+
+  await commandInput.fill('write plan.txt "Ship local shell"');
+  await commandInput.press('Enter');
+  await expect(terminalWindow.getByText(/Wrote .* to \/CLI Notes\/plan.txt/)).toBeVisible();
+
+  await commandInput.fill('cat plan.txt');
+  await commandInput.press('Enter');
+  await expect(terminalWindow.getByText('Ship local shell', { exact: true })).toBeVisible();
+
+  await commandInput.fill('sudo whoami');
+  await commandInput.press('Enter');
+  await expect(terminalWindow.getByText(/unavailable in the browser sandbox/)).toBeVisible();
+
+  await commandInput.press('ArrowUp');
+  await expect(commandInput).toHaveValue('sudo whoami');
+});
+
 test('desktop icons can be moved and keep their positions after reload', async ({ page }) => {
   const filesIcon = page.getByRole('button', { name: 'Open Files' });
   const before = await filesIcon.boundingBox();
@@ -201,7 +238,7 @@ test('system menus expose Nimvelis workflows and keyboard guidance', async ({ pa
   await page.getByRole('menuitem', { name: 'About This Device' }).click();
   const about = page.getByRole('dialog', { name: 'Nimvelis Aurora' });
   await expect(about).toBeVisible();
-  await expect(about).toContainText('Version 0.6');
+  await expect(about).toContainText('Version 0.7');
   await expect(about).toContainText('LOCAL STORAGE');
   await expect(about).toContainText('Display');
   await about.getByRole('button', { name: 'Close About This Device' }).click();

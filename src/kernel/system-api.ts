@@ -7,11 +7,18 @@ export interface OpenAppOptions {
   bounds?: Partial<WindowBounds>;
 }
 
+export interface InstalledAppSummary {
+  id: string;
+  name: string;
+  description: string;
+}
+
 export interface NimvelisSystemApi {
   appearance: AppearanceMode;
   wallpaper: WallpaperId;
   preferences: DesktopPreferences;
   files: VirtualFileSystem;
+  listApps: () => InstalledAppSummary[];
   openApp: (appId: string, options?: OpenAppOptions) => string | null;
   openFile: (node: VfsNode) => string | null;
   notify: (message: string, tone?: 'neutral' | 'success' | 'error') => void;

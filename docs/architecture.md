@@ -1,6 +1,6 @@
-# Nimvelis Aurora 0.6 architecture
+# Nimvelis Aurora 0.7 architecture
 
-Nimvelis is a long-running browser SPA with a small edge API. Aurora 0.6 preserves the local
+Nimvelis is a long-running browser SPA with a small edge API. Aurora 0.7 preserves the local
 desktop boundaries while adding Vela through a native Cloudflare Workers AI binding. It still has
 no account, remote file storage, or collaboration code.
 
@@ -10,7 +10,7 @@ no account, remote file storage, or collaboration code.
 flowchart LR
   Shell["Desktop Shell\nTop Bar · Overview · Shelf · Windows"] --> Store["Desktop Store\nZustand + versioned persistence"]
   Shell --> Registry["App Registry\nTyped manifests"]
-  Registry --> Apps["System Apps\nFiles · Text · Tasks · Calendar · Clock · Connections · Vela"]
+  Registry --> Apps["System Apps\nFiles · Text · Tasks · Calendar · Clock · Connections · Terminal · Vela"]
   Apps --> API["Nimvelis System API"]
   API --> Store
   Store --> Persistence["Browser localStorage\nstable state only"]
@@ -23,6 +23,7 @@ flowchart LR
   Vela["Vela text app\nlocal conversation history"] --> Worker["Worker API\nvalidation + model allowlist"]
   Worker --> AI["Cloudflare Workers AI\nstreamed inference"]
   Connections["Connections app\nbrowser capability signals"] --> Browser["Network Information · Web Bluetooth"]
+  Terminal["Local Shell\nparser · history · completion"] --> API
 ```
 
 - `src/kernel/window-manager` owns normalized window types and pure geometry functions.
@@ -41,6 +42,9 @@ flowchart LR
   consistent between the menu bar, Clock, Calendar, and Settings.
 - `src/apps/connections` reads online/network estimates and starts Web Bluetooth only after an
   explicit click. It has no access to Wi-Fi credentials or operating-system network controls.
+- `src/apps/terminal` parses a fixed local command set. File commands use only the VFS capability;
+  app, appearance, and time-zone commands use explicit System API methods. It cannot spawn host
+  processes, access environment secrets, make remote shell connections, or run arbitrary code.
 - `src/design` and `src/styles` own original Nimvelis icons and shared design tokens.
 - `worker/index.ts` is the only remote inference boundary. It validates chat size and roles,
   rate-limits per edge isolate, maps a short model key through an allowlist, and streams Workers AI.
@@ -84,7 +88,8 @@ The Zustand `persist` middleware stores only stable user state:
 - welcome completion;
 - named workspaces and the active workspace;
 - desktop icon positions;
-- interface, clock, time zone, week-start, desktop, and accessibility preferences.
+- interface, clock, time zone, week-start, desktop, and accessibility preferences;
+- each Terminal window's current VFS folder in its normal window instance data.
 
 Transient pointer data, animation state, menu state, current time, and resolved system color
 scheme are not persisted. Rehydration validates records, application IDs, bounds, visual states,
@@ -117,6 +122,12 @@ from the browser when available, and the latency check fetches a same-origin sta
 `no-store`. Bluetooth selection and connection are delegated to the browser's permission UI and
 last only for the active session. Time-zone preferences affect Nimvelis formatting; the device
 clock remains read-only.
+
+Terminal transcripts are session-only. Its bounded command history is stored in localStorage, and
+each window persists only its current VFS folder ID through ordinary window instance data. All
+file reads and mutations go through `VirtualFileSystem`; `rm` maps to recoverable Trash and there
+is no permanent-delete, host-shell, `eval`, network-fetch, environment-variable, or secret API in
+the command environment.
 
 ## Future adapters
 

@@ -173,6 +173,16 @@ export function DesktopShell() {
         },
       },
       {
+        id: 'open-terminal',
+        title: 'Open Terminal',
+        description: 'Run local commands for apps and virtual files',
+        keywords: 'terminal shell command cli console local files',
+        icon: 'terminal',
+        run: () => {
+          openApp('terminal');
+        },
+      },
+      {
         id: 'ask-vela',
         title: 'Ask Vela',
         description: 'Open the Workers AI text assistant',
@@ -457,7 +467,7 @@ export function DesktopShell() {
         <div className="desktop-atmosphere" aria-hidden="true" />
         <div className="desktop-version" aria-hidden="true">
           <span>AURORA</span>
-          <strong>0.6</strong>
+          <strong>0.7</strong>
         </div>
         {preferences.showDesktopIcons ? (
           <DesktopIcons
@@ -627,6 +637,8 @@ function WindowHost({
       wallpaper,
       preferences,
       files: localFileSystem,
+      listApps: () =>
+        listAppManifests().map(({ id, name, description }) => ({ id, name, description })),
       openApp,
       openFile,
       notify,

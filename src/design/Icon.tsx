@@ -12,6 +12,7 @@ export type IconName =
   | 'calendar'
   | 'clock'
   | 'connections'
+  | 'terminal'
   | 'wifi'
   | 'bluetooth'
   | 'search'
@@ -21,6 +22,7 @@ export type IconName =
   | 'upload'
   | 'download'
   | 'arrow-left'
+  | 'arrow-right'
   | 'more'
   | 'minimize'
   | 'maximize'
@@ -137,6 +139,13 @@ export function Icon({ name, size = 20, ...props }: IconProps) {
           <circle cx="12" cy="19.2" r=".9" fill="currentColor" stroke="none" />
         </svg>
       );
+    case 'terminal':
+      return (
+        <svg {...shared}>
+          <rect x="3" y="4" width="18" height="16" rx="3" />
+          <path d="m7 9 3 3-3 3M12.5 15H17" />
+        </svg>
+      );
     case 'wifi':
       return (
         <svg {...shared}>
@@ -179,6 +188,12 @@ export function Icon({ name, size = 20, ...props }: IconProps) {
       return (
         <svg {...shared}>
           <path d="m14.5 5-7 7 7 7" />
+        </svg>
+      );
+    case 'arrow-right':
+      return (
+        <svg {...shared}>
+          <path d="m9.5 5 7 7-7 7" />
         </svg>
       );
     case 'more':
@@ -299,6 +314,7 @@ const APP_ICON_PALETTES = {
   calendar: ['#253b68', '#507fd1', '#b7dfff'],
   clock: ['#4b2d51', '#d4776d', '#ffd39b'],
   connections: ['#173d5a', '#318db4', '#a9eeff'],
+  terminal: ['#111a2b', '#354a6b', '#78f0d5'],
 } as const;
 
 export function AppIcon({ name, size = 56, className = '', ...props }: AppIconProps) {
@@ -359,6 +375,7 @@ export function AppIcon({ name, size = 56, className = '', ...props }: AppIconPr
       {name === 'calendar' && <CalendarArtwork accent={palette[2]} />}
       {name === 'clock' && <ClockArtwork accent={palette[2]} />}
       {name === 'connections' && <ConnectionsArtwork accent={palette[2]} />}
+      {name === 'terminal' && <TerminalArtwork accent={palette[2]} />}
       {![
         'calculator',
         'memo',
@@ -371,6 +388,7 @@ export function AppIcon({ name, size = 56, className = '', ...props }: AppIconPr
         'calendar',
         'clock',
         'connections',
+        'terminal',
       ].includes(name) && (
         <g color="white">
           <rect x="15" y="15" width="34" height="34" rx="12" fill="white" fillOpacity=".1" />
@@ -671,6 +689,32 @@ function ConnectionsArtwork({ accent }: { accent: string }) {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
+    </g>
+  );
+}
+
+function TerminalArtwork({ accent }: { accent: string }) {
+  return (
+    <g>
+      <path
+        d="M13 17a5 5 0 0 1 5-5h29a5 5 0 0 1 5 5v29a6 6 0 0 1-6 6H18a6 6 0 0 1-6-6Z"
+        fill="#07101e"
+        fillOpacity=".9"
+        stroke="white"
+        strokeOpacity=".24"
+      />
+      <path d="M13 21h39" stroke="white" strokeOpacity=".17" />
+      <circle cx="19" cy="17" r="1.8" fill="#ff8e8e" />
+      <circle cx="25" cy="17" r="1.8" fill="#ffd37a" />
+      <circle cx="31" cy="17" r="1.8" fill={accent} />
+      <path
+        d="m20 31 6 5-6 5M31 41h12"
+        stroke="#eaf8ff"
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="45" cy="31" r="3" fill={accent} fillOpacity=".82" />
     </g>
   );
 }

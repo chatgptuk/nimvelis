@@ -13,6 +13,7 @@ describe('app registry', () => {
       'calendar',
       'clock',
       'connections',
+      'terminal',
       'calculator',
       'memo',
       'vela',
@@ -36,6 +37,14 @@ describe('app registry', () => {
       name: 'Vela',
       permissions: ['ai:generate'],
       allowMultipleInstances: false,
+    });
+  });
+
+  it('registers Terminal as a multi-instance local shell', () => {
+    expect(getAppManifest('terminal')).toMatchObject({
+      name: 'Terminal',
+      permissions: ['files:read', 'files:write', 'window:open', 'window:write'],
+      allowMultipleInstances: true,
     });
   });
 });

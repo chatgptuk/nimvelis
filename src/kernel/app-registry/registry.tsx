@@ -6,6 +6,7 @@ import { FilesApp } from '../../apps/files/FilesApp';
 import { MemoApp } from '../../apps/memo/MemoApp';
 import { SettingsApp } from '../../apps/settings/SettingsApp';
 import { TasksApp } from '../../apps/tasks/TasksApp';
+import { TerminalApp } from '../../apps/terminal/TerminalApp';
 import { TextApp } from '../../apps/text/TextApp';
 import { VelaApp } from '../../apps/vela/VelaApp';
 import { ViewApp } from '../../apps/view/ViewApp';
@@ -114,6 +115,21 @@ const manifests = [
       minHeight: 430,
     },
     allowMultipleInstances: false,
+  },
+  {
+    id: 'terminal',
+    name: 'Terminal',
+    description: 'A browser-local shell for Nimvelis apps and virtual files.',
+    icon: 'terminal',
+    component: TerminalApp,
+    defaultWindow: {
+      width: 760,
+      height: 520,
+      minWidth: 430,
+      minHeight: 320,
+    },
+    permissions: ['files:read', 'files:write', 'window:open', 'window:write'],
+    allowMultipleInstances: true,
   },
   {
     id: 'calculator',

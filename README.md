@@ -6,10 +6,10 @@
 [![CI](https://github.com/chatgptuk/nimvelis/actions/workflows/ci.yml/badge.svg)](https://github.com/chatgptuk/nimvelis/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Nimvelis Aurora 0.6 is a browser-native personal workspace with a desktop interface. It combines
+Nimvelis Aurora 0.7 is a browser-native personal workspace with a desktop interface. It combines
 a local-first window manager, IndexedDB file system, Files, Text, Tasks, Calendar, Clock,
-Connections, local media preview, global search, system-wide personalization, and an installable
-offline shell with Vela, an optional text assistant powered by Cloudflare Workers AI.
+Connections, Terminal, local media preview, global search, system-wide personalization, and an
+installable offline shell with Vela, an optional text assistant powered by Cloudflare Workers AI.
 
 Nimvelis is an independent project and is not affiliated with or endorsed by Apple Inc. Its
 marks, icons, wallpaper, interface assets, naming, and visual system are original to Nimvelis;
@@ -93,6 +93,8 @@ resource IDs. It declares only portable `AI` and static asset bindings.
   dates, and use world clocks, a focus timer, stopwatch, and laps without creating an account.
 - Inspect online state and browser-provided connection quality, measure same-origin latency, and
   connect an explicitly approved Bluetooth Low Energy device from Connections.
+- Use Terminal as a multi-instance local shell with history, Tab completion, app launching, system
+  information, and commands that operate directly on the IndexedDB virtual file system.
 - Personalize interface density, desktop icon visibility, time zone, 12/24-hour clock, calendar
   week start, text scale, contrast, motion, appearance, and wallpaper from Settings.
 - Chat with Vela through Cloudflare Workers AI, choose between server-approved Llama and Gemma
@@ -110,7 +112,7 @@ resource IDs. It declares only portable `AI` and static asset bindings.
 - Inspect the current browser, device, display, and local storage from **About This Device**.
 - Install the app and reopen its shell offline after the first production visit.
 
-Aurora 0.6 does not yet include accounts, cloud files, collaboration, or third-party apps.
+Aurora 0.7 does not yet include accounts, cloud files, collaboration, or third-party apps.
 See [`docs/architecture.md`](docs/architecture.md) for the component boundaries and data flow.
 
 ## Device capability boundaries
@@ -124,6 +126,17 @@ Web Bluetooth requires HTTPS, a compatible browser, a direct click, and approval
 browser's own device picker. Nimvelis cannot scan silently and connects only to the selected
 Bluetooth Low Energy/GATT device for the current browser session. Date & Time changes Nimvelis
 display formatting only; it never changes the operating system clock or time zone.
+
+## Terminal boundary
+
+Terminal is the Nimvelis **Local Shell**, not a remote console or a bridge to the host operating
+system. Commands such as `ls`, `cd`, `cat`, `mkdir`, `write`, `mv`, `cp`, `rm`, `open`, `theme`,
+and `timezone` use the same capability-shaped System API and IndexedDB virtual file system as the
+graphical apps. `rm` moves items to recoverable Trash.
+
+Browsers do not expose arbitrary OS processes, SSH sessions, package managers, or the deploying
+Cloudflare account to this app. Terminal therefore rejects host commands such as `sudo`, `ssh`,
+`npm`, and `git` with an explicit sandbox explanation instead of pretending they ran.
 
 ## AI and privacy
 

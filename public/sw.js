@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nimvelis-aurora-v6';
+const CACHE_NAME = 'nimvelis-aurora-v7';
 const SHELL_ASSETS = [
   '/',
   '/manifest.webmanifest',
