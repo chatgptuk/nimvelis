@@ -124,3 +124,5 @@ After implementing:
 - `npm run test`
 - `npm run test:e2e`
 - `npm run build`
+- `npm run check`
+- `npm run deploy`
