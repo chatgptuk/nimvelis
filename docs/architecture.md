@@ -10,12 +10,14 @@ no account, remote file storage, or collaboration code.
 flowchart LR
   Shell["Desktop Shell\nTop Bar · Overview · Shelf · Windows"] --> Store["Desktop Store\nZustand + versioned persistence"]
   Shell --> Registry["App Registry\nTyped manifests"]
-  Registry --> Apps["System Apps\nFiles · Text · Tasks · Calendar · Clock · Connections · Terminal · Luma · Vela"]
+  Registry --> Apps["System Apps\nFiles · Browser · Text · Pulse · Stash · Capture · Vela"]
   Apps --> API["Nimvelis System API"]
   API --> Store
   Store --> Persistence["Browser localStorage\nstable state only"]
   API --> VFS["Virtual File System\ncapability interface"]
   VFS --> IndexedDB["IndexedDB adapter\nmetadata + Blob content"]
+  API --> Clipboard["Clipboard history\ncapability interface"]
+  Clipboard --> ClipboardDB["IndexedDB\ntext + image blobs"]
   Sync["Cross-tab sync\nBroadcastChannel"] --> Store
   Sync --> VFS
   Search["System Search\napps + local content"] --> Registry
@@ -23,6 +25,7 @@ flowchart LR
   Vela["Vela multimodal app\nlocal text history"] --> Worker["Worker API\nvalidation + model allowlist"]
   Worker --> AI["Cloudflare Workers AI\nstreamed inference"]
   Connections["Connections app\nbrowser capability signals"] --> Browser["Network Information · Web Bluetooth"]
+  WebApp["Browser app\nsandboxed HTTP(S) iframe"] --> Web["External websites\nsubject to CSP and X-Frame-Options"]
   Terminal["Local Shell\nparser · history · completion"] --> API
   Luma["Luma puzzle\npure engine · local records"] --> Persistence
 ```
@@ -36,22 +39,33 @@ flowchart LR
   component, identity, initial size, minimum size, permissions, and instance policy.
 - `src/state/desktop-store.ts` owns durable desktop state, named workspaces, desktop icon
   positions, system preferences, snapping, and window lifecycle actions. `productivity-store.ts`
-  owns local tasks and calendar events; `system-store.ts` owns durable notification history.
+  owns local tasks and calendar events; `system-store.ts` owns durable notification history,
+  local session locking, focus mode, media muting, interface brightness, and the profile label.
 - `src/shell` turns the kernel state into the desktop UI and implements Pointer Events.
 - `src/apps` receives a window record and a capability-shaped System API. Apps do not import or
   mutate the desktop store.
 - `src/kernel/vfs` defines the storage contract. The in-memory implementation supports tests and
   future adapters; the IndexedDB implementation is the browser default.
+- `src/kernel/clipboard` defines a separate text-and-image history contract with memory and
+  IndexedDB adapters. Stash receives it through the System API and never watches the device
+  clipboard in the background.
 - `src/shell/SystemSearch.tsx` owns transient global search UI and queries the registry plus VFS.
 - `src/kernel/time.ts` validates display-time preferences and keeps time-zone-aware date keys
   consistent between the menu bar, Clock, Calendar, and Settings.
 - `src/apps/connections` reads online/network estimates and starts Web Bluetooth only after an
   explicit click. It has no access to Wi-Fi credentials or operating-system network controls.
+- `src/apps/browser` owns URL validation, per-window navigation, local bookmarks and local history.
+  It accepts only credential-free HTTP(S) addresses, embeds pages in a restricted iframe, and
+  provides an external-tab fallback without proxying or bypassing remote framing policies.
 - `src/apps/terminal` parses a fixed local command set. File commands use only the VFS capability;
   app, appearance, and time-zone commands use explicit System API methods. It cannot spawn host
   processes, access environment secrets, make remote shell connections, or run arbitrary code.
 - `src/apps/luma` contains a deterministic puzzle generator and solver plus the keyboard- and
   touch-friendly system game. It has no network or system capability and stores only best scores.
+- `src/apps/pulse` receives normalized window summaries and lifecycle callbacks through the
+  System API. It cannot import the desktop store or inspect host processes.
+- `src/apps/capture` requests a display surface only after a direct click, captures one PNG frame,
+  stops every media track, and writes files through the VFS capability.
 - `src/design` and `src/styles` own original Nimvelis icons and shared design tokens.
 - `worker/index.ts` is the only remote inference boundary. It validates chat size and roles,
   rate-limits per edge isolate, maps a short model key through an allowlist, and streams Workers AI.
@@ -98,7 +112,10 @@ The Zustand `persist` middleware stores only stable user state:
 - desktop icon positions;
 - Shelf app order plus interface, clock, time zone, week-start, desktop, and accessibility
   preferences;
+- lock state, profile label, focus mode, app-media muting, and Nimvelis interface brightness;
 - each Terminal window's current VFS folder in its normal window instance data.
+- each Browser window's bounded navigation stack and history-off preference in its normal window
+  instance data.
 
 Transient pointer data, animation state, menu state, current time, and resolved system color
 scheme are not persisted. Rehydration validates records, application IDs, bounds, visual states,
@@ -112,9 +129,9 @@ permanently removed. The search boundary reads names and the contents of small t
 files; it ignores trashed items.
 
 `BroadcastChannel` synchronizes stable desktop state, local tasks and calendar events,
-notification history, and VFS change signals between same-origin tabs. Every IndexedDB write
-remains the source of truth; receiving tabs reload records from IndexedDB instead of transferring
-file Blobs through the channel.
+notification and session state, clipboard change signals, and VFS change signals between
+same-origin tabs. Every IndexedDB write remains the source of truth; receiving tabs reload records
+from IndexedDB instead of transferring file Blobs through the channel.
 
 The production service worker caches the application shell and same-origin built assets. Waiting
 workers are surfaced through Device space so the user controls when to refresh. It does not cache
@@ -138,6 +155,11 @@ each window persists only its current VFS folder ID through ordinary window inst
 file reads and mutations go through `VirtualFileSystem`; `rm` maps to recoverable Trash and there
 is no permanent-delete, host-shell, `eval`, network-fetch, environment-variable, or secret API in
 the command environment.
+
+Browser bookmarks and visited-address history are bounded localStorage records. Individual Browser
+windows persist only their sanitized navigation stack, active index, and history-off preference.
+External pages are loaded directly by the user's browser inside an iframe with an opaque sandboxed
+origin and no referrer; remote CSP and `X-Frame-Options` remain authoritative.
 
 ## Future adapters
 

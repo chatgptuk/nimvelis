@@ -6,9 +6,17 @@ import type { WindowInstance } from '../window-manager/types';
 export type AppPermission =
   | 'ai:generate'
   | 'appearance:write'
+  | 'bluetooth:request'
+  | 'clipboard:read'
+  | 'clipboard:write'
+  | 'display:capture'
   | 'files:read'
   | 'files:write'
+  | 'network:access'
+  | 'notifications:read'
+  | 'storage:read'
   | 'window:open'
+  | 'window:read'
   | 'window:write';
 
 export interface SystemAppProps {

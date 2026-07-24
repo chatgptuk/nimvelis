@@ -7,12 +7,16 @@ describe('app registry', () => {
 
     expect(manifests.map((manifest) => manifest.id)).toEqual([
       'files',
+      'browser',
       'text',
       'view',
       'tasks',
       'calendar',
       'clock',
       'connections',
+      'pulse',
+      'stash',
+      'capture',
       'terminal',
       'calculator',
       'luma',
@@ -23,6 +27,14 @@ describe('app registry', () => {
     expect(new Set(manifests.map((manifest) => manifest.id)).size).toBe(manifests.length);
   });
 
+  it('registers Browser as a multi-instance restricted web view', () => {
+    expect(getAppManifest('browser')).toMatchObject({
+      name: 'Browser',
+      icon: 'browser',
+      allowMultipleInstances: true,
+    });
+  });
+
   it('declares Settings as single-instance', () => {
     expect(getAppManifest('settings')?.allowMultipleInstances).toBe(false);
   });
@@ -31,6 +43,21 @@ describe('app registry', () => {
     for (const appId of ['tasks', 'calendar', 'clock', 'connections']) {
       expect(getAppManifest(appId)?.allowMultipleInstances).toBe(false);
     }
+  });
+
+  it('registers System Core tools with explicit browser capability boundaries', () => {
+    expect(getAppManifest('pulse')).toMatchObject({
+      permissions: ['window:read', 'window:write', 'storage:read'],
+      allowMultipleInstances: false,
+    });
+    expect(getAppManifest('stash')).toMatchObject({
+      permissions: ['clipboard:read', 'clipboard:write', 'storage:read'],
+      allowMultipleInstances: false,
+    });
+    expect(getAppManifest('capture')).toMatchObject({
+      permissions: ['display:capture', 'clipboard:write', 'files:write', 'window:open'],
+      allowMultipleInstances: false,
+    });
   });
 
   it('declares Vela as a single-instance Workers AI app', () => {

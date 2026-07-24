@@ -18,6 +18,21 @@
   pointer-events: none;
 }
 
+.desktop-dimmer {
+  position: absolute;
+  z-index: 29998;
+  inset: 44px 0 0;
+  background: rgb(1 3 12);
+  opacity: var(--system-dim-opacity, 0);
+  pointer-events: none;
+  transition: opacity 160ms ease;
+}
+
+.desktop-shell[data-focus-mode='true'] .top-bar__local .status-dot {
+  background: #9a8be8;
+  box-shadow: 0 0 0 3px rgb(154 139 232 / 14%);
+}
+
 .desktop-shell::before {
   background: linear-gradient(180deg, rgb(3 6 18 / 28%), transparent 25%, rgb(3 6 18 / 18%));
 }

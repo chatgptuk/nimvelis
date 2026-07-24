@@ -71,17 +71,34 @@ export function startSystemSync() {
   let receiving = false;
   const unsubscribe = useSystemStore.subscribe((state) => {
     if (!receiving) {
-      channel.postMessage({ sourceId: SOURCE_ID, notifications: state.notifications });
+      channel.postMessage({
+        sourceId: SOURCE_ID,
+        notifications: state.notifications,
+        session: state.session,
+      });
     }
   });
   channel.addEventListener(
     'message',
-    (event: MessageEvent<{ sourceId?: string; notifications?: unknown }>) => {
+    (
+      event: MessageEvent<{
+        sourceId?: string;
+        notifications?: unknown;
+        session?: unknown;
+      }>,
+    ) => {
       if (event.data?.sourceId === SOURCE_ID || !Array.isArray(event.data?.notifications)) {
         return;
       }
       receiving = true;
-      useSystemStore.setState({ notifications: event.data.notifications });
+      const current = useSystemStore.getState();
+      useSystemStore.setState({
+        notifications: event.data.notifications,
+        session:
+          typeof event.data.session === 'object' && event.data.session !== null
+            ? { ...current.session, ...event.data.session }
+            : current.session,
+      });
       queueMicrotask(() => {
         receiving = false;
       });

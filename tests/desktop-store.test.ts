@@ -1,5 +1,9 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { DEFAULT_DESKTOP_PREFERENCES, useDesktopStore } from '../src/state/desktop-store';
+import {
+  DEFAULT_DESKTOP_PREFERENCES,
+  migratePersistedDesktopState,
+  useDesktopStore,
+} from '../src/state/desktop-store';
 
 describe('desktop store', () => {
   beforeEach(() => {
@@ -142,5 +146,45 @@ describe('desktop store', () => {
 
     useDesktopStore.getState().resetPreferences();
     expect(useDesktopStore.getState().preferences).toEqual(DEFAULT_DESKTOP_PREFERENCES);
+  });
+
+  it('adds Browser to an existing customized Shelf exactly once', () => {
+    const migrated = migratePersistedDesktopState(
+      {
+        preferences: {
+          shelfAppIds: ['files', 'vela', 'settings'],
+        },
+      },
+      5,
+    );
+
+    expect(migrated).toMatchObject({
+      preferences: {
+        shelfAppIds: ['files', 'browser', 'vela', 'settings', 'pulse', 'stash', 'capture'],
+      },
+    });
+    expect(migratePersistedDesktopState(migrated, 7)).toBe(migrated);
+  });
+
+  it('adds System Core tools after Connections for Aurora 0.8 shelves', () => {
+    const migrated = migratePersistedDesktopState(
+      {
+        preferences: {
+          shelfAppIds: ['files', 'connections', 'terminal', 'settings'],
+        },
+      },
+      6,
+    );
+
+    expect(migrated).toMatchObject({
+      preferences: {
+        shelfAppIds: ['files', 'connections', 'pulse', 'stash', 'capture', 'terminal', 'settings'],
+      },
+    });
+  });
+
+  it('preserves an intentionally empty Shelf during Browser migration', () => {
+    const persisted = { preferences: { shelfAppIds: [] } };
+    expect(migratePersistedDesktopState(persisted, 5)).toBe(persisted);
   });
 });

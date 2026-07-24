@@ -1,0 +1,189 @@
+.lock-screen,
+.boot-screen {
+  position: fixed;
+  z-index: 60000;
+  inset: 0;
+  color: white;
+}
+
+.lock-screen {
+  display: grid;
+  grid-template-rows: auto 1fr auto 1fr auto;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 50% 42%, rgb(119 232 224 / 15%), transparent 24%),
+    linear-gradient(180deg, rgb(5 9 25 / 42%), rgb(5 7 22 / 64%));
+  backdrop-filter: blur(27px) saturate(0.86);
+  animation: lock-screen-in 260ms ease-out;
+}
+
+.lock-screen__top {
+  justify-self: start;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgb(255 255 255 / 76%);
+  font-size: var(--font-sm);
+  font-weight: 680;
+}
+
+.lock-screen__clock {
+  grid-row: 2;
+  align-self: end;
+  display: grid;
+  justify-items: center;
+  padding-bottom: 24px;
+  text-shadow: 0 10px 34px rgb(0 0 0 / 30%);
+}
+
+.lock-screen__clock time {
+  font-size: clamp(4rem, 10vw, 7.2rem);
+  font-weight: 230;
+  letter-spacing: -0.065em;
+  line-height: 0.95;
+}
+
+.lock-screen__clock span {
+  color: rgb(255 255 255 / 76%);
+  font-size: 1rem;
+  font-weight: 560;
+}
+
+.lock-screen__profile {
+  grid-row: 3;
+  display: grid;
+  justify-items: center;
+  gap: 9px;
+}
+
+.lock-screen__avatar {
+  position: relative;
+  width: 78px;
+  height: 78px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 32%);
+  border-radius: 27px 18px 27px 18px;
+  background:
+    radial-gradient(circle at 30% 18%, rgb(255 255 255 / 36%), transparent 36%),
+    linear-gradient(145deg, #5ecbc7, #5669c6 62%, #332d69);
+  box-shadow:
+    inset 0 1px rgb(255 255 255 / 32%),
+    0 18px 44px rgb(0 0 0 / 27%);
+}
+
+.lock-screen__avatar span {
+  position: relative;
+  z-index: 1;
+  font-size: 2.1rem;
+  font-weight: 720;
+}
+
+.lock-screen__avatar i {
+  position: absolute;
+  right: -12px;
+  bottom: -18px;
+  width: 70px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 12%);
+  transform: rotate(-18deg);
+}
+
+.lock-screen__profile > strong {
+  font-size: 1rem;
+}
+
+.lock-screen__profile > button {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 15px;
+  border: 1px solid rgb(255 255 255 / 25%);
+  border-radius: 12px 8px 12px 8px;
+  color: white;
+  background: rgb(255 255 255 / 13%);
+  box-shadow: inset 0 1px rgb(255 255 255 / 12%);
+  font: inherit;
+  font-size: var(--font-sm);
+  backdrop-filter: blur(18px);
+}
+
+.lock-screen__profile > button:hover,
+.lock-screen__profile > button:focus-visible {
+  background: rgb(255 255 255 / 20%);
+}
+
+.lock-screen__profile > small {
+  max-width: 370px;
+  color: rgb(255 255 255 / 52%);
+  font-size: var(--font-xs);
+  text-align: center;
+}
+
+.lock-screen__foot {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: rgb(255 255 255 / 52%);
+  font-size: var(--font-xs);
+}
+
+.boot-screen {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 22px;
+  background:
+    radial-gradient(circle at 50% 48%, #15274b, transparent 28%),
+    linear-gradient(150deg, #070b1a, #0d1530);
+}
+
+.boot-screen > div {
+  width: 170px;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: rgb(255 255 255 / 10%);
+}
+
+.boot-screen > div i {
+  width: 48%;
+  height: 100%;
+  display: block;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #61d8ce, #7d8df4);
+  animation: boot-progress 700ms ease-in-out infinite alternate;
+}
+
+.boot-screen > span {
+  color: rgb(255 255 255 / 56%);
+  font-size: var(--font-xs);
+}
+
+@keyframes lock-screen-in {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0);
+  }
+}
+
+@keyframes boot-progress {
+  from {
+    transform: translateX(-15%);
+  }
+
+  to {
+    transform: translateX(125%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lock-screen,
+  .boot-screen > div i {
+    animation: none;
+  }
+}

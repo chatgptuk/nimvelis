@@ -1,6 +1,7 @@
 import { useId, type SVGProps } from 'react';
 
 export type IconName =
+  | 'browser'
   | 'calculator'
   | 'memo'
   | 'settings'
@@ -14,8 +15,17 @@ export type IconName =
   | 'connections'
   | 'terminal'
   | 'luma'
+  | 'pulse'
+  | 'stash'
+  | 'capture'
   | 'wifi'
   | 'bluetooth'
+  | 'clipboard'
+  | 'pin'
+  | 'lock'
+  | 'unlock'
+  | 'volume'
+  | 'volume-off'
   | 'search'
   | 'folder'
   | 'file'
@@ -60,6 +70,14 @@ export function Icon({ name, size = 20, ...props }: IconProps) {
   };
 
   switch (name) {
+    case 'browser':
+      return (
+        <svg {...shared}>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M3.5 12h17M12 3c2.7 2.5 4.1 5.5 4.1 9S14.7 18.5 12 21c-2.7-2.5-4.1-5.5-4.1-9S9.3 5.5 12 3Z" />
+          <path d="m13.7 8.2-1.2 4.3-4.2 1.3 1.2-4.3Z" fill="currentColor" stroke="none" />
+        </svg>
+      );
     case 'calculator':
       return (
         <svg {...shared}>
@@ -138,6 +156,64 @@ export function Icon({ name, size = 20, ...props }: IconProps) {
         <svg {...shared}>
           <path d="M3.5 9.5c5-4.3 12-4.3 17 0M6.5 13c3.2-2.7 7.8-2.7 11 0M9.7 16.4c1.4-1.1 3.2-1.1 4.6 0" />
           <circle cx="12" cy="19.2" r=".9" fill="currentColor" stroke="none" />
+        </svg>
+      );
+    case 'pulse':
+      return (
+        <svg {...shared}>
+          <path d="M3 12h4l2.2-6 4.1 12 2.2-6H21" />
+          <path d="M4 20h16" strokeOpacity=".35" />
+        </svg>
+      );
+    case 'stash':
+      return (
+        <svg {...shared}>
+          <path d="M4 8.5h16v10A2.5 2.5 0 0 1 17.5 21h-11A2.5 2.5 0 0 1 4 18.5Z" />
+          <path d="M6 3h12l2 5.5H4ZM9 12h6" />
+        </svg>
+      );
+    case 'capture':
+      return (
+        <svg {...shared}>
+          <path d="M8 4H5a1 1 0 0 0-1 1v3M16 4h3a1 1 0 0 1 1 1v3M8 20H5a1 1 0 0 1-1-1v-3M16 20h3a1 1 0 0 0 1-1v-3" />
+          <circle cx="12" cy="12" r="4" />
+        </svg>
+      );
+    case 'clipboard':
+      return (
+        <svg {...shared}>
+          <rect x="5" y="4" width="14" height="17" rx="3" />
+          <path d="M9 5V3h6v2M8.5 10h7M8.5 14h7M8.5 18h4" />
+        </svg>
+      );
+    case 'pin':
+      return (
+        <svg {...shared}>
+          <path d="m8 3 8 8M7 8l-3 3 4 1 4 4 1 4 3-3M4 20l5-5" />
+        </svg>
+      );
+    case 'lock':
+    case 'unlock':
+      return (
+        <svg {...shared}>
+          <rect x="5" y="10" width="14" height="11" rx="3" />
+          <path d={name === 'lock' ? 'M8 10V7a4 4 0 0 1 8 0v3' : 'M8 10V7a4 4 0 0 1 7.5-2'} />
+          <path d="M12 14v3" />
+        </svg>
+      );
+    case 'volume':
+    case 'volume-off':
+      return (
+        <svg {...shared}>
+          <path d="M4 10v4h4l5 4V6l-5 4Z" />
+          {name === 'volume' ? (
+            <>
+              <path d="M16 9a4 4 0 0 1 0 6" />
+              <path d="M18.5 6.5a7.5 7.5 0 0 1 0 11" />
+            </>
+          ) : (
+            <path d="m17 10 4 4M21 10l-4 4" />
+          )}
         </svg>
       );
     case 'terminal':
@@ -311,19 +387,23 @@ interface AppIconProps extends Omit<SVGProps<SVGSVGElement>, 'name'> {
 }
 
 const APP_ICON_PALETTES = {
-  calculator: ['#052b35', '#00a18d', '#8affdc'],
-  memo: ['#7b3e0a', '#f0a238', '#fff0a3'],
-  settings: ['#283241', '#71819a', '#e8f1ff'],
-  files: ['#064a70', '#20aee4', '#b6f5ff'],
-  text: ['#283b82', '#6576e8', '#e6eaff'],
-  view: ['#51285f', '#d65a83', '#ffd59e'],
-  vela: ['#071c54', '#167cc7', '#a0fff2'],
-  tasks: ['#075247', '#20aa7e', '#c6ffe3'],
-  calendar: ['#174581', '#4b91ef', '#d8edff'],
-  clock: ['#64302b', '#ed8955', '#ffe8b4'],
-  connections: ['#03486c', '#1da7d8', '#c3f6ff'],
-  terminal: ['#06141c', '#1b3844', '#7effc9'],
-  luma: ['#1b1052', '#7541df', '#ffda72'],
+  browser: ['#173a72', '#071327', '#71f4e4', '#dffefa'],
+  calculator: ['#31c7b1', '#075e62', '#a9fff1', '#07363c'],
+  memo: ['#ffd86a', '#e98a2f', '#fff2a8', '#714115'],
+  settings: ['#9eabc0', '#435166', '#f3f7ff', '#182334'],
+  files: ['#51d5f5', '#0a83ca', '#d9fbff', '#073c68'],
+  text: ['#7388f7', '#3a4aac', '#eef1ff', '#26336f'],
+  view: ['#ff8f9f', '#9f3e79', '#ffe8b8', '#4c214e'],
+  vela: ['#366be4', '#071c59', '#8fffea', '#f2ffff'],
+  tasks: ['#55d7ad', '#07806c', '#dcfff1', '#075247'],
+  calendar: ['#71b7ff', '#296ed5', '#f3f8ff', '#214f96'],
+  clock: ['#ffb06f', '#c35f3f', '#fff0c4', '#55394a'],
+  connections: ['#51cff4', '#1178bd', '#d8fbff', '#0b5278'],
+  terminal: ['#315063', '#081019', '#78ffcf', '#e8fff8'],
+  luma: ['#9b6ef2', '#4520a5', '#ffe17f', '#160b3f'],
+  pulse: ['#39cb95', '#075c50', '#bfffe2', '#052f2d'],
+  stash: ['#a187ef', '#5b3db4', '#f1eaff', '#322263'],
+  capture: ['#42c9d2', '#09697a', '#c9fffa', '#063a4a'],
 } as const;
 
 export function AppIcon({ name, size = 56, className = '', ...props }: AppIconProps) {
@@ -331,8 +411,8 @@ export function AppIcon({ name, size = 56, className = '', ...props }: AppIconPr
   const palette =
     APP_ICON_PALETTES[name as keyof typeof APP_ICON_PALETTES] ?? APP_ICON_PALETTES.settings;
   const backgroundId = `${rawId}-background`;
-  const glowId = `${rawId}-glow`;
-  const glossId = `${rawId}-gloss`;
+  const ambientId = `${rawId}-ambient`;
+  const highlightId = `${rawId}-highlight`;
   const rimId = `${rawId}-rim`;
   const accentId = `${rawId}-accent`;
   const glassId = `${rawId}-glass`;
@@ -352,92 +432,96 @@ export function AppIcon({ name, size = 56, className = '', ...props }: AppIconPr
       {...props}
     >
       <defs>
-        <linearGradient id={backgroundId} x1="10" y1="5" x2="55" y2="61">
-          <stop stopColor={palette[1]} />
-          <stop offset=".52" stopColor={palette[0]} />
-          <stop offset="1" stopColor="#07101f" />
+        <linearGradient id={backgroundId} x1="13" y1="4" x2="49" y2="61">
+          <stop stopColor={palette[0]} />
+          <stop offset=".62" stopColor={palette[1]} />
+          <stop offset="1" stopColor={palette[1]} />
         </linearGradient>
         <radialGradient
-          id={glowId}
+          id={ambientId}
           cx="0"
           cy="0"
           r="1"
-          gradientTransform="translate(17 12) rotate(48) scale(45)"
+          gradientTransform="translate(15 8) rotate(45) scale(48 39)"
         >
-          <stop stopColor={palette[2]} stopOpacity=".62" />
-          <stop offset=".62" stopColor={palette[1]} stopOpacity=".08" />
-          <stop offset="1" stopColor={palette[0]} stopOpacity="0" />
+          <stop stopColor="white" stopOpacity=".52" />
+          <stop offset=".46" stopColor={palette[2]} stopOpacity=".14" />
+          <stop offset="1" stopColor={palette[1]} stopOpacity="0" />
         </radialGradient>
-        <linearGradient id={glossId} x1="17" y1="4" x2="39" y2="42">
-          <stop stopColor="white" stopOpacity=".48" />
-          <stop offset=".45" stopColor="white" stopOpacity=".08" />
+        <linearGradient id={highlightId} x1="11" y1="5" x2="41" y2="38">
+          <stop stopColor="white" stopOpacity=".38" />
+          <stop offset=".52" stopColor="white" stopOpacity=".06" />
           <stop offset="1" stopColor="white" stopOpacity="0" />
         </linearGradient>
-        <linearGradient id={rimId} x1="8" y1="4" x2="57" y2="60">
-          <stop stopColor="white" stopOpacity=".62" />
-          <stop offset=".48" stopColor="white" stopOpacity=".12" />
-          <stop offset="1" stopColor="white" stopOpacity=".34" />
+        <linearGradient id={rimId} x1="9" y1="4" x2="55" y2="60">
+          <stop stopColor="white" stopOpacity=".78" />
+          <stop offset=".42" stopColor="white" stopOpacity=".26" />
+          <stop offset=".74" stopColor="white" stopOpacity=".06" />
+          <stop offset="1" stopColor="white" stopOpacity=".32" />
         </linearGradient>
         <linearGradient id={accentId} x1="18" y1="14" x2="48" y2="53">
           <stop stopColor={palette[2]} />
-          <stop offset=".55" stopColor={palette[1]} />
-          <stop offset="1" stopColor={palette[0]} />
+          <stop offset=".62" stopColor={palette[0]} />
+          <stop offset="1" stopColor={palette[1]} />
         </linearGradient>
         <linearGradient id={glassId} x1="18" y1="12" x2="44" y2="52">
-          <stop stopColor="white" stopOpacity=".96" />
-          <stop offset=".52" stopColor="#f2f6ff" stopOpacity=".88" />
-          <stop offset="1" stopColor={palette[2]} stopOpacity=".72" />
+          <stop stopColor="white" />
+          <stop offset=".5" stopColor={palette[3]} stopOpacity=".94" />
+          <stop offset="1" stopColor={palette[2]} stopOpacity=".7" />
         </linearGradient>
         <clipPath id={clipId}>
-          <rect x="4" y="4" width="56" height="56" rx="14.5" />
+          <rect x="4" y="4" width="56" height="56" rx="14.25" />
         </clipPath>
-        <filter id={surfaceShadowId} x="-24%" y="-20%" width="148%" height="158%">
+        <filter id={surfaceShadowId} x="-24%" y="-20%" width="148%" height="160%">
           <feDropShadow
             dx="0"
-            dy="3.5"
-            stdDeviation="3.2"
+            dy="3.2"
+            stdDeviation="2.7"
             floodColor="#020611"
-            floodOpacity=".46"
+            floodOpacity=".38"
           />
         </filter>
         <filter id={artworkShadowId} x="-30%" y="-30%" width="160%" height="170%">
           <feDropShadow
             dx="0"
-            dy="2.2"
-            stdDeviation="1.6"
+            dy="1.8"
+            stdDeviation="1.35"
             floodColor="#020612"
-            floodOpacity=".34"
+            floodOpacity=".3"
           />
         </filter>
       </defs>
       <g filter={`url(#${surfaceShadowId})`}>
-        <rect x="4" y="4" width="56" height="56" rx="14.5" fill={`url(#${backgroundId})`} />
+        <rect x="4" y="4" width="56" height="56" rx="14.25" fill={`url(#${backgroundId})`} />
         <rect
           x="4.75"
           y="4.75"
           width="54.5"
           height="54.5"
-          rx="13.8"
-          fill={`url(#${glowId})`}
+          rx="13.55"
+          fill={`url(#${ambientId})`}
           stroke={`url(#${rimId})`}
-          strokeWidth="1.35"
+          strokeWidth="1.15"
         />
         <g clipPath={`url(#${clipId})`}>
           <path
-            d="M5 27C11 8 32 1 51 8c5 1.8 8 5 10 8.8C44 10.5 25 13.5 5 27Z"
-            fill={`url(#${glossId})`}
+            d="M5 22.5C10 8.5 23 3 37 4h23v7.5C42 9.5 23 13 5 22.5Z"
+            fill={`url(#${highlightId})`}
           />
-          <ellipse cx="52" cy="57" rx="28" ry="13" fill="#020718" fillOpacity=".18" />
           <path
-            d="M9 51c13 5.3 32 5.9 46-1.3"
+            d="M9.5 52.2c12.2 4.3 31.2 4.8 45-1.5"
             stroke="white"
-            strokeOpacity=".12"
-            strokeWidth="1.2"
+            strokeOpacity=".14"
+            strokeWidth="1"
             strokeLinecap="round"
           />
+          <path d="M5 51c11 9 37 12 55-1v10H5Z" fill="#020718" fillOpacity=".1" />
         </g>
       </g>
       <g filter={`url(#${artworkShadowId})`}>
+        {name === 'browser' && (
+          <BrowserArtwork accent={palette[2]} accentFill={`url(#${accentId})`} />
+        )}
         {name === 'calculator' && (
           <CalculatorArtwork accent={palette[2]} accentFill={`url(#${accentId})`} />
         )}
@@ -459,7 +543,13 @@ export function AppIcon({ name, size = 56, className = '', ...props }: AppIconPr
         )}
         {name === 'terminal' && <TerminalArtwork accent={palette[2]} />}
         {name === 'luma' && <LumaArtwork accent={palette[2]} accentFill={`url(#${accentId})`} />}
+        {name === 'pulse' && <PulseArtwork accent={palette[2]} accentFill={`url(#${accentId})`} />}
+        {name === 'stash' && <StashArtwork accent={palette[2]} />}
+        {name === 'capture' && (
+          <CaptureArtwork accent={palette[2]} accentFill={`url(#${accentId})`} />
+        )}
         {![
+          'browser',
           'calculator',
           'memo',
           'settings',
@@ -473,6 +563,9 @@ export function AppIcon({ name, size = 56, className = '', ...props }: AppIconPr
           'connections',
           'terminal',
           'luma',
+          'pulse',
+          'stash',
+          'capture',
         ].includes(name) && (
           <g color="white">
             <rect x="15" y="15" width="34" height="34" rx="12" fill="white" fillOpacity=".1" />
@@ -489,36 +582,171 @@ export function AppIcon({ name, size = 56, className = '', ...props }: AppIconPr
   );
 }
 
+function PulseArtwork({ accent, accentFill }: { accent: string; accentFill: string }) {
+  return (
+    <g>
+      <rect
+        x="10.5"
+        y="14"
+        width="43"
+        height="34"
+        rx="9"
+        fill="#052b2a"
+        stroke="#dffff4"
+        strokeOpacity=".42"
+      />
+      <rect x="14" y="17.5" width="36" height="27" rx="6.5" fill={accentFill} fillOpacity=".14" />
+      <path d="M18 21.5h11M18 25h7" stroke={accent} strokeOpacity=".36" strokeLinecap="round" />
+      <path
+        d="M14 34h8l4-11 7 20 5-13 3 4h9"
+        stroke="#dffff3"
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="33" cy="43" r="2" fill={accent} />
+      <path
+        d="M24 52h16"
+        stroke="#dffff3"
+        strokeOpacity=".7"
+        strokeWidth="2.4"
+        strokeLinecap="round"
+      />
+      <path d="M29 48v4M35 48v4" stroke="#dffff3" strokeOpacity=".55" strokeWidth="1.6" />
+    </g>
+  );
+}
+
+function StashArtwork({ accent }: { accent: string }) {
+  return (
+    <g>
+      <path d="M16 14h32l4 11H12Z" fill="#d8ccff" stroke="#faf7ff" strokeOpacity=".74" />
+      <path
+        d="M12 25h40l-3.2 25.5a5 5 0 0 1-5 4.5H20.2a5 5 0 0 1-5-4.5Z"
+        fill="#f5f1ff"
+        stroke="white"
+        strokeOpacity=".62"
+      />
+      <path d="M12 25h40l-1.1 9H13.1Z" fill="#7654c7" />
+      <path d="M23 20h18" stroke="#5b4293" strokeWidth="2.3" strokeLinecap="round" />
+      <path d="M23 40h18M25 46h14" stroke="#59467e" strokeWidth="2.2" strokeLinecap="round" />
+      <path d="M26 30h12" stroke={accent} strokeWidth="2.4" strokeLinecap="round" />
+      <path d="M17 27h30" stroke="white" strokeOpacity=".55" />
+    </g>
+  );
+}
+
+function CaptureArtwork({ accent, accentFill }: { accent: string; accentFill: string }) {
+  return (
+    <g>
+      <rect
+        x="12"
+        y="17"
+        width="40"
+        height="32"
+        rx="9"
+        fill="#e9fffd"
+        stroke="white"
+        strokeOpacity=".74"
+      />
+      <path d="m20 17 4-5h16l4 5Z" fill="#e9fffd" stroke="white" strokeOpacity=".62" />
+      <circle cx="32" cy="33" r="13" fill="#063b4a" stroke={accent} strokeWidth="1.5" />
+      <path d="m32 21 6 4-1 8-7 4-6-4 1-8Z" fill={accentFill} fillOpacity=".64" />
+      <circle cx="32" cy="33" r="6.8" fill="#061d2b" />
+      <circle cx="29.5" cy="30.5" r="2.4" fill={accent} fillOpacity=".92" />
+      <path
+        d="M10 22v-7a3 3 0 0 1 3-3h7M54 22v-7a3 3 0 0 0-3-3h-7M10 42v7a3 3 0 0 0 3 3h7M54 42v7a3 3 0 0 1-3 3h-7"
+        stroke="#d8fffa"
+        strokeWidth="2.1"
+        strokeLinecap="round"
+      />
+      <circle cx="45" cy="23" r="2" fill={accent} />
+    </g>
+  );
+}
+
+function BrowserArtwork({ accent, accentFill }: { accent: string; accentFill: string }) {
+  return (
+    <g>
+      <circle
+        cx="32"
+        cy="32"
+        r="22"
+        fill="#07162d"
+        stroke="white"
+        strokeOpacity=".52"
+        strokeWidth="1.2"
+      />
+      <circle
+        cx="32"
+        cy="32"
+        r="18.5"
+        fill={accentFill}
+        fillOpacity=".18"
+        stroke={accent}
+        strokeOpacity=".38"
+      />
+      <path
+        d="M15.5 32h33M32 15.5c4.5 4.7 6.8 10.2 6.8 16.5S36.5 43.8 32 48.5c-4.5-4.7-6.8-10.2-6.8-16.5S27.5 20.2 32 15.5Z"
+        stroke="#cffff8"
+        strokeOpacity=".34"
+        strokeWidth="1.35"
+      />
+      <path
+        d="m40.5 20.5-5 15-15 5 5-15Z"
+        fill="#ff7f72"
+        stroke="#fff7ef"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+      <path d="m35.5 35.5-10-10" stroke="#703348" strokeOpacity=".68" strokeWidth="1.35" />
+      <circle cx="32" cy="32" r="2.7" fill="#f5fffd" />
+      <circle cx="32" cy="32" r="1.25" fill={accent} />
+      <path
+        d="M20 19c6-4 14-5 21-1"
+        stroke="white"
+        strokeOpacity=".52"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </g>
+  );
+}
+
 function CalculatorArtwork({ accent, accentFill }: { accent: string; accentFill: string }) {
   return (
     <g>
       <rect
-        x="13"
-        y="11"
-        width="38"
-        height="43"
-        rx="9"
-        fill="#06141b"
-        fillOpacity=".88"
+        x="13.5"
+        y="9.5"
+        width="37"
+        height="45"
+        rx="9.5"
+        fill="#073d43"
         stroke="white"
-        strokeOpacity=".22"
+        strokeOpacity=".34"
       />
-      <rect x="18" y="16" width="28" height="9" rx="3.2" fill="#c9fff3" fillOpacity=".9" />
-      <path d="M36 20.5h6" stroke="#123a3f" strokeWidth="2.2" strokeLinecap="round" />
-      <g fill="#dff8f4" fillOpacity=".88">
-        <rect x="18" y="30" width="7" height="7" rx="2.5" />
-        <rect x="28.5" y="30" width="7" height="7" rx="2.5" />
-        <rect x="18" y="40.5" width="7" height="7" rx="2.5" />
-        <rect x="28.5" y="40.5" width="7" height="7" rx="2.5" />
+      <rect x="18" y="14.5" width="28" height="10.5" rx="3" fill="#d6fff6" />
+      <path d="M35 20h7" stroke="#17464b" strokeWidth="2.2" strokeLinecap="round" />
+      <g fill="#e9fffa">
+        <circle cx="21.5" cy="32.5" r="3.5" />
+        <circle cx="31.5" cy="32.5" r="3.5" />
+        <circle cx="21.5" cy="42.5" r="3.5" />
+        <circle cx="31.5" cy="42.5" r="3.5" />
       </g>
-      <rect x="39" y="30" width="7" height="17.5" rx="3" fill={accentFill} />
+      <rect x="38" y="29" width="8" height="17" rx="4" fill={accentFill} />
       <path
-        d="M40.7 38.8h3.6M42.5 37v3.6"
+        d="M39.7 37.5h4.6M42 35.2v4.6"
         stroke="#063b37"
-        strokeWidth="1.5"
+        strokeWidth="1.6"
         strokeLinecap="round"
       />
-      <path d="M16 13.5c7-3 23-3.3 31 .5" stroke={accent} strokeOpacity=".55" />
+      <path
+        d="M17 13c8-2.3 21-2.3 30 .2"
+        stroke={accent}
+        strokeOpacity=".4"
+        strokeLinecap="round"
+      />
     </g>
   );
 }
@@ -527,68 +755,70 @@ function MemoArtwork({ accent }: { accent: string }) {
   return (
     <g>
       <path
-        d="m15 19 30-5 6 34-30 6Z"
-        fill="#713711"
-        fillOpacity=".34"
-        transform="rotate(-5 33 34)"
+        d="m17 14 31 5-5 34-31-5Z"
+        fill="#a85a22"
+        fillOpacity=".42"
+        transform="rotate(-3 30 34)"
       />
+      <path d="M14 11h36v35l-9 9H14Z" fill="#fff0a0" stroke="#fffbd7" strokeOpacity=".76" />
+      <path d="M14 11h36v10H14Z" fill="#ffc34f" />
+      <path d="m41 55 9-9h-9Z" fill="#e59b2d" />
       <path
-        d="M17 13h31a4 4 0 0 1 4 4v30l-7 7H17a4 4 0 0 1-4-4V17a4 4 0 0 1 4-4Z"
-        fill="#fff4a9"
-        stroke="#fff9d8"
-        strokeOpacity=".78"
-      />
-      <path d="M13 22h39v-5a4 4 0 0 0-4-4H17a4 4 0 0 0-4 4Z" fill="#f2a232" />
-      <path d="m45 54 7-7h-7Z" fill="#d88320" />
-      <path
-        d="M20 31c5-2 8 2 13 0s8 1 12-1M20 38c6-1 8 2 13 0s6 0 11-1M20 45h16"
-        stroke="#8c571f"
-        strokeOpacity=".78"
-        strokeWidth="2.1"
+        d="M20 29h23M20 36h18M20 43h21"
+        stroke="#7a4a18"
+        strokeOpacity=".72"
+        strokeWidth="2.2"
         strokeLinecap="round"
       />
-      <circle cx="42.5" cy="17.5" r="2.4" fill={accent} />
-      <path d="M18 16h18" stroke="white" strokeOpacity=".52" strokeLinecap="round" />
+      <path
+        d="M21 16h17"
+        stroke="white"
+        strokeOpacity=".6"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <circle cx="44.5" cy="16" r="2.2" fill={accent} />
     </g>
   );
 }
 
 function SettingsArtwork({ accent, chromeFill }: { accent: string; chromeFill: string }) {
-  const teeth = Array.from({ length: 8 }, (_, index) => index * 45);
+  const teeth = Array.from({ length: 10 }, (_, index) => index * 36);
 
   return (
     <g>
       {teeth.map((rotation) => (
         <rect
           key={rotation}
-          x="28"
-          y="9.5"
+          x="28.2"
+          y="8.5"
           width="8"
-          height="14"
-          rx="3"
+          height="15"
+          rx="2.8"
           fill={chromeFill}
           transform={`rotate(${rotation} 32 32)`}
         />
       ))}
-      <circle cx="32" cy="32" r="17" fill={chromeFill} />
+      <circle cx="32" cy="32" r="18.5" fill={chromeFill} />
       <circle
         cx="32"
         cy="32"
-        r="12.8"
-        fill="#75849a"
+        r="13.2"
+        fill="#64748b"
         stroke="white"
-        strokeOpacity=".68"
-        strokeWidth="1.4"
+        strokeOpacity=".58"
+        strokeWidth="1.25"
       />
-      <circle cx="32" cy="32" r="7.8" fill="#202c3d" />
-      <circle cx="32" cy="32" r="3.9" fill={accent} />
+      <circle cx="32" cy="32" r="8.2" fill="#182334" />
+      <circle cx="32" cy="32" r="4.2" fill={accent} />
       <path
-        d="M20.5 24c4.5-6 13-8 19.8-3"
+        d="M19 23.5c5-7 14.5-8.8 22-3"
         stroke="white"
-        strokeOpacity=".72"
-        strokeWidth="1.8"
+        strokeOpacity=".66"
+        strokeWidth="1.6"
         strokeLinecap="round"
       />
+      <path d="M22 44c5 3.4 13 3.7 19-.7" stroke="#142033" strokeOpacity=".35" strokeWidth="1.4" />
     </g>
   );
 }
@@ -597,21 +827,22 @@ function FilesArtwork({ accent, accentFill }: { accent: string; accentFill: stri
   return (
     <g>
       <path
-        d="M11 22a6 6 0 0 1 6-6h11l5 5h15a5 5 0 0 1 5 5v22a6 6 0 0 1-6 6H17a6 6 0 0 1-6-6Z"
-        fill="#d8f8ff"
-        fillOpacity=".96"
+        d="M10.5 21a6 6 0 0 1 6-6h11l5 5H48a5.5 5.5 0 0 1 5.5 5.5V48a6 6 0 0 1-6 6h-31a6 6 0 0 1-6-6Z"
+        fill="#d9faff"
+        stroke="white"
+        strokeOpacity=".54"
       />
-      <path d="M11 27h42v21a6 6 0 0 1-6 6H17a6 6 0 0 1-6-6Z" fill={accentFill} />
-      <path d="M14 30h36" stroke="white" strokeOpacity=".56" strokeWidth="1.5" />
+      <path d="M10.5 27h43v21a6 6 0 0 1-6 6h-31a6 6 0 0 1-6-6Z" fill={accentFill} />
+      <path d="M14 30h36" stroke="white" strokeOpacity=".6" strokeWidth="1.4" />
       <path
-        d="m18 46 9-10 7 7 5-5 8 9"
-        stroke="#073b59"
-        strokeWidth="2.8"
+        d="m17 46 10-11 7 7 5-5 9 10"
+        stroke="#063c65"
+        strokeWidth="3"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <circle cx="43" cy="35" r="3" fill={accent} />
-      <path d="M18 20h10l3 3H15" stroke="white" strokeOpacity=".68" strokeLinecap="round" />
+      <path d="M17 19.5h10.5l3 3H14.5" stroke="white" strokeOpacity=".74" strokeLinecap="round" />
     </g>
   );
 }
@@ -619,25 +850,40 @@ function FilesArtwork({ accent, accentFill }: { accent: string; accentFill: stri
 function TextArtwork({ accent }: { accent: string }) {
   return (
     <g>
-      <path
-        d="M17 11h28a5 5 0 0 1 5 5v34a5 5 0 0 1-5 5H17a5 5 0 0 1-5-5V16a5 5 0 0 1 5-5Z"
-        fill="#fbfcff"
-        fillOpacity=".96"
+      <rect
+        x="12"
+        y="11"
+        width="40"
+        height="43"
+        rx="10"
+        fill="#1f2b68"
         stroke="white"
-        strokeOpacity=".62"
+        strokeOpacity=".34"
       />
-      <path d="M18 19h26" stroke="#c9d2f5" strokeWidth="1.5" />
+      <rect x="16" y="15" width="32" height="35" rx="7" fill="#f6f7ff" />
+      <path d="M21 22h22" stroke="#cfd6ff" strokeWidth="1.5" />
       <path
-        d="M20 27h16M20 34h13M20 41h11"
-        stroke="#4a5794"
-        strokeOpacity=".68"
-        strokeWidth="2.1"
+        d="M22 26h19"
+        stroke="#5260a9"
+        strokeOpacity=".55"
+        strokeWidth="1.8"
         strokeLinecap="round"
       />
-      <path d="m36 46 11-17 5 3-10 18-7 3Z" fill="#344caa" />
-      <path d="m47 29 2-3 5 3-2 3Z" fill={accent} />
-      <path d="m36 46-1 7 7-3Z" fill="#17295f" />
-      <path d="M16 14c8-3 21-2 30 1" stroke="white" strokeOpacity=".8" />
+      <path
+        d="M25 42 31.8 24h2.4L41 42M27.6 35.5h10.8"
+        stroke="#33449d"
+        strokeWidth="2.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="m42 47 7-13 4 2.3-7 13-5 3Z"
+        fill={accent}
+        stroke="#ffffff"
+        strokeOpacity=".62"
+        strokeWidth=".8"
+      />
+      <path d="m41 52 1-5 4 2.3Z" fill="#26336f" />
     </g>
   );
 }
@@ -646,26 +892,23 @@ function ViewArtwork({ accent }: { accent: string }) {
   return (
     <g>
       <path
-        d="M12 17a5 5 0 0 1 5-5h27a5 5 0 0 1 5 5v27a5 5 0 0 1-5 5H17a5 5 0 0 1-5-5Z"
-        fill="#f7fbff"
-        fillOpacity=".94"
+        d="M8.5 32c5.8-10.8 14-16 23.5-16s17.7 5.2 23.5 16C49.7 42.8 41.5 48 32 48S14.3 42.8 8.5 32Z"
+        fill="#fff4e5"
         stroke="white"
-        strokeOpacity=".54"
+        strokeOpacity=".58"
       />
-      <path d="m15 42 9-10 7 6 6-8 9 12v4H15Z" fill="#4961a7" />
-      <path d="m15 42 9-10 7 6-6 8H15Z" fill="#72c8c3" />
-      <circle cx="39" cy="22" r="4" fill={accent} />
-      <circle
-        cx="39.5"
-        cy="40"
-        r="10.5"
-        fill="#fff9ed"
-        fillOpacity=".22"
-        stroke="#fff9ed"
-        strokeWidth="3.2"
+      <circle cx="32" cy="32" r="13.5" fill="#5a2456" />
+      <circle cx="32" cy="32" r="8.2" fill="#ffd18b" />
+      <circle cx="32" cy="32" r="4.5" fill="#402044" />
+      <circle cx="29.5" cy="29.5" r="2.1" fill="white" fillOpacity=".86" />
+      <path
+        d="M13 31c5-7.5 11.5-11 19-11"
+        stroke={accent}
+        strokeOpacity=".48"
+        strokeWidth="1.4"
+        strokeLinecap="round"
       />
-      <path d="m47 48 7 7" stroke="#fff9ed" strokeWidth="4" strokeLinecap="round" />
-      <path d="M16 15c8-2 19-2 29 .5" stroke="white" strokeOpacity=".78" />
+      <path d="M18 43c7 5 18 5 27-.5" stroke="#7a385f" strokeOpacity=".4" strokeWidth="1.2" />
     </g>
   );
 }
@@ -673,42 +916,34 @@ function ViewArtwork({ accent }: { accent: string }) {
 function VelaArtwork({ accent, accentFill }: { accent: string; accentFill: string }) {
   return (
     <g>
-      <circle
-        cx="32"
-        cy="32"
-        r="20"
-        fill="#061743"
-        fillOpacity=".76"
-        stroke="white"
-        strokeOpacity=".18"
-      />
+      <circle cx="32" cy="32" r="21.5" fill="#06143f" stroke="white" strokeOpacity=".22" />
       <ellipse
         cx="32"
         cy="32"
-        rx="22"
-        ry="9"
+        rx="23"
+        ry="8.5"
         stroke={accent}
-        strokeOpacity=".72"
-        strokeWidth="2"
-        transform="rotate(-24 32 32)"
+        strokeOpacity=".68"
+        strokeWidth="1.8"
+        transform="rotate(-28 32 32)"
       />
       <ellipse
         cx="32"
         cy="32"
-        rx="18"
-        ry="7"
-        stroke="#7b8cff"
-        strokeOpacity=".48"
-        strokeWidth="1.4"
-        transform="rotate(54 32 32)"
+        rx="19"
+        ry="6.5"
+        stroke="#89a5ff"
+        strokeOpacity=".44"
+        strokeWidth="1.2"
+        transform="rotate(57 32 32)"
       />
       <path
-        d="M32 17c1 8 5 12 13 13-8 1-12 5-13 13-1-8-5-12-13-13 8-1 12-5 13-13Z"
+        d="M32 14c1.2 9.6 6.4 14.8 16 16-9.6 1.2-14.8 6.4-16 16-1.2-9.6-6.4-14.8-16-16 9.6-1.2 14.8-6.4 16-16Z"
         fill={accentFill}
       />
-      <circle cx="48" cy="20" r="2.3" fill="#ffd98a" />
-      <circle cx="17" cy="44" r="1.8" fill="#ff9ed2" />
-      <circle cx="29" cy="27" r="2.2" fill="white" fillOpacity=".92" />
+      <circle cx="49" cy="20" r="2.2" fill="#ffe48a" />
+      <circle cx="16" cy="44" r="1.7" fill="#ff9ed2" />
+      <circle cx="29.5" cy="27.5" r="2.5" fill="white" fillOpacity=".94" />
     </g>
   );
 }
@@ -717,28 +952,36 @@ function TasksArtwork({ accent }: { accent: string }) {
   return (
     <g>
       <path
-        d="M17 14h30a5 5 0 0 1 5 5v31a5 5 0 0 1-5 5H17a5 5 0 0 1-5-5V19a5 5 0 0 1 5-5Z"
+        d="M16 13h32a5 5 0 0 1 5 5v32a5 5 0 0 1-5 5H16a5 5 0 0 1-5-5V18a5 5 0 0 1 5-5Z"
         fill="#f5fffb"
-        fillOpacity=".96"
         stroke="white"
-        strokeOpacity=".5"
+        strokeOpacity=".56"
       />
-      <rect x="24" y="10" width="16" height="8" rx="4" fill="#b9ffe0" />
+      <rect
+        x="23"
+        y="9"
+        width="18"
+        height="9"
+        rx="4.5"
+        fill="#c6ffe7"
+        stroke="white"
+        strokeOpacity=".44"
+      />
       <path
-        d="m19 27 3 3 6-7M19 39l3 3 6-7"
+        d="m18 28 3 3 7-8M18 40l3 3 7-8"
         stroke="#167669"
-        strokeWidth="2.8"
+        strokeWidth="3"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
-        d="M33 27h12M33 39h12M19 49h25"
+        d="M33 27h13M33 39h13M18 49h28"
         stroke="#23534f"
         strokeOpacity=".72"
         strokeWidth="2.2"
         strokeLinecap="round"
       />
-      <circle cx="44" cy="18" r="3" fill={accent} />
+      <circle cx="46.5" cy="18.5" r="2.7" fill={accent} />
     </g>
   );
 }
@@ -747,27 +990,26 @@ function CalendarArtwork({ accent, accentFill }: { accent: string; accentFill: s
   return (
     <g>
       <path
-        d="M13 18a6 6 0 0 1 6-6h27a6 6 0 0 1 6 6v30a6 6 0 0 1-6 6H19a6 6 0 0 1-6-6Z"
-        fill="#f7fbff"
-        fillOpacity=".97"
+        d="M11.5 18a6 6 0 0 1 6-6h29a6 6 0 0 1 6 6v30.5a6 6 0 0 1-6 6h-29a6 6 0 0 1-6-6Z"
+        fill="#f8fbff"
         stroke="white"
-        strokeOpacity=".5"
+        strokeOpacity=".56"
       />
-      <path d="M13 26h39v-8a6 6 0 0 0-6-6H19a6 6 0 0 0-6 6Z" fill={accentFill} />
-      <path d="M22 9v9M43 9v9" stroke="white" strokeWidth="3.3" strokeLinecap="round" />
-      <path d="M18 30h29" stroke="#c9d9ee" strokeWidth="1.3" />
+      <path d="M11.5 26.5h41V18a6 6 0 0 0-6-6h-29a6 6 0 0 0-6 6Z" fill={accentFill} />
+      <path d="M21 9v10M43 9v10" stroke="white" strokeWidth="3.4" strokeLinecap="round" />
+      <path d="M17 30.5h30" stroke="#c9d9ee" strokeWidth="1.25" />
       <text
-        x="32.5"
-        y="47"
+        x="32"
+        y="48.5"
         fill="#274f84"
         fontFamily="system-ui, sans-serif"
-        fontSize="19"
-        fontWeight="760"
+        fontSize="20"
+        fontWeight="780"
         textAnchor="middle"
       >
         23
       </text>
-      <circle cx="48" cy="19" r="2.3" fill={accent} />
+      <circle cx="48" cy="19" r="2.4" fill={accent} />
     </g>
   );
 }
@@ -780,33 +1022,41 @@ function ClockArtwork({ accent }: { accent: string }) {
       <circle
         cx="32"
         cy="32"
-        r="21"
+        r="22"
         fill="#fff9f2"
-        fillOpacity=".97"
         stroke="white"
-        strokeOpacity=".6"
-        strokeWidth="1.8"
+        strokeOpacity=".68"
+        strokeWidth="1.5"
       />
-      <circle cx="32" cy="32" r="17.5" fill="#5f3547" fillOpacity=".09" />
+      <circle
+        cx="32"
+        cy="32"
+        r="18.7"
+        fill="#5f3547"
+        fillOpacity=".08"
+        stroke="#7b5061"
+        strokeOpacity=".22"
+      />
       {ticks.map((rotation) => (
         <path
           key={rotation}
-          d="M32 14.5v3"
+          d="M32 14v3.2"
           stroke="#6d4751"
-          strokeWidth={rotation % 90 === 0 ? 1.8 : 1.1}
+          strokeWidth={rotation % 90 === 0 ? 2 : 1.15}
           strokeLinecap="round"
           transform={`rotate(${rotation} 32 32)`}
         />
       ))}
       <path
-        d="M32 20v12l8.5 5"
+        d="M32 19v13l9 5.5"
         stroke="#573c56"
-        strokeWidth="3.2"
+        strokeWidth="3.1"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <circle cx="32" cy="32" r="3.4" fill={accent} />
-      <path d="M20 18c6-5 15-6 22-1" stroke="white" strokeOpacity=".74" strokeWidth="1.8" />
+      <circle cx="30.8" cy="30.8" r="1" fill="white" fillOpacity=".86" />
+      <path d="M19 18c6-5 16-6 23-1" stroke="white" strokeOpacity=".7" strokeWidth="1.7" />
     </g>
   );
 }
@@ -814,31 +1064,23 @@ function ClockArtwork({ accent }: { accent: string }) {
 function ConnectionsArtwork({ accent, accentFill }: { accent: string; accentFill: string }) {
   return (
     <g>
-      <circle
-        cx="32"
-        cy="33"
-        r="21"
-        fill="#052f51"
-        fillOpacity=".5"
-        stroke="white"
-        strokeOpacity=".24"
-      />
-      <circle cx="32" cy="33" r="17" fill={accentFill} fillOpacity=".2" />
+      <circle cx="32" cy="33" r="21.5" fill="#07385f" stroke="white" strokeOpacity=".28" />
+      <circle cx="32" cy="33" r="17.5" fill={accentFill} fillOpacity=".16" />
       <path
-        d="M17 28c8.5-7.5 21.5-7.5 30 0M22 34c5.5-4.7 14.5-4.7 20 0M28 40c2.5-2 5.5-2 8 0"
+        d="M16 28c9-8 23-8 32 0M21.5 34.5c6-5 15-5 21 0M28 41c2.5-2.2 5.5-2.2 8 0"
         stroke="white"
-        strokeWidth="3"
+        strokeWidth="2.9"
         strokeLinecap="round"
       />
-      <circle cx="32" cy="46" r="2.8" fill={accent} />
+      <circle cx="32" cy="47" r="2.8" fill={accent} />
       <path
-        d="m46 14 7 7-4 4V11l4 4-7 8"
+        d="m45 14 8 7-4.5 4V10.5l4.5 4-8 8"
         stroke="#d5f8ff"
-        strokeWidth="1.9"
+        strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <circle cx="19" cy="18" r="2.2" fill="#8fffe5" />
+      <circle cx="18.5" cy="17.5" r="2.2" fill="#8fffe5" />
     </g>
   );
 }
@@ -847,86 +1089,81 @@ function TerminalArtwork({ accent }: { accent: string }) {
   return (
     <g>
       <path
-        d="M11 17a6 6 0 0 1 6-6h31a6 6 0 0 1 6 6v30a6 6 0 0 1-6 6H17a6 6 0 0 1-6-6Z"
+        d="M10 17a6 6 0 0 1 6-6h32a6 6 0 0 1 6 6v31a6 6 0 0 1-6 6H16a6 6 0 0 1-6-6Z"
         fill="#030b12"
-        fillOpacity=".94"
         stroke="white"
-        strokeOpacity=".26"
+        strokeOpacity=".3"
       />
-      <path d="M11 22h43" stroke="white" strokeOpacity=".18" />
-      <circle cx="18" cy="16.5" r="1.8" fill="#ff7c7c" />
-      <circle cx="24" cy="16.5" r="1.8" fill="#ffd06c" />
-      <circle cx="30" cy="16.5" r="1.8" fill={accent} />
+      <path d="M10 23h44" stroke="white" strokeOpacity=".2" />
+      <circle cx="17.5" cy="17" r="1.8" fill="#ff7c7c" />
+      <circle cx="23.5" cy="17" r="1.8" fill="#ffd06c" />
+      <circle cx="29.5" cy="17" r="1.8" fill={accent} />
       <path
-        d="m19 31 6 5-6 5M30 41h13"
+        d="m18 31 6.5 5.5L18 42M29 42h15"
         stroke="#eaf8ff"
-        strokeWidth="2.9"
+        strokeWidth="3"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <path d="M30 30h13" stroke={accent} strokeOpacity=".52" strokeWidth="1.5" />
-      <circle cx="46" cy="31" r="2.7" fill={accent} fillOpacity=".9" />
-      <path d="M14 13.5c10-2.5 25-2 36 .5" stroke="white" strokeOpacity=".16" />
+      <path d="M29 30h15" stroke={accent} strokeOpacity=".52" strokeWidth="1.5" />
+      <circle cx="47" cy="30.5" r="2.7" fill={accent} />
+      <path d="M14 13.5c10-2.4 25-2 36 .5" stroke="white" strokeOpacity=".17" />
     </g>
   );
 }
 
 function LumaArtwork({ accent, accentFill }: { accent: string; accentFill: string }) {
-  const cells = [
-    { x: 17, y: 17, fill: '#ffd772', opacity: 1 },
-    { x: 27, y: 17, fill: '#fff7d1', opacity: 0.38 },
-    { x: 37, y: 17, fill: '#ff9ed2', opacity: 0.9 },
-    { x: 17, y: 27, fill: '#fff7d1', opacity: 0.25 },
-    { x: 27, y: 27, fill: accent, opacity: 1 },
-    { x: 37, y: 27, fill: '#fff7d1', opacity: 0.3 },
-    { x: 17, y: 37, fill: '#a8fff0', opacity: 0.84 },
-    { x: 27, y: 37, fill: '#fff7d1', opacity: 0.28 },
-    { x: 37, y: 37, fill: '#ffd772', opacity: 0.94 },
+  const stars = [
+    { x: 18, y: 37, radius: 3.4, fill: '#8fffe9' },
+    { x: 24, y: 24, radius: 2.4, fill: '#fff2a3' },
+    { x: 34, y: 31, radius: 3.2, fill: accent },
+    { x: 43, y: 19, radius: 2.8, fill: '#ffadd8' },
+    { x: 47, y: 41, radius: 2.5, fill: '#ffe17f' },
+    { x: 29, y: 47, radius: 2.1, fill: '#c7b8ff' },
   ];
 
   return (
     <g>
-      <circle
-        cx="32"
-        cy="32"
-        r="21"
-        fill="#090a2d"
-        fillOpacity=".86"
-        stroke="white"
-        strokeOpacity=".22"
+      <circle cx="32" cy="32" r="22" fill="#0a082c" stroke="white" strokeOpacity=".24" />
+      <path
+        d="m18 37 6-13 10 7 9-12 4 22-18 6Z"
+        stroke="#dcd4ff"
+        strokeOpacity=".58"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
       <ellipse
         cx="32"
-        cy="32"
-        rx="19"
-        ry="8"
-        stroke={accent}
-        strokeOpacity=".2"
-        transform="rotate(28 32 32)"
+        cy="33"
+        rx="20"
+        ry="9"
+        fill={accentFill}
+        fillOpacity=".08"
+        transform="rotate(-18 32 33)"
       />
-      <path
-        d="m20 20 20 20M40 20 20 40M17 32h30M32 17v30"
-        stroke={accent}
-        strokeOpacity=".2"
-        strokeWidth="1"
-      />
-      {cells.map((cell) => (
-        <rect
-          key={`${cell.x}-${cell.y}`}
-          x={cell.x}
-          y={cell.y}
-          width="7"
-          height="7"
-          rx="2.4"
-          fill={cell.fill}
-          fillOpacity={cell.opacity}
-          stroke="white"
-          strokeOpacity={cell.opacity * 0.25}
-        />
+      {stars.map((star) => (
+        <g key={`${star.x}-${star.y}`}>
+          <circle
+            cx={star.x}
+            cy={star.y}
+            r={star.radius + 2.2}
+            fill={star.fill}
+            fillOpacity=".12"
+          />
+          <circle
+            cx={star.x}
+            cy={star.y}
+            r={star.radius}
+            fill={star.fill}
+            stroke="white"
+            strokeOpacity=".54"
+          />
+        </g>
       ))}
-      <circle cx="32" cy="32" r="5" fill={accentFill} fillOpacity=".32" />
-      <circle cx="47" cy="15" r="2.3" fill="#ff9ed2" />
-      <path d="M17 18c7-5 16-7 24-3" stroke="white" strokeOpacity=".28" strokeLinecap="round" />
+      <path d="M18 17c7-4 15-5 23-2" stroke="white" strokeOpacity=".26" strokeLinecap="round" />
+      <circle cx="48.5" cy="13.5" r="1.5" fill="white" fillOpacity=".84" />
+      <circle cx="15" cy="23" r="1" fill="#8fffe9" />
     </g>
   );
 }

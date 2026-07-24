@@ -1,12 +1,16 @@
 import { CalculatorApp } from '../../apps/calculator/CalculatorApp';
+import { BrowserApp } from '../../apps/browser/BrowserApp';
+import { CaptureApp } from '../../apps/capture/CaptureApp';
 import { CalendarApp } from '../../apps/calendar/CalendarApp';
 import { ClockApp } from '../../apps/clock/ClockApp';
 import { ConnectionsApp } from '../../apps/connections/ConnectionsApp';
 import { FilesApp } from '../../apps/files/FilesApp';
 import { LumaApp } from '../../apps/luma/LumaApp';
 import { MemoApp } from '../../apps/memo/MemoApp';
+import { PulseApp } from '../../apps/pulse/PulseApp';
 import { SettingsApp } from '../../apps/settings/SettingsApp';
 import { TasksApp } from '../../apps/tasks/TasksApp';
+import { StashApp } from '../../apps/stash/StashApp';
 import { TerminalApp } from '../../apps/terminal/TerminalApp';
 import { TextApp } from '../../apps/text/TextApp';
 import { VelaApp } from '../../apps/vela/VelaApp';
@@ -27,6 +31,21 @@ const manifests = [
       minHeight: 380,
     },
     permissions: ['files:read', 'files:write', 'window:open'],
+    allowMultipleInstances: true,
+  },
+  {
+    id: 'browser',
+    name: 'Browser',
+    description: 'Browse the web in a restricted, local-first system window.',
+    icon: 'browser',
+    component: BrowserApp,
+    defaultWindow: {
+      width: 940,
+      height: 620,
+      minWidth: 560,
+      minHeight: 380,
+    },
+    permissions: ['network:access'],
     allowMultipleInstances: true,
   },
   {
@@ -115,6 +134,52 @@ const manifests = [
       minWidth: 520,
       minHeight: 430,
     },
+    permissions: ['network:access', 'bluetooth:request'],
+    allowMultipleInstances: false,
+  },
+  {
+    id: 'pulse',
+    name: 'Pulse',
+    description: 'Inspect and manage Nimvelis windows and browser runtime health.',
+    icon: 'pulse',
+    component: PulseApp,
+    defaultWindow: {
+      width: 860,
+      height: 610,
+      minWidth: 650,
+      minHeight: 430,
+    },
+    permissions: ['window:read', 'window:write', 'storage:read'],
+    allowMultipleInstances: false,
+  },
+  {
+    id: 'stash',
+    name: 'Stash',
+    description: 'Keep searchable text and image clipboard history on this device.',
+    icon: 'stash',
+    component: StashApp,
+    defaultWindow: {
+      width: 800,
+      height: 560,
+      minWidth: 570,
+      minHeight: 380,
+    },
+    permissions: ['clipboard:read', 'clipboard:write', 'storage:read'],
+    allowMultipleInstances: false,
+  },
+  {
+    id: 'capture',
+    name: 'Capture',
+    description: 'Capture a chosen screen surface and save it to local Files.',
+    icon: 'capture',
+    component: CaptureApp,
+    defaultWindow: {
+      width: 800,
+      height: 570,
+      minWidth: 540,
+      minHeight: 390,
+    },
+    permissions: ['display:capture', 'clipboard:write', 'files:write', 'window:open'],
     allowMultipleInstances: false,
   },
   {

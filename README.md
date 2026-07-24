@@ -7,10 +7,10 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Nimvelis Aurora 0.8 is a browser-native personal workspace with a desktop interface. It combines
-a local-first window manager, IndexedDB file system, Files, Text, Tasks, Calendar, Clock,
-Connections, Terminal, Luma, local media preview, global search, system-wide personalization, and
-an installable offline shell with Vela, an optional text-and-image assistant powered by
-Cloudflare Workers AI.
+a local-first window manager, IndexedDB file system, Files, Browser, Text, Tasks, Calendar, Clock,
+Connections, Terminal, Pulse, Stash, Capture, Luma, local media preview, global search, session
+lock, Control Center, system-wide personalization, and an installable offline shell with Vela, an
+optional text-and-image assistant powered by Cloudflare Workers AI.
 
 Nimvelis is an independent project and is not affiliated with or endorsed by Apple Inc. Its
 marks, icons, wallpaper, interface assets, naming, and visual system are original to Nimvelis;
@@ -95,12 +95,24 @@ resource IDs. It declares only portable `AI` and static asset bindings.
   dates, and use world clocks, a focus timer, stopwatch, and laps without creating an account.
 - Inspect online state and browser-provided connection quality, measure same-origin latency, and
   connect an explicitly approved Bluetooth Low Energy device from Connections.
+- Search or enter safe HTTP(S) addresses in Browser, keep per-window navigation, save local
+  bookmarks and history, and open sites externally when they prohibit embedded viewing.
 - Use Terminal as a multi-instance local shell with history, Tab completion, app launching, system
   information, and commands that operate directly on the IndexedDB virtual file system.
 - Take a quiet break with Luma, an original keyboard- and touch-friendly constellation puzzle with
   three board sizes, hints, undo, a timer, and device-local best scores.
 - Personalize interface density, desktop icon visibility, time zone, 12/24-hour clock, calendar
   week start, text scale, contrast, motion, appearance, and wallpaper from Settings.
+- Lock and resume the local session without losing windows, recover the same workspaces after a
+  refresh or Nimvelis restart, and set the local profile label from Privacy settings.
+- Use Control Center for appearance, focus mode, app-media muting, Nimvelis interface brightness,
+  network shortcuts, system tools, notifications, storage, installation, and updates.
+- Inspect and manage Nimvelis windows in Pulse alongside browser-provided storage, memory, cache,
+  network, and service-worker signals.
+- Keep explicitly imported text and image clipboard history in Stash, search or pin items, and
+  copy them back through the browser clipboard permission gate.
+- Capture a user-selected tab, window, or screen, stop sharing immediately after one frame, and
+  copy the PNG or save it into local Files.
 - Chat with Vela through the server-approved Gemma 4 model, explicitly attach a PNG, JPEG, or WebP
   image for visual analysis, stream replies, stop generation, copy responses, and keep text
   conversation history locally.
@@ -110,8 +122,6 @@ resource IDs. It declares only portable `AI` and static asset bindings.
   files, and local recovery snapshots.
 - Preview images, PDFs, audio, and video without uploading them.
 - Search applications, file names, text content, and system commands with `⌘/Ctrl + K`.
-- Open Device space for quick appearance controls, notification history, storage status, offline
-  state, install controls, and available app updates.
 - Keep window state, preferences, notifications, and IndexedDB files synchronized across open
   Nimvelis tabs with `BroadcastChannel`.
 - Inspect the current browser, device, display, and local storage from **About This Device**.
@@ -131,6 +141,22 @@ Web Bluetooth requires HTTPS, a compatible browser, a direct click, and approval
 browser's own device picker. Nimvelis cannot scan silently and connects only to the selected
 Bluetooth Low Energy/GATT device for the current browser session. Date & Time changes Nimvelis
 display formatting only; it never changes the operating system clock or time zone.
+
+Browser renders external HTTP(S) pages in a sandboxed iframe. Many sites intentionally prohibit
+iframe embedding with CSP or `X-Frame-Options`; Nimvelis cannot bypass those policies and instead
+offers an explicit external-tab action. Embedded pages still connect to their own servers.
+Bookmarks and visited-address history stay in local browser storage, and a per-window history-off
+mode prevents new history entries.
+
+Pulse is an application monitor, not a host process monitor. It can focus, minimize, restore, and
+close Nimvelis windows, but browsers do not expose other applications or reliable device-wide CPU
+usage. Control Center brightness affects only the Nimvelis canvas, and its media control affects
+audio and video elements inside Nimvelis apps.
+
+Stash never monitors clipboard changes in the background. Text and image imports require a direct
+action and browser permission; its payloads are kept in a separate local IndexedDB database.
+Capture uses the browser's screen-sharing picker and stops the selected stream immediately after
+drawing one frame. A browser may disable clipboard or capture APIs outside a secure context.
 
 ## Terminal boundary
 

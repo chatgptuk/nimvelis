@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { AppIcon, Icon, type IconName } from '../../design/Icon';
 import { listAppManifests } from '../../kernel/app-registry/registry';
-import type { SystemAppProps } from '../../kernel/app-registry/types';
+import type { AppPermission, SystemAppProps } from '../../kernel/app-registry/types';
 import { DEFAULT_SHELF_APP_IDS } from '../../kernel/shelf/order';
 import {
   getSystemTimeZone,
@@ -19,7 +19,7 @@ import type {
 } from '../../state/desktop-store';
 import './settings.css';
 
-type SettingsSection = 'appearance' | 'desktop' | 'time' | 'accessibility' | 'system';
+type SettingsSection = 'appearance' | 'desktop' | 'time' | 'accessibility' | 'privacy' | 'system';
 
 const SECTIONS: Array<{
   id: SettingsSection;
@@ -36,6 +36,7 @@ const SECTIONS: Array<{
     description: 'Reading and motion',
     icon: 'sparkle',
   },
+  { id: 'privacy', label: 'Privacy', description: 'Permissions and data', icon: 'lock' },
   { id: 'system', label: 'System', description: 'Storage and reset', icon: 'system' },
 ];
 
@@ -94,6 +95,7 @@ export function SettingsApp({ system }: SystemAppProps) {
         {section === 'desktop' ? <DesktopSettings system={system} /> : null}
         {section === 'time' ? <TimeSettings system={system} /> : null}
         {section === 'accessibility' ? <AccessibilitySettings system={system} /> : null}
+        {section === 'privacy' ? <PrivacySettings system={system} /> : null}
         {section === 'system' ? <SystemSettings system={system} /> : null}
       </main>
     </div>
@@ -453,6 +455,156 @@ function AccessibilitySettings({ system }: Pick<SystemAppProps, 'system'>) {
   );
 }
 
+const PERMISSION_LABELS: Record<AppPermission, string> = {
+  'ai:generate': 'Workers AI',
+  'appearance:write': 'Appearance',
+  'bluetooth:request': 'Bluetooth picker',
+  'clipboard:read': 'Read clipboard',
+  'clipboard:write': 'Write clipboard',
+  'display:capture': 'Screen capture',
+  'files:read': 'Read local files',
+  'files:write': 'Write local files',
+  'network:access': 'Network access',
+  'notifications:read': 'Notifications',
+  'storage:read': 'Storage metrics',
+  'window:open': 'Open windows',
+  'window:read': 'View windows',
+  'window:write': 'Manage windows',
+};
+
+function PrivacySettings({ system }: Pick<SystemAppProps, 'system'>) {
+  const [permissionStates, setPermissionStates] = useState<
+    Record<string, PermissionState | 'prompt'>
+  >({});
+  const [profileName, setProfileName] = useState(system.session.profileName);
+  const apps = listAppManifests().filter((app) => (app.permissions?.length ?? 0) > 0);
+
+  useEffect(() => {
+    let active = true;
+    const readPermissions = async () => {
+      const descriptors = [
+        ['clipboard-read', 'Clipboard read'],
+        ['clipboard-write', 'Clipboard write'],
+        ['notifications', 'Notifications'],
+        ['camera', 'Camera'],
+        ['microphone', 'Microphone'],
+      ] as const;
+      const results = await Promise.all(
+        descriptors.map(async ([name, label]) => {
+          try {
+            const result = await navigator.permissions?.query({
+              name: name as PermissionName,
+            });
+            return [label, result?.state ?? 'prompt'] as const;
+          } catch {
+            return [label, 'prompt'] as const;
+          }
+        }),
+      );
+      if (active) setPermissionStates(Object.fromEntries(results));
+    };
+    void readPermissions();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  return (
+    <>
+      <SettingsHeading
+        eyebrow="PRIVACY"
+        title="Clear boundaries, by design."
+        description="Review what system apps can request and what remains inside this browser."
+      />
+      <SettingsGroup
+        title="Local session"
+        description="The profile label appears on the lock screen and never leaves this device."
+      >
+        <div className="privacy-profile">
+          <span>{profileName.slice(0, 1).toLocaleUpperCase()}</span>
+          <label>
+            <strong>Profile name</strong>
+            <input
+              aria-label="Local profile name"
+              value={profileName}
+              maxLength={32}
+              onChange={(event) => setProfileName(event.target.value)}
+              onBlur={() => {
+                const normalized = profileName.trim().slice(0, 32) || system.session.profileName;
+                system.setProfileName(normalized);
+                setProfileName(normalized);
+              }}
+            />
+          </label>
+          <button type="button" onClick={system.lockSession}>
+            <Icon name="lock" size={14} />
+            Lock now
+          </button>
+        </div>
+      </SettingsGroup>
+      <SettingsGroup
+        title="Browser permission gates"
+        description="Only the browser can grant or revoke these. Nimvelis requests them after an explicit action."
+      >
+        <div className="permission-gates">
+          {Object.entries(permissionStates).map(([label, state]) => (
+            <article key={label}>
+              <span className={`is-${state}`}>
+                <Icon name={state === 'granted' ? 'check' : 'lock'} size={14} />
+              </span>
+              <strong>{label}</strong>
+              <small>{formatPermissionState(state)}</small>
+            </article>
+          ))}
+        </div>
+      </SettingsGroup>
+      <SettingsGroup
+        title="Application capabilities"
+        description="These declarations describe the maximum Nimvelis capability each built-in app uses."
+      >
+        <div className="app-permissions">
+          {apps.map((app) => (
+            <article key={app.id}>
+              <AppIcon name={app.icon} size={37} />
+              <span>
+                <strong>{app.name}</strong>
+                <small>{app.description}</small>
+              </span>
+              <div>
+                {app.permissions?.map((permission) => (
+                  <i key={permission}>{PERMISSION_LABELS[permission]}</i>
+                ))}
+              </div>
+            </article>
+          ))}
+        </div>
+      </SettingsGroup>
+      <SettingsGroup
+        title="Clipboard privacy"
+        description="Stash imports only after you press Paste. It does not monitor clipboard changes in the background."
+      >
+        <div className="settings-danger-zone">
+          <div>
+            <strong>Clear Stash history</strong>
+            <p>Deletes locally stored clipboard text and image data, including pinned items.</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              if (!globalThis.confirm('Clear all local Stash clipboard history?')) return;
+              void system.clipboard
+                .clear()
+                .then(() => system.notify('Stash history cleared', 'success'));
+            }}
+          >
+            Clear clipboard
+          </button>
+        </div>
+      </SettingsGroup>
+    </>
+  );
+}
+
 function SystemSettings({ system }: Pick<SystemAppProps, 'system'>) {
   const [storage, setStorage] = useState<{ usage: number; quota: number } | null>(null);
   const appCount = listAppManifests().length;
@@ -502,9 +654,10 @@ function SystemSettings({ system }: Pick<SystemAppProps, 'system'>) {
             <strong>Local-first by default</strong>
             <p>
               Tasks, calendar events, notes, settings, Terminal history, Luma best scores, and files
-              stay in browser storage on this device. Terminal commands are limited to Nimvelis
-              capabilities, Bluetooth always uses the browser permission picker, and Vela only sends
-              a prompt when you submit one.
+              stay in browser storage on this device. Browser bookmarks and visited-address history
+              are local too. Terminal commands are limited to Nimvelis capabilities, Bluetooth
+              always uses the browser permission picker, and Vela only sends a prompt when you
+              submit one.
             </p>
           </div>
         </div>
@@ -537,6 +690,12 @@ function SystemSettings({ system }: Pick<SystemAppProps, 'system'>) {
       </SettingsGroup>
     </>
   );
+}
+
+function formatPermissionState(state: PermissionState | 'prompt') {
+  if (state === 'granted') return 'Allowed by browser';
+  if (state === 'denied') return 'Blocked by browser';
+  return 'Ask when needed';
 }
 
 function SettingsHeading({

@@ -15,24 +15,40 @@ interface NotificationCenterProps {
   appearance: AppearanceMode;
   notifications: SystemNotification[];
   online: boolean;
+  focusMode: boolean;
+  quietMedia: boolean;
+  interfaceBrightness: number;
   onClose: () => void;
   onSetAppearance: (appearance: AppearanceMode) => void;
+  onSetFocusMode: (enabled: boolean) => void;
+  onSetQuietMedia: (enabled: boolean) => void;
+  onSetInterfaceBrightness: (brightness: number) => void;
   onMarkAllRead: () => void;
   onClear: () => void;
   onRemove: (id: string) => void;
   onOpenSettings: () => void;
+  onOpenApp: (appId: string) => void;
+  onLock: () => void;
 }
 
 export function NotificationCenter({
   appearance,
   notifications,
   online,
+  focusMode,
+  quietMedia,
+  interfaceBrightness,
   onClose,
   onSetAppearance,
+  onSetFocusMode,
+  onSetQuietMedia,
+  onSetInterfaceBrightness,
   onMarkAllRead,
   onClear,
   onRemove,
   onOpenSettings,
+  onOpenApp,
+  onLock,
 }: NotificationCenterProps) {
   const pwa = useSyncExternalStore(subscribePwa, getPwaSnapshot, getPwaSnapshot);
   const [storage, setStorage] = useState<{ usage: number; quota: number } | null>(null);
@@ -60,18 +76,23 @@ export function NotificationCenter({
         if (event.target === event.currentTarget) onClose();
       }}
     >
-      <aside className="notification-center" role="dialog" aria-modal="true">
+      <aside
+        className="notification-center"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Control Center"
+      >
         <header>
           <div>
             <NimvelisMark size={24} />
             <span>
-              <strong>Device space</strong>
+              <strong>Control Center</strong>
               <small>
-                {online ? 'Online · local-first' : 'Offline · your local apps still work'}
+                {online ? 'Control Center · local-first' : 'Offline · local apps remain ready'}
               </small>
             </span>
           </div>
-          <button aria-label="Close device space" onClick={onClose}>
+          <button aria-label="Close Control Center" onClick={onClose}>
             <Icon name="close" size={15} />
           </button>
         </header>
@@ -97,7 +118,87 @@ export function NotificationCenter({
           </div>
           <button className="quick-settings__settings" onClick={onOpenSettings}>
             <Icon name="settings" size={17} />
-            Personalize
+            Settings
+          </button>
+        </section>
+
+        <section className="control-grid" aria-label="System controls">
+          <button
+            type="button"
+            className={online ? 'is-active' : ''}
+            onClick={() => onOpenApp('connections')}
+          >
+            <span>
+              <Icon name="wifi" size={17} />
+            </span>
+            <strong>{online ? 'Online' : 'Offline'}</strong>
+            <small>Connections</small>
+          </button>
+          <button type="button" onClick={() => onOpenApp('connections')}>
+            <span>
+              <Icon name="bluetooth" size={17} />
+            </span>
+            <strong>Bluetooth</strong>
+            <small>Ask browser</small>
+          </button>
+          <button
+            type="button"
+            className={focusMode ? 'is-active' : ''}
+            aria-pressed={focusMode}
+            onClick={() => onSetFocusMode(!focusMode)}
+          >
+            <span>
+              <Icon name="moon" size={17} />
+            </span>
+            <strong>Focus</strong>
+            <small>{focusMode ? 'Toasts paused' : 'Available'}</small>
+          </button>
+          <button
+            type="button"
+            className={quietMedia ? 'is-active' : ''}
+            aria-pressed={quietMedia}
+            onClick={() => onSetQuietMedia(!quietMedia)}
+          >
+            <span>
+              <Icon name={quietMedia ? 'volume-off' : 'volume'} size={17} />
+            </span>
+            <strong>Media</strong>
+            <small>{quietMedia ? 'Muted in apps' : 'App volume'}</small>
+          </button>
+        </section>
+
+        <section className="brightness-control">
+          <Icon name="sun" size={15} />
+          <label>
+            <span>
+              Interface brightness
+              <small>{Math.round(interfaceBrightness * 100)}%</small>
+            </span>
+            <input
+              type="range"
+              min="45"
+              max="100"
+              value={Math.round(interfaceBrightness * 100)}
+              aria-label="Interface brightness"
+              onChange={(event) => onSetInterfaceBrightness(Number(event.target.value) / 100)}
+            />
+          </label>
+        </section>
+
+        <section className="system-tools" aria-label="System tools">
+          {[
+            ['pulse', 'pulse', 'Pulse'],
+            ['stash', 'stash', 'Stash'],
+            ['capture', 'capture', 'Capture'],
+          ].map(([appId, icon, label]) => (
+            <button type="button" key={appId} onClick={() => onOpenApp(appId)}>
+              <Icon name={icon as 'pulse' | 'stash' | 'capture'} size={17} />
+              {label}
+            </button>
+          ))}
+          <button type="button" onClick={onLock}>
+            <Icon name="lock" size={17} />
+            Lock
           </button>
         </section>
 

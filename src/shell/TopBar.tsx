@@ -17,6 +17,8 @@ interface TopBarProps {
   onOpenSettings: () => void;
   onOpenSearch: () => void;
   onOpenNotifications: () => void;
+  onLock: () => void;
+  onRestart: () => void;
   onOpenOverview: () => void;
   onSnapLeft: () => void;
   onSnapRight: () => void;
@@ -43,6 +45,8 @@ export function TopBar({
   onOpenSettings,
   onOpenSearch,
   onOpenNotifications,
+  onLock,
+  onRestart,
   onOpenOverview,
   onSnapLeft,
   onSnapRight,
@@ -107,6 +111,15 @@ export function TopBar({
               <button type="button" role="menuitem" onClick={() => runAndClose(onOpenSettings)}>
                 Personalize Nimvelis
                 <Icon name="chevron" size={14} />
+              </button>
+              <div className="top-menu__separator" />
+              <button type="button" role="menuitem" onClick={() => runAndClose(onLock)}>
+                Lock local space
+                <Icon name="lock" size={14} />
+              </button>
+              <button type="button" role="menuitem" onClick={() => runAndClose(onRestart)}>
+                Restart Nimvelis
+                <Icon name="system" size={14} />
               </button>
               <div className="top-menu__footnote">
                 <span className="status-dot" />
@@ -315,11 +328,11 @@ export function TopBar({
         <button
           className="top-bar__local"
           type="button"
-          title="Open device space"
+          title="Open Control Center"
           onClick={onOpenNotifications}
         >
           <span className="status-dot" />
-          Device space
+          Control Center
           {unreadNotifications > 0 ? (
             <small aria-label={`${unreadNotifications} unread notifications`}>
               {Math.min(9, unreadNotifications)}

@@ -711,7 +711,198 @@
   color: var(--danger);
 }
 
+.privacy-profile {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+  padding: 13px;
+  border: 1px solid var(--line-soft);
+  border-radius: 15px 10px 15px 10px;
+  background: var(--field-surface);
+}
+
+.privacy-profile > span {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border-radius: 16px 10px 16px 10px;
+  color: white;
+  background:
+    radial-gradient(circle at 28% 16%, rgb(255 255 255 / 34%), transparent 38%),
+    linear-gradient(145deg, #54c8c3, #6874dc 68%, #413779);
+  font-size: 1.15rem;
+  font-weight: 750;
+}
+
+.privacy-profile label {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+}
+
+.privacy-profile label strong {
+  font-size: var(--font-sm);
+}
+
+.privacy-profile input {
+  width: min(260px, 100%);
+  min-height: 30px;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  outline: 0;
+  padding: 0 9px;
+  color: var(--ink);
+  background: var(--window-surface);
+  font: inherit;
+  font-size: var(--font-xs);
+}
+
+.privacy-profile input:focus {
+  border-color: var(--focus-ring);
+}
+
+.privacy-profile button {
+  min-height: 31px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 9px 6px 9px 6px;
+  color: var(--ink);
+  background: var(--window-surface);
+  font: inherit;
+  font-size: var(--font-xs);
+}
+
+.permission-gates {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.permission-gates article {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 2px 8px;
+  padding: 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 12px 8px 12px 8px;
+  background: var(--field-surface);
+}
+
+.permission-gates article > span {
+  grid-row: 1 / 3;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px 6px 9px 6px;
+  color: #ae782e;
+  background: color-mix(in srgb, #e5aa51 15%, var(--window-surface));
+}
+
+.permission-gates article > span.is-granted {
+  color: var(--positive);
+  background: color-mix(in srgb, var(--positive) 14%, var(--window-surface));
+}
+
+.permission-gates article > span.is-denied {
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+
+.permission-gates strong {
+  overflow: hidden;
+  font-size: var(--font-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.permission-gates small {
+  overflow: hidden;
+  color: var(--ink-muted);
+  font-size: 0.61rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-permissions {
+  overflow: hidden;
+  border: 1px solid var(--line-soft);
+  border-radius: 15px 10px 15px 10px;
+  background: var(--field-surface);
+}
+
+.app-permissions article {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 42px minmax(130px, 0.7fr) minmax(180px, 1fr);
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.app-permissions article:last-child {
+  border-bottom: 0;
+}
+
+.app-permissions article > span {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.app-permissions article > span strong,
+.app-permissions article > span small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-permissions article > span strong {
+  font-size: var(--font-xs);
+}
+
+.app-permissions article > span small {
+  color: var(--ink-muted);
+  font-size: 0.61rem;
+}
+
+.app-permissions article > div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.app-permissions i {
+  padding: 3px 6px;
+  border-radius: 6px 4px 6px 4px;
+  color: var(--accent-ink);
+  background: color-mix(in srgb, var(--accent) 11%, var(--window-surface));
+  font-size: 0.58rem;
+  font-style: normal;
+}
+
 @container (max-width: 700px) {
+  .permission-gates {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .app-permissions article {
+    grid-template-columns: 42px minmax(0, 1fr);
+  }
+
+  .app-permissions article > div {
+    grid-column: 2;
+    justify-content: flex-start;
+  }
+
   .settings-time-preview,
   .settings-select-row,
   .settings-segmented-row {

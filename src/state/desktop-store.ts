@@ -360,11 +360,15 @@ export const useDesktopStore = create<DesktopStore>()(
       setWindowTitle: (windowId, title) => {
         const safeTitle = title.trim().slice(0, 80);
         if (!safeTitle) return;
-        set((state) => ({
-          windows: state.windows.map((window) =>
-            window.id === windowId ? { ...window, title: safeTitle } : window,
-          ),
-        }));
+        set((state) => {
+          const target = state.windows.find((window) => window.id === windowId);
+          if (!target || target.title === safeTitle) return state;
+          return {
+            windows: state.windows.map((window) =>
+              window.id === windowId ? { ...window, title: safeTitle } : window,
+            ),
+          };
+        });
       },
 
       updateWindowData: (windowId, instanceData) => {
@@ -579,8 +583,8 @@ export const useDesktopStore = create<DesktopStore>()(
     {
       name: 'nimvelis.aurora.desktop',
       storage: createJSONStorage(() => window.localStorage),
-      version: 5,
-      migrate: (persistedState) => persistedState,
+      version: 7,
+      migrate: migratePersistedDesktopState,
       partialize: (state): PersistedDesktopState => ({
         windows: state.windows,
         zCounter: state.zCounter,
@@ -636,6 +640,42 @@ export const useDesktopStore = create<DesktopStore>()(
     },
   ),
 );
+
+export function migratePersistedDesktopState(persistedState: unknown, version: number): unknown {
+  if (version >= 7 || !isRecord(persistedState)) return persistedState;
+
+  const preferences = isRecord(persistedState.preferences) ? persistedState.preferences : undefined;
+  const shelfAppIds = preferences?.shelfAppIds;
+  if (!Array.isArray(shelfAppIds) || shelfAppIds.length === 0) {
+    return persistedState;
+  }
+
+  const nextShelfAppIds = shelfAppIds.filter(
+    (candidate): candidate is string => typeof candidate === 'string',
+  );
+  if (version < 6 && !nextShelfAppIds.includes('browser')) {
+    const filesIndex = nextShelfAppIds.indexOf('files');
+    nextShelfAppIds.splice(filesIndex >= 0 ? filesIndex + 1 : nextShelfAppIds.length, 0, 'browser');
+  }
+  if (version < 7) {
+    let insertionIndex = nextShelfAppIds.indexOf('connections');
+    insertionIndex = insertionIndex >= 0 ? insertionIndex + 1 : nextShelfAppIds.length;
+    for (const appId of ['pulse', 'stash', 'capture']) {
+      if (!nextShelfAppIds.includes(appId)) {
+        nextShelfAppIds.splice(insertionIndex, 0, appId);
+        insertionIndex += 1;
+      }
+    }
+  }
+
+  return {
+    ...persistedState,
+    preferences: {
+      ...preferences,
+      shelfAppIds: nextShelfAppIds,
+    },
+  };
+}
 
 function createWindowId(appId: string): string {
   const suffix =

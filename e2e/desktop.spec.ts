@@ -131,14 +131,86 @@ test('desktop and accessibility settings update persisted shell preferences', as
   await expect(page.locator('.desktop-shell')).toHaveAttribute('data-high-contrast', 'true');
 });
 
+test('System Core controls windows, clipboard history, capture boundaries, and session lock', async ({
+  page,
+}) => {
+  await page.getByRole('button', { name: 'Control Center' }).click();
+  const controlCenter = page.locator('.notification-center');
+  await expect(controlCenter).toContainText('Control Center');
+  await controlCenter.getByRole('button', { name: /Focus/ }).click();
+  await controlCenter.getByRole('button', { name: /Media/ }).click();
+  await controlCenter.getByRole('slider', { name: 'Interface brightness' }).fill('82');
+  await expect(page.locator('.desktop-shell')).toHaveAttribute('data-focus-mode', 'true');
+  await expect(page.locator('.desktop-shell')).toHaveAttribute('data-media-muted', 'true');
+
+  await controlCenter.getByRole('button', { name: 'Pulse' }).click();
+  const pulseWindow = page.locator('[data-app-id="pulse"]');
+  await expect(pulseWindow).toBeVisible();
+  await expect(pulseWindow.getByText('System is responsive')).toBeVisible();
+  await expect(pulseWindow.getByText('Browser runtime')).toBeVisible();
+  await expect(pulseWindow.getByText('Host access')).toBeVisible();
+
+  await page
+    .getByRole('button', { name: /^Stash/ })
+    .last()
+    .click();
+  const stashWindow = page.locator('[data-app-id="stash"]');
+  await stashWindow
+    .getByRole('textbox', { name: 'Text to save in Stash' })
+    .fill('System Core clipboard check');
+  await stashWindow.getByRole('button', { name: 'Save text' }).click();
+  await expect(
+    stashWindow.getByRole('option', { name: /System Core clipboard check/ }),
+  ).toBeVisible();
+
+  await page
+    .getByRole('button', { name: /^Capture/ })
+    .last()
+    .click();
+  const captureWindow = page.locator('[data-app-id="capture"]');
+  await expect(
+    captureWindow.getByRole('heading', { name: 'Capture what you choose.' }),
+  ).toBeVisible();
+  await expect(captureWindow).toContainText('stops sharing immediately');
+
+  await page
+    .getByRole('button', { name: /^Settings/ })
+    .last()
+    .click();
+  const settingsWindow = page.locator('[data-app-id="settings"]');
+  await settingsWindow.getByRole('button', { name: /Privacy/ }).click();
+  await expect(settingsWindow.getByText('Application capabilities')).toBeVisible();
+  const profileName = settingsWindow.getByRole('textbox', { name: 'Local profile name' });
+  await profileName.fill('Aurora User');
+  await profileName.blur();
+  await settingsWindow.getByRole('button', { name: 'Lock now' }).click();
+
+  const lockScreen = page.getByRole('dialog', { name: 'Nimvelis is locked' });
+  await expect(lockScreen.getByText('Aurora User')).toBeVisible();
+  await lockScreen.getByRole('button', { name: 'Resume session' }).click();
+  await expect(lockScreen).toBeHidden();
+
+  await page.reload();
+  await expect(page.locator('[data-app-id="pulse"]')).toBeVisible();
+  await expect(page.locator('[data-app-id="stash"]')).toBeVisible();
+  await expect(page.locator('.desktop-shell')).toHaveAttribute('data-focus-mode', 'true');
+});
+
 test('tasks and calendar share a local agenda', async ({ page }) => {
   await page
     .getByRole('button', { name: /^Tasks/ })
     .last()
     .click();
   const tasksWindow = page.locator('[data-app-id="tasks"]');
+  const today = await page.evaluate(() => {
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  });
   await tasksWindow.getByRole('textbox', { name: 'Task title' }).fill('Ship Aurora 0.8');
-  await tasksWindow.getByRole('textbox', { name: 'Task due date' }).fill('2026-07-23');
+  await tasksWindow.getByRole('textbox', { name: 'Task due date' }).fill(today);
   await tasksWindow.getByRole('button', { name: 'Add task' }).click();
   await expect(tasksWindow.getByText('Ship Aurora 0.8')).toBeVisible();
 
@@ -192,6 +264,45 @@ test('connections shows honest network diagnostics and Bluetooth availability', 
 
   await connectionsWindow.getByRole('button', { name: 'Test connection' }).click();
   await expect(connectionsWindow.getByRole('button', { name: 'Test connection' })).toBeEnabled();
+});
+
+test('Browser navigates safely with local bookmarks and window history', async ({ page }) => {
+  await page
+    .getByRole('button', { name: /^Browser/ })
+    .last()
+    .click();
+  const browserWindow = page.locator('[data-app-id="browser"]');
+
+  await expect(browserWindow).toBeVisible();
+  await expect(
+    browserWindow.getByRole('heading', { name: 'Your web, inside your workspace.' }),
+  ).toBeVisible();
+
+  const address = browserWindow.getByRole('textbox', { name: 'Browser address' });
+  await address.fill('example.com');
+  await address.press('Enter');
+  await expect(browserWindow.locator('iframe.browser-frame')).toHaveAttribute(
+    'src',
+    'https://example.com/',
+  );
+  await expect(browserWindow.getByText('Some websites block embedded viewing.')).toBeVisible();
+
+  await browserWindow.getByRole('button', { name: 'Add bookmark' }).click();
+  await browserWindow.getByRole('button', { name: 'Bookmarks' }).click();
+  await expect(
+    browserWindow.getByRole('complementary', { name: 'Bookmarks' }).getByText('example.com'),
+  ).toBeVisible();
+
+  await browserWindow.getByRole('button', { name: 'Back' }).click();
+  await expect(
+    browserWindow.getByRole('heading', { name: 'Your web, inside your workspace.' }),
+  ).toBeVisible();
+
+  await address.fill('javascript:alert(1)');
+  await address.press('Enter');
+  await expect(
+    page.getByText('Browser supports only safe HTTP and HTTPS addresses.'),
+  ).toBeVisible();
 });
 
 test('Terminal operates on local files with history and an honest sandbox boundary', async ({
@@ -326,12 +437,16 @@ test('Shelf apps can be reordered, removed, restored, and kept above windows', a
   const shelfAppIds = shelf.locator('[data-shelf-app-id]');
   const expectedShelfOrder = [
     'files',
+    'browser',
     'text',
     'view',
     'tasks',
     'calendar',
     'clock',
     'connections',
+    'pulse',
+    'stash',
+    'capture',
     'terminal',
     'calculator',
     'vela',

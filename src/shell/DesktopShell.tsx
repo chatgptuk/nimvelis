@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { getWindowingViewport } from '../kernel/desktop-layout';
 import { getAppManifest, listAppManifests } from '../kernel/app-registry/registry';
-import type { NimvelisSystemApi } from '../kernel/system-api';
+import { localClipboardHistory } from '../kernel/clipboard';
+import type { NimvelisSystemApi, SystemWindowSummary } from '../kernel/system-api';
 import { isTextMimeType, localFileSystem, type VfsNode } from '../kernel/vfs';
 import type { DesktopViewport, WindowInstance } from '../kernel/window-manager/types';
 import {
@@ -16,6 +17,7 @@ import { AboutDevice } from './AboutDevice';
 import { DesktopOverview } from './DesktopOverview';
 import { DesktopIcons } from './DesktopIcons';
 import { NotificationCenter } from './NotificationCenter';
+import { BootScreen, LockScreen } from './LockScreen';
 import { Shelf } from './Shelf';
 import { SystemSearch } from './SystemSearch';
 import type { SystemCommand } from './SystemSearch';
@@ -97,17 +99,31 @@ export function DesktopShell() {
   );
   const {
     notificationHistory,
+    session,
     addNotification,
     markAllRead,
     removeNotification,
     clearNotifications,
+    lockSession,
+    unlockSession,
+    setProfileName,
+    setFocusMode,
+    setQuietMedia,
+    setInterfaceBrightness,
   } = useSystemStore(
     useShallow((state) => ({
       notificationHistory: state.notifications,
+      session: state.session,
       addNotification: state.addNotification,
       markAllRead: state.markAllRead,
       removeNotification: state.removeNotification,
       clearNotifications: state.clearNotifications,
+      lockSession: state.lockSession,
+      unlockSession: state.unlockSession,
+      setProfileName: state.setProfileName,
+      setFocusMode: state.setFocusMode,
+      setQuietMedia: state.setQuietMedia,
+      setInterfaceBrightness: state.setInterfaceBrightness,
     })),
   );
   const [viewport, setViewport] = useState<DesktopViewport>(() => readViewport());
@@ -116,6 +132,9 @@ export function DesktopShell() {
   const [overviewOpen, setOverviewOpen] = useState(false);
   const [overviewAppFilter, setOverviewAppFilter] = useState<string | null>(null);
   const [notificationCenterOpen, setNotificationCenterOpen] = useState(false);
+  const [booting, setBooting] = useState(
+    () => globalThis.sessionStorage?.getItem('nimvelis.restart.pending') === 'true',
+  );
   const [online, setOnline] = useState(() => navigator.onLine);
   const [toasts, setToasts] = useState<
     Array<{ id: string; message: string; tone: 'neutral' | 'success' | 'error' }>
@@ -129,6 +148,21 @@ export function DesktopShell() {
   const activeWorkspace =
     workspaces.find((workspace) => workspace.id === activeWorkspaceId) ?? workspaces[0];
   const workspaceWindows = windows.filter((window) => window.workspaceId === activeWorkspaceId);
+  const systemWindows = useMemo<SystemWindowSummary[]>(
+    () =>
+      windows.map((window) => ({
+        id: window.id,
+        appId: window.appId,
+        appName: getAppManifest(window.appId)?.name ?? window.appId,
+        title: window.title,
+        workspaceId: window.workspaceId,
+        workspaceName:
+          workspaces.find((workspace) => workspace.id === window.workspaceId)?.name ?? 'Space',
+        state: window.state,
+        focused: window.focused,
+      })),
+    [windows, workspaces],
+  );
   const activeWindow = [...workspaceWindows]
     .filter((window) => window.focused)
     .sort((a, b) => b.zIndex - a.zIndex)[0];
@@ -176,6 +210,16 @@ export function DesktopShell() {
         },
       },
       {
+        id: 'open-browser',
+        title: 'Open Browser',
+        description: 'Search or visit a website in a system window',
+        keywords: 'browser web internet website search url',
+        icon: 'browser',
+        run: () => {
+          openApp('browser');
+        },
+      },
+      {
         id: 'open-terminal',
         title: 'Open Terminal',
         description: 'Run local commands for apps and virtual files',
@@ -183,6 +227,36 @@ export function DesktopShell() {
         icon: 'terminal',
         run: () => {
           openApp('terminal');
+        },
+      },
+      {
+        id: 'open-pulse',
+        title: 'Open Pulse',
+        description: 'Inspect and manage Nimvelis windows',
+        keywords: 'activity monitor task manager process storage performance',
+        icon: 'pulse',
+        run: () => {
+          openApp('pulse');
+        },
+      },
+      {
+        id: 'open-stash',
+        title: 'Open Stash',
+        description: 'Browse local clipboard history',
+        keywords: 'clipboard copy paste history pin',
+        icon: 'stash',
+        run: () => {
+          openApp('stash');
+        },
+      },
+      {
+        id: 'new-capture',
+        title: 'Take a capture',
+        description: 'Capture a chosen screen or window',
+        keywords: 'screenshot screen capture image',
+        icon: 'capture',
+        run: () => {
+          openApp('capture');
         },
       },
       {
@@ -238,8 +312,8 @@ export function DesktopShell() {
       },
       {
         id: 'device-space',
-        title: 'Open device space',
-        description: 'Notifications, storage, install, and updates',
+        title: 'Open Control Center',
+        description: 'System controls, notifications, storage, and updates',
         keywords: 'notification center quick settings pwa install update offline',
         icon: 'system',
         run: () => setNotificationCenterOpen(true),
@@ -290,12 +364,13 @@ export function DesktopShell() {
   const notify = useCallback(
     (message: string, tone: 'neutral' | 'success' | 'error' = 'neutral') => {
       const id = addNotification(message, tone);
+      if (session.focusMode) return;
       setToasts((items) => [...items.slice(-2), { id, message, tone }]);
       globalThis.setTimeout(() => {
         setToasts((items) => items.filter((item) => item.id !== id));
       }, 3200);
     },
-    [addNotification],
+    [addNotification, session.focusMode],
   );
 
   useEffect(() => {
@@ -308,6 +383,34 @@ export function DesktopShell() {
       stopProductivitySync();
     };
   }, []);
+
+  useEffect(() => {
+    if (!booting) return;
+    globalThis.sessionStorage?.removeItem('nimvelis.restart.pending');
+    const timeout = globalThis.setTimeout(() => setBooting(false), 850);
+    return () => globalThis.clearTimeout(timeout);
+  }, [booting]);
+
+  useEffect(() => {
+    const mediaElements = new Map<HTMLMediaElement, boolean>();
+    const apply = () => {
+      document
+        .querySelectorAll<HTMLMediaElement>('.desktop-shell audio, .desktop-shell video')
+        .forEach((media) => {
+          if (!mediaElements.has(media)) mediaElements.set(media, media.muted);
+          if (session.quietMedia) media.muted = true;
+        });
+    };
+    apply();
+    const observer = new MutationObserver(apply);
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => {
+      observer.disconnect();
+      for (const [media, wasMuted] of mediaElements) {
+        if (media.isConnected) media.muted = wasMuted;
+      }
+    };
+  }, [session.quietMedia]);
 
   useEffect(() => {
     const updateOnline = () => setOnline(navigator.onLine);
@@ -419,6 +522,19 @@ export function DesktopShell() {
     }
   };
 
+  const handleLock = useCallback(() => {
+    setAboutOpen(false);
+    setSearchOpen(false);
+    setOverviewOpen(false);
+    setNotificationCenterOpen(false);
+    lockSession();
+  }, [lockSession]);
+
+  const handleRestart = useCallback(() => {
+    globalThis.sessionStorage?.setItem('nimvelis.restart.pending', 'true');
+    globalThis.location.reload();
+  }, []);
+
   return (
     <main
       className={`desktop-shell wallpaper-${wallpaper}`}
@@ -428,6 +544,13 @@ export function DesktopShell() {
       data-high-contrast={preferences.highContrast}
       data-reduce-motion={preferences.reduceMotion}
       data-text-scale={preferences.textScale}
+      data-focus-mode={session.focusMode}
+      data-media-muted={session.quietMedia}
+      style={
+        {
+          '--system-dim-opacity': String((1 - session.interfaceBrightness) * 0.62),
+        } as CSSProperties
+      }
     >
       <TopBar
         activeWindow={activeWindow}
@@ -441,6 +564,8 @@ export function DesktopShell() {
         onOpenSettings={() => openApp('settings')}
         onOpenSearch={() => setSearchOpen(true)}
         onOpenNotifications={() => setNotificationCenterOpen((open) => !open)}
+        onLock={handleLock}
+        onRestart={handleRestart}
         onOpenOverview={() => {
           setOverviewAppFilter(null);
           setOverviewOpen(true);
@@ -489,8 +614,13 @@ export function DesktopShell() {
             appearance={appearance}
             wallpaper={wallpaper}
             preferences={preferences}
+            session={session}
+            systemWindows={systemWindows}
             openApp={openApp}
             closeWindow={closeWindow}
+            focusWindow={focusWindow}
+            minimizeWindow={minimizeWindow}
+            restoreWindow={restoreWindow}
             setWindowTitle={setWindowTitle}
             updateWindowData={updateWindowData}
             setAppearance={setAppearance}
@@ -500,6 +630,8 @@ export function DesktopShell() {
             resetDesktopIconPositions={resetDesktopIconPositions}
             openFile={openFile}
             notify={notify}
+            lockSession={handleLock}
+            setProfileName={setProfileName}
           />
         ))}
       </section>
@@ -579,8 +711,14 @@ export function DesktopShell() {
           appearance={appearance}
           notifications={notificationHistory}
           online={online}
+          focusMode={session.focusMode}
+          quietMedia={session.quietMedia}
+          interfaceBrightness={session.interfaceBrightness}
           onClose={() => setNotificationCenterOpen(false)}
           onSetAppearance={setAppearance}
+          onSetFocusMode={setFocusMode}
+          onSetQuietMedia={setQuietMedia}
+          onSetInterfaceBrightness={setInterfaceBrightness}
           onMarkAllRead={markAllRead}
           onClear={clearNotifications}
           onRemove={removeNotification}
@@ -588,8 +726,14 @@ export function DesktopShell() {
             openApp('settings');
             setNotificationCenterOpen(false);
           }}
+          onOpenApp={(appId) => {
+            openApp(appId);
+            setNotificationCenterOpen(false);
+          }}
+          onLock={handleLock}
         />
       ) : null}
+      <div className="desktop-dimmer" aria-hidden="true" />
       <div className="notification-stack" aria-live="polite">
         {toasts.map((notification) => (
           <div
@@ -601,6 +745,15 @@ export function DesktopShell() {
           </div>
         ))}
       </div>
+      {session.locked && !booting ? (
+        <LockScreen
+          profileName={session.profileName}
+          timeZone={preferences.timeZone}
+          clockFormat={preferences.clockFormat}
+          onUnlock={unlockSession}
+        />
+      ) : null}
+      {booting ? <BootScreen /> : null}
     </main>
   );
 }
@@ -611,8 +764,13 @@ interface WindowHostProps {
   appearance: AppearanceMode;
   wallpaper: 'aurora' | 'solstice' | 'stillness';
   preferences: DesktopPreferences;
+  session: NimvelisSystemApi['session'];
+  systemWindows: SystemWindowSummary[];
   openApp: NimvelisSystemApi['openApp'];
   closeWindow: NimvelisSystemApi['closeWindow'];
+  focusWindow: NimvelisSystemApi['focusWindow'];
+  minimizeWindow: NimvelisSystemApi['minimizeWindow'];
+  restoreWindow: NimvelisSystemApi['restoreWindow'];
   setWindowTitle: NimvelisSystemApi['setWindowTitle'];
   updateWindowData: NimvelisSystemApi['updateWindowData'];
   setAppearance: NimvelisSystemApi['setAppearance'];
@@ -622,7 +780,11 @@ interface WindowHostProps {
   resetDesktopIconPositions: NimvelisSystemApi['resetDesktopIconPositions'];
   openFile: NimvelisSystemApi['openFile'];
   notify: NimvelisSystemApi['notify'];
+  lockSession: NimvelisSystemApi['lockSession'];
+  setProfileName: NimvelisSystemApi['setProfileName'];
 }
+
+const EMPTY_SYSTEM_WINDOWS: SystemWindowSummary[] = [];
 
 function WindowHost({
   window,
@@ -630,8 +792,13 @@ function WindowHost({
   appearance,
   wallpaper,
   preferences,
+  session,
+  systemWindows,
   openApp,
   closeWindow,
+  focusWindow,
+  minimizeWindow,
+  restoreWindow,
   setWindowTitle,
   updateWindowData,
   setAppearance,
@@ -641,19 +808,33 @@ function WindowHost({
   resetDesktopIconPositions,
   openFile,
   notify,
+  lockSession,
+  setProfileName,
 }: WindowHostProps) {
+  const exposedWindows = window.appId === 'pulse' ? systemWindows : EMPTY_SYSTEM_WINDOWS;
   const system = useMemo<NimvelisSystemApi>(
     () => ({
       appearance,
       wallpaper,
       preferences,
+      session,
       files: localFileSystem,
+      clipboard: localClipboardHistory,
+      windows: exposedWindows,
       listApps: () =>
-        listAppManifests().map(({ id, name, description }) => ({ id, name, description })),
+        listAppManifests().map(({ id, name, description, icon }) => ({
+          id,
+          name,
+          description,
+          icon,
+        })),
       openApp,
       openFile,
       notify,
       closeWindow,
+      focusWindow,
+      minimizeWindow,
+      restoreWindow,
       setWindowTitle,
       updateWindowData,
       setAppearance,
@@ -661,13 +842,22 @@ function WindowHost({
       updatePreferences,
       resetPreferences,
       resetDesktopIconPositions,
+      lockSession,
+      setProfileName,
     }),
     [
       appearance,
       closeWindow,
+      focusWindow,
+      minimizeWindow,
+      restoreWindow,
       openApp,
       openFile,
       preferences,
+      session,
+      exposedWindows,
+      lockSession,
+      setProfileName,
       resetDesktopIconPositions,
       resetPreferences,
       notify,

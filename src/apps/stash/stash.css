@@ -1,0 +1,324 @@
+.stash-app {
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  background: var(--window-surface);
+  color: var(--ink);
+}
+
+.stash-sidebar {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  border-right: 1px solid var(--line-soft);
+  background: var(--window-sidebar);
+}
+
+.stash-sidebar > header,
+.stash-sidebar > header > div,
+.stash-sidebar > header span,
+.stash-detail > header,
+.stash-detail > header > span,
+.stash-detail > header > div {
+  display: flex;
+  align-items: center;
+}
+
+.stash-sidebar > header {
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px;
+}
+
+.stash-sidebar > header > div {
+  min-width: 0;
+  gap: 9px;
+}
+
+.stash-sidebar > header span,
+.stash-detail > header > span {
+  min-width: 0;
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stash-sidebar strong,
+.stash-detail strong {
+  font-size: var(--font-sm);
+}
+
+.stash-sidebar small,
+.stash-detail small {
+  color: var(--text-tertiary);
+  font-size: var(--font-xs);
+}
+
+.stash-mark {
+  width: 32px;
+  height: 32px;
+  display: grid !important;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 10px 7px 10px 7px;
+  color: #7353c9;
+  background: color-mix(in srgb, #9c7df0 17%, var(--control-bg));
+}
+
+.stash-sidebar button,
+.stash-detail button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid var(--line-soft);
+  border-radius: 9px 6px 9px 6px;
+  color: var(--ink);
+  background: var(--field-surface);
+  font: inherit;
+  font-size: var(--font-xs);
+}
+
+.stash-sidebar > header > button {
+  min-height: 30px;
+  padding: 0 9px;
+}
+
+.stash-search {
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 12px 10px;
+  padding: 0 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  color: var(--text-tertiary);
+  background: var(--field-surface);
+}
+
+.stash-search input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  color: var(--ink);
+  background: transparent;
+  font: inherit;
+  font-size: var(--font-xs);
+}
+
+.stash-list {
+  min-height: 0;
+  overflow: auto;
+  padding: 0 9px 10px;
+}
+
+.stash-list > button {
+  width: 100%;
+  min-height: 58px;
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+  justify-content: stretch;
+  gap: 9px;
+  margin-bottom: 4px;
+  padding: 7px;
+  border-color: transparent;
+  background: transparent;
+  text-align: left;
+}
+
+.stash-list > button:hover,
+.stash-list > button.is-selected {
+  border-color: color-mix(in srgb, var(--accent) 26%, var(--line-soft));
+  background: var(--selection-bg);
+}
+
+.stash-list > button > span:nth-child(2) {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.stash-list > button strong {
+  overflow: hidden;
+  font-weight: 580;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stash-list__kind {
+  width: 32px;
+  height: 32px;
+  display: grid !important;
+  place-items: center;
+  border-radius: 9px;
+  color: #7452c7;
+  background: color-mix(in srgb, #a682ff 15%, var(--field-surface));
+}
+
+.stash-list__kind.is-image {
+  color: #1b8d98;
+  background: color-mix(in srgb, #5ed9dd 15%, var(--field-surface));
+}
+
+.stash-empty {
+  min-height: 180px;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 6px;
+  padding: 20px;
+  color: var(--text-tertiary);
+  text-align: center;
+}
+
+.stash-empty strong {
+  color: var(--ink);
+}
+
+.stash-empty span {
+  max-width: 190px;
+  font-size: var(--font-xs);
+  line-height: 1.45;
+}
+
+.stash-sidebar .stash-clear {
+  min-height: 30px;
+  margin: 0 12px 12px;
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+
+.stash-detail {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.stash-detail > header {
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 61px;
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.stash-detail > header > div {
+  gap: 5px;
+}
+
+.stash-detail > header button {
+  min-height: 30px;
+  padding: 0 9px;
+}
+
+.stash-detail > header button.is-danger {
+  color: var(--danger);
+}
+
+.stash-preview {
+  min-width: 0;
+  min-height: 0;
+  margin: 16px;
+  overflow: auto;
+  border: 1px solid var(--line-soft);
+  border-radius: 15px 10px 15px 10px;
+  background: var(--field-surface);
+}
+
+.stash-preview--text {
+  padding: 20px;
+  color: var(--ink);
+  font:
+    0.84rem/1.6 ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    monospace;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.stash-preview--image {
+  display: grid;
+  place-items: center;
+  padding: 14px;
+}
+
+.stash-preview--image img {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 10px;
+  box-shadow: 0 14px 34px rgb(0 0 0 / 18%);
+}
+
+.stash-composer {
+  grid-row: 1 / -1;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 9px;
+  padding: 24px;
+  text-align: center;
+}
+
+.stash-composer__mark {
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  border-radius: 19px 12px 19px 12px;
+  color: #7655cb;
+  background: color-mix(in srgb, #9c7df0 16%, var(--field-surface));
+}
+
+.stash-composer h2,
+.stash-composer p {
+  margin: 0;
+}
+
+.stash-composer p {
+  max-width: 380px;
+  color: var(--text-tertiary);
+  font-size: var(--font-sm);
+}
+
+.stash-composer textarea {
+  width: min(430px, 100%);
+  min-height: 130px;
+  margin-top: 10px;
+  resize: vertical;
+  border: 1px solid var(--line-soft);
+  border-radius: 13px;
+  outline: 0;
+  padding: 12px;
+  color: var(--ink);
+  background: var(--field-surface);
+  font: inherit;
+}
+
+.stash-composer textarea:focus {
+  border-color: var(--focus-ring);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus-ring) 18%, transparent);
+}
+
+.stash-composer > button {
+  min-height: 34px;
+  padding: 0 14px;
+  border-color: transparent;
+  color: white;
+  background: var(--accent);
+}
+
+@container (max-width: 560px) {
+  .stash-app {
+    grid-template-columns: 220px minmax(0, 1fr);
+  }
+
+  .stash-detail > header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
