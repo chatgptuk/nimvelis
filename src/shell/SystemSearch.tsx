@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AppIcon, Icon } from '../design/Icon';
+import type { IconName } from '../design/Icon';
 import type { AppManifest } from '../kernel/app-registry/types';
 import type { VfsNode, VirtualFileSystem } from '../kernel/vfs';
 import './search.css';
@@ -10,12 +11,31 @@ interface SystemSearchProps {
   onClose: () => void;
   onOpenApp: (appId: string) => void;
   onOpenFile: (node: VfsNode) => void;
+  commands: readonly SystemCommand[];
+}
+
+export interface SystemCommand {
+  id: string;
+  title: string;
+  description: string;
+  keywords: string;
+  icon: IconName;
+  run: () => void | Promise<void>;
 }
 
 type SearchResult =
-  { key: string; kind: 'app'; app: AppManifest } | { key: string; kind: 'file'; node: VfsNode };
+  | { key: string; kind: 'command'; command: SystemCommand }
+  | { key: string; kind: 'app'; app: AppManifest }
+  | { key: string; kind: 'file'; node: VfsNode };
 
-export function SystemSearch({ apps, files, onClose, onOpenApp, onOpenFile }: SystemSearchProps) {
+export function SystemSearch({
+  apps,
+  files,
+  commands,
+  onClose,
+  onOpenApp,
+  onOpenFile,
+}: SystemSearchProps) {
   const [query, setQuery] = useState('');
   const [fileResults, setFileResults] = useState<VfsNode[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -52,17 +72,35 @@ export function SystemSearch({ apps, files, onClose, onOpenApp, onOpenFile }: Sy
       .slice(0, 5);
   }, [apps, query]);
 
+  const commandResults = useMemo(() => {
+    const normalized = query.trim().replace(/^>/, '').trim().toLocaleLowerCase();
+    if (!normalized) return commands.slice(0, 4);
+    return commands
+      .filter((command) =>
+        `${command.title} ${command.description} ${command.keywords}`
+          .toLocaleLowerCase()
+          .includes(normalized),
+      )
+      .slice(0, 6);
+  }, [commands, query]);
+
   const results = useMemo<SearchResult[]>(
     () => [
+      ...commandResults.map((command) => ({
+        key: `command-${command.id}`,
+        kind: 'command' as const,
+        command,
+      })),
       ...appResults.map((app) => ({ key: `app-${app.id}`, kind: 'app' as const, app })),
       ...fileResults.map((node) => ({ key: `file-${node.id}`, kind: 'file' as const, node })),
     ],
-    [appResults, fileResults],
+    [appResults, commandResults, fileResults],
   );
 
   const openResult = (result: SearchResult | undefined) => {
     if (!result) return;
-    if (result.kind === 'app') onOpenApp(result.app.id);
+    if (result.kind === 'command') void result.command.run();
+    else if (result.kind === 'app') onOpenApp(result.app.id);
     else onOpenFile(result.node);
     onClose();
   };
@@ -86,8 +124,8 @@ export function SystemSearch({ apps, files, onClose, onOpenApp, onOpenFile }: Sy
           <input
             ref={inputRef}
             value={query}
-            placeholder="Search apps and local files"
-            aria-label="Search apps and local files"
+            placeholder="Search files, apps, or run a command"
+            aria-label="Search files, apps, or run a command"
             onChange={(event) => {
               setQuery(event.target.value);
               setSelectedIndex(0);
@@ -111,6 +149,32 @@ export function SystemSearch({ apps, files, onClose, onOpenApp, onOpenFile }: Sy
         </label>
 
         <div className="system-search__results">
+          {commandResults.length > 0 ? <h2>Commands</h2> : null}
+          {commandResults.map((command) => {
+            const resultIndex = results.findIndex(
+              (result) => result.key === `command-${command.id}`,
+            );
+            return (
+              <button
+                className={`system-search__command ${
+                  selectedIndex === resultIndex ? 'is-selected' : ''
+                }`}
+                key={command.id}
+                onPointerMove={() => setSelectedIndex(resultIndex)}
+                onClick={() => openResult(results[resultIndex])}
+              >
+                <span className="system-search__file-icon">
+                  <Icon name={command.icon} size={18} />
+                </span>
+                <span>
+                  <strong>{command.title}</strong>
+                  <small>{command.description}</small>
+                </span>
+                <kbd>Run</kbd>
+              </button>
+            );
+          })}
+
           {appResults.length > 0 ? <h2>Applications</h2> : null}
           {appResults.map((app) => {
             const resultIndex = results.findIndex((result) => result.key === `app-${app.id}`);

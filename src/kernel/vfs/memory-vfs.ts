@@ -125,6 +125,112 @@ export class MemoryVirtualFileSystem implements VirtualFileSystem {
     return { ...node };
   }
 
+  async move(id: string, parentId: string) {
+    await this.ready();
+    this.assertDirectory(parentId);
+    const current = this.nodes.get(id);
+    if (!current || current.trashedAt !== undefined) throw new Error('Item no longer exists.');
+    if (id === parentId || this.collectTree(id).includes(parentId)) {
+      throw new Error('A folder cannot be moved inside itself.');
+    }
+    const node: VfsNode = {
+      ...current,
+      parentId,
+      name: this.createAvailableName(parentId, current.name),
+      updatedAt: Date.now(),
+    };
+    this.nodes.set(id, node);
+    await this.commit();
+    return { ...node };
+  }
+
+  async copy(id: string, parentId: string) {
+    await this.ready();
+    this.assertDirectory(parentId);
+    const source = this.nodes.get(id);
+    if (!source || source.trashedAt !== undefined) throw new Error('Item no longer exists.');
+
+    const duplicate = async (node: VfsNode, destinationId: string, isRoot: boolean) => {
+      const now = Date.now();
+      const nextId = createNodeId(node.kind);
+      const copied: VfsNode = {
+        ...node,
+        id: nextId,
+        parentId: destinationId,
+        name: isRoot
+          ? this.createAvailableName(destinationId, node.name)
+          : this.createAvailableName(destinationId, node.name),
+        createdAt: now,
+        updatedAt: now,
+        favorite: false,
+        lastOpenedAt: undefined,
+      };
+      delete copied.trashedAt;
+      this.nodes.set(nextId, copied);
+      if (node.kind === 'file') {
+        const content = this.contents.get(node.id);
+        if (content) this.contents.set(nextId, content.slice(0, content.size, content.type));
+      } else {
+        const children = [...this.nodes.values()].filter(
+          (candidate) => candidate.parentId === node.id && candidate.id !== nextId,
+        );
+        for (const child of children) await duplicate(child, nextId, false);
+      }
+      return copied;
+    };
+
+    const copied = await duplicate(source, parentId, true);
+    await this.commit();
+    return { ...copied };
+  }
+
+  async setFavorite(id: string, favorite: boolean) {
+    await this.ready();
+    const node = this.nodes.get(id);
+    if (!node) return;
+    this.nodes.set(id, { ...node, favorite });
+    await this.commit();
+  }
+
+  async touch(id: string) {
+    await this.ready();
+    const node = this.nodes.get(id);
+    if (!node) return;
+    this.nodes.set(id, { ...node, lastOpenedAt: Date.now() });
+    await this.commit();
+  }
+
+  async listFavorites() {
+    await this.ready();
+    return sortNodes(
+      [...this.nodes.values()].filter(
+        (node) => node.trashedAt === undefined && node.favorite === true,
+      ),
+    );
+  }
+
+  async listRecent(limit = 30) {
+    await this.ready();
+    return [...this.nodes.values()]
+      .filter((node) => node.trashedAt === undefined)
+      .map((node) => ({ ...node }))
+      .sort(
+        (left, right) =>
+          Number(Boolean(right.lastOpenedAt)) - Number(Boolean(left.lastOpenedAt)) ||
+          (right.lastOpenedAt ?? right.updatedAt) - (left.lastOpenedAt ?? left.updatedAt),
+      )
+      .slice(0, Math.max(1, limit));
+  }
+
+  async listDirectories() {
+    await this.ready();
+    return sortNodes(
+      [...this.nodes.values()].filter(
+        (node) => node.kind === 'directory' && node.trashedAt === undefined,
+      ),
+    );
+  }
+
   async trash(id: string) {
     await this.ready();
     if (!this.nodes.has(id)) return;

@@ -14,6 +14,12 @@ interface TopBarProps {
   onOpenAbout: () => void;
   onOpenSettings: () => void;
   onOpenSearch: () => void;
+  onOpenNotifications: () => void;
+  onOpenOverview: () => void;
+  onSnapLeft: () => void;
+  onSnapRight: () => void;
+  activeWorkspaceName: string;
+  unreadNotifications: number;
 }
 
 type MenuId = 'nimvelis' | 'space' | 'view' | 'window' | 'help' | null;
@@ -29,6 +35,12 @@ export function TopBar({
   onOpenAbout,
   onOpenSettings,
   onOpenSearch,
+  onOpenNotifications,
+  onOpenOverview,
+  onSnapLeft,
+  onSnapRight,
+  activeWorkspaceName,
+  unreadNotifications,
 }: TopBarProps) {
   const [openMenu, setOpenMenu] = useState<MenuId>(null);
   const barRef = useRef<HTMLElement>(null);
@@ -70,7 +82,7 @@ export function TopBar({
                 <NimvelisMark size={40} />
                 <div>
                   <strong>Nimvelis</strong>
-                  <span>Aurora desktop · 0.2</span>
+                  <span>Aurora desktop · 0.3</span>
                 </div>
               </div>
               <p>An independent space for your local work.</p>
@@ -120,6 +132,10 @@ export function TopBar({
                 Appearance
                 <Icon name="sparkle" size={14} />
               </button>
+              <button type="button" role="menuitem" onClick={() => runAndClose(onOpenOverview)}>
+                Overview & spaces
+                <span>{activeWorkspaceName}</span>
+              </button>
               <div className="top-menu__footnote">
                 <span className="status-dot" />
                 Saved on this device
@@ -146,6 +162,25 @@ export function TopBar({
               >
                 {activeWindow?.state === 'maximized' ? 'Return to window' : 'Expand window'}
                 <span>Alt + Enter</span>
+              </button>
+              <div className="top-menu__separator" />
+              <button
+                type="button"
+                role="menuitem"
+                disabled={!activeWindow}
+                onClick={() => runAndClose(onSnapLeft)}
+              >
+                Tile left
+                <span>½</span>
+              </button>
+              <button
+                type="button"
+                role="menuitem"
+                disabled={!activeWindow}
+                onClick={() => runAndClose(onSnapRight)}
+              >
+                Tile right
+                <span>½</span>
               </button>
               <button
                 type="button"
@@ -241,7 +276,7 @@ export function TopBar({
                 </span>
               </div>
               <div className="top-menu__separator" />
-              <div className="top-menu__footnote">Nimvelis Aurora 0.2</div>
+              <div className="top-menu__footnote">Nimvelis Aurora 0.3</div>
             </div>
           )}
         </div>
@@ -252,10 +287,20 @@ export function TopBar({
           <span>Search</span>
           <kbd>⌘K</kbd>
         </button>
-        <span className="top-bar__local" title="Your data stays in this browser">
+        <button
+          className="top-bar__local"
+          type="button"
+          title="Open device space"
+          onClick={onOpenNotifications}
+        >
           <span className="status-dot" />
           Device space
-        </span>
+          {unreadNotifications > 0 ? (
+            <small aria-label={`${unreadNotifications} unread notifications`}>
+              {Math.min(9, unreadNotifications)}
+            </small>
+          ) : null}
+        </button>
         <time dateTime={now.toISOString()}>
           {new Intl.DateTimeFormat(undefined, {
             weekday: 'short',

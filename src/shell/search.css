@@ -127,6 +127,14 @@
   background: color-mix(in srgb, var(--accent) 9%, var(--field-surface));
 }
 
+.system-search__results button.system-search__command {
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+}
+
+.system-search__command > kbd {
+  font-size: 8px;
+}
+
 .system-search__empty {
   display: grid;
   min-height: 180px;

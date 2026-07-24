@@ -73,7 +73,7 @@ test('system menus expose Nimvelis workflows and keyboard guidance', async ({ pa
   await page.getByRole('menuitem', { name: 'About This Device' }).click();
   const about = page.getByRole('dialog', { name: 'Nimvelis Aurora' });
   await expect(about).toBeVisible();
-  await expect(about).toContainText('Version 0.2');
+  await expect(about).toContainText('Version 0.3');
   await expect(about).toContainText('LOCAL STORAGE');
   await expect(about).toContainText('Display');
   await about.getByRole('button', { name: 'Close About This Device' }).click();

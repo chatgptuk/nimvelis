@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nimvelis-aurora-v2';
+const CACHE_NAME = 'nimvelis-aurora-v3';
 const SHELL_ASSETS = [
   '/',
   '/manifest.webmanifest',
@@ -7,12 +7,11 @@ const SHELL_ASSETS = [
 ];
 
 globalThis.addEventListener('install', (event) => {
-  event.waitUntil(
-    globalThis.caches
-      .open(CACHE_NAME)
-      .then((cache) => cache.addAll(SHELL_ASSETS))
-      .then(() => globalThis.skipWaiting()),
-  );
+  event.waitUntil(globalThis.caches.open(CACHE_NAME).then((cache) => cache.addAll(SHELL_ASSETS)));
+});
+
+globalThis.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') void globalThis.skipWaiting();
 });
 
 globalThis.addEventListener('activate', (event) => {

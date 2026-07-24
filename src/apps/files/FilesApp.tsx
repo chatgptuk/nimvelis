@@ -1,6 +1,7 @@
 import {
   type ChangeEvent,
   type DragEvent,
+  type KeyboardEvent,
   type MouseEvent,
   useCallback,
   useEffect,
@@ -13,7 +14,9 @@ import { ROOT_DIRECTORY_ID, type VfsNode } from '../../kernel/vfs';
 import type { SystemAppProps } from '../../kernel/app-registry/types';
 import './files.css';
 
-type FilesView = 'files' | 'trash';
+type FilesView = 'files' | 'trash' | 'recent' | 'favorites';
+type ViewMode = 'list' | 'grid';
+type SortMode = 'name' | 'modified' | 'size';
 
 type ContextMenuState = {
   node: VfsNode;
@@ -21,7 +24,14 @@ type ContextMenuState = {
   y: number;
 };
 
+interface FileClipboard {
+  ids: string[];
+  mode: 'copy' | 'cut';
+}
+
 const DOCUMENTS_ID = 'seed-documents';
+const INTERNAL_DRAG_TYPE = 'application/x-nimvelis-node';
+let fileClipboard: FileClipboard | null = null;
 
 function formatBytes(bytes: number) {
   if (bytes < 1024) return `${bytes} B`;
@@ -48,17 +58,26 @@ export function FilesApp({ system, window }: SystemAppProps) {
   const instanceData = readInstanceData(window.instanceData);
   const initialFolder =
     typeof instanceData.folderId === 'string' ? instanceData.folderId : ROOT_DIRECTORY_ID;
+  const initialView = isFilesView(instanceData.view) ? instanceData.view : 'files';
   const [folderId, setFolderId] = useState(initialFolder);
-  const [view, setView] = useState<FilesView>('files');
+  const [view, setView] = useState<FilesView>(initialView);
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const [sortMode, setSortMode] = useState<SortMode>('name');
   const [nodes, setNodes] = useState<VfsNode[]>([]);
   const [currentFolder, setCurrentFolder] = useState<VfsNode | null>(null);
   const [history, setHistory] = useState<string[]>([]);
   const [filter, setFilter] = useState('');
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [selectionAnchor, setSelectionAnchor] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
-  const [dragging, setDragging] = useState(false);
+  const [draggingExternal, setDraggingExternal] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [moveIds, setMoveIds] = useState<string[] | null>(null);
+  const [directories, setDirectories] = useState<VfsNode[]>([]);
+  const [undoIds, setUndoIds] = useState<string[]>([]);
+  const [clipboardAvailable, setClipboardAvailable] = useState(() => fileClipboard !== null);
   const inputRef = useRef<HTMLInputElement>(null);
   const appRef = useRef<HTMLDivElement>(null);
 
@@ -66,6 +85,16 @@ export function FilesApp({ system, window }: SystemAppProps) {
     await system.files.ready();
     if (view === 'trash') {
       setNodes(await system.files.listTrash());
+      setCurrentFolder(null);
+      return;
+    }
+    if (view === 'recent') {
+      setNodes(await system.files.listRecent());
+      setCurrentFolder(null);
+      return;
+    }
+    if (view === 'favorites') {
+      setNodes(await system.files.listFavorites());
       setCurrentFolder(null);
       return;
     }
@@ -88,10 +117,11 @@ export function FilesApp({ system, window }: SystemAppProps) {
   }, [reload, system.files]);
 
   useEffect(() => {
-    system.setWindowTitle(
-      window.id,
-      view === 'trash' ? 'Files — Trash' : `Files — ${currentFolder?.name ?? 'Local Space'}`,
-    );
+    const title =
+      view === 'files'
+        ? (currentFolder?.name ?? 'Local Space')
+        : { trash: 'Trash', recent: 'Recent', favorites: 'Favorites' }[view];
+    system.setWindowTitle(window.id, `Files — ${title}`);
   }, [currentFolder?.name, system, view, window.id]);
 
   useEffect(() => {
@@ -102,18 +132,37 @@ export function FilesApp({ system, window }: SystemAppProps) {
 
   const visibleNodes = useMemo(() => {
     const query = filter.trim().toLocaleLowerCase();
-    if (!query) return nodes;
-    return nodes.filter((node) => node.name.toLocaleLowerCase().includes(query));
-  }, [filter, nodes]);
+    const filtered = query
+      ? nodes.filter((node) => node.name.toLocaleLowerCase().includes(query))
+      : nodes;
+    return [...filtered].sort((left, right) => {
+      const directoriesFirst =
+        Number(right.kind === 'directory') - Number(left.kind === 'directory');
+      if (directoriesFirst) return directoriesFirst;
+      if (sortMode === 'modified') return right.updatedAt - left.updatedAt;
+      if (sortMode === 'size') return right.size - left.size;
+      return left.name.localeCompare(right.name);
+    });
+  }, [filter, nodes, sortMode]);
+
+  const selectedNodes = useMemo(
+    () => visibleNodes.filter((node) => selectedIds.has(node.id)),
+    [selectedIds, visibleNodes],
+  );
 
   const openNode = useCallback(
     (node: VfsNode) => {
       setContextMenu(null);
       if (node.kind === 'directory') {
-        if (view === 'trash') return;
-        setHistory((items) => [...items, folderId]);
+        if (view !== 'files') {
+          setView('files');
+          setHistory([]);
+        } else {
+          setHistory((items) => [...items, folderId]);
+        }
         setFolderId(node.id);
         setFilter('');
+        setSelectedIds(new Set());
         return;
       }
       system.openFile(node);
@@ -121,12 +170,35 @@ export function FilesApp({ system, window }: SystemAppProps) {
     [folderId, system, view],
   );
 
+  const selectNode = (event: MouseEvent, node: VfsNode) => {
+    const index = visibleNodes.findIndex((candidate) => candidate.id === node.id);
+    const anchorIndex = visibleNodes.findIndex((candidate) => candidate.id === selectionAnchor);
+    if (event.shiftKey && anchorIndex >= 0 && index >= 0) {
+      const [start, end] = anchorIndex < index ? [anchorIndex, index] : [index, anchorIndex];
+      setSelectedIds(new Set(visibleNodes.slice(start, end + 1).map((candidate) => candidate.id)));
+      return;
+    }
+    if (event.metaKey || event.ctrlKey) {
+      setSelectedIds((selection) => {
+        const next = new Set(selection);
+        if (next.has(node.id)) next.delete(node.id);
+        else next.add(node.id);
+        return next;
+      });
+      setSelectionAnchor(node.id);
+      return;
+    }
+    setSelectedIds(new Set([node.id]));
+    setSelectionAnchor(node.id);
+  };
+
   const goBack = () => {
     const previous = history.at(-1);
     if (!previous) return;
     setHistory((items) => items.slice(0, -1));
     setFolderId(previous);
     setFilter('');
+    setSelectedIds(new Set());
   };
 
   const showFiles = (nextFolderId = ROOT_DIRECTORY_ID) => {
@@ -134,6 +206,13 @@ export function FilesApp({ system, window }: SystemAppProps) {
     setFolderId(nextFolderId);
     setHistory([]);
     setFilter('');
+    setSelectedIds(new Set());
+  };
+
+  const showSmartView = (nextView: Exclude<FilesView, 'files'>) => {
+    setView(nextView);
+    setFilter('');
+    setSelectedIds(new Set());
   };
 
   const beginRename = (node: VfsNode) => {
@@ -146,7 +225,11 @@ export function FilesApp({ system, window }: SystemAppProps) {
     const name = editingName.trim();
     setEditingId(null);
     if (!name || name === node.name) return;
-    await system.files.rename(node.id, name);
+    try {
+      await system.files.rename(node.id, name);
+    } catch (error) {
+      system.notify(error instanceof Error ? error.message : 'Unable to rename item.', 'error');
+    }
   };
 
   const createFolder = async () => {
@@ -154,6 +237,7 @@ export function FilesApp({ system, window }: SystemAppProps) {
     const node = await system.files.mkdir(folderId, 'Untitled folder');
     setEditingId(node.id);
     setEditingName(node.name);
+    setSelectedIds(new Set([node.id]));
   };
 
   const createTextFile = async () => {
@@ -182,7 +266,7 @@ export function FilesApp({ system, window }: SystemAppProps) {
       system.notify(`${files.length} file${files.length === 1 ? '' : 's'} imported`, 'success');
     } finally {
       setBusy(false);
-      setDragging(false);
+      setDraggingExternal(false);
     }
   };
 
@@ -191,14 +275,91 @@ export function FilesApp({ system, window }: SystemAppProps) {
     event.target.value = '';
   };
 
-  const handleDrop = (event: DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    void importFiles(event.dataTransfer.files);
+  const copySelection = (mode: FileClipboard['mode']) => {
+    const ids = selectedIds.size ? [...selectedIds] : contextMenu ? [contextMenu.node.id] : [];
+    if (!ids.length) return;
+    fileClipboard = { ids, mode };
+    setClipboardAvailable(true);
+    system.notify(
+      `${ids.length} item${ids.length === 1 ? '' : 's'} ${mode === 'cut' ? 'cut' : 'copied'}`,
+    );
+    setContextMenu(null);
+  };
+
+  const paste = async () => {
+    if (view !== 'files' || !fileClipboard) return;
+    const clipboard = fileClipboard;
+    setBusy(true);
+    try {
+      for (const id of clipboard.ids) {
+        if (clipboard.mode === 'copy') await system.files.copy(id, folderId);
+        else await system.files.move(id, folderId);
+      }
+      if (clipboard.mode === 'cut') fileClipboard = null;
+      if (clipboard.mode === 'cut') setClipboardAvailable(false);
+      system.notify(
+        `${clipboard.ids.length} item${clipboard.ids.length === 1 ? '' : 's'} pasted`,
+        'success',
+      );
+    } catch (error) {
+      system.notify(error instanceof Error ? error.message : 'Unable to paste items.', 'error');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const trashSelection = async (ids = [...selectedIds]) => {
+    if (!ids.length) return;
+    for (const id of ids) await system.files.trash(id);
+    setUndoIds(ids);
+    setSelectedIds(new Set());
+    setContextMenu(null);
+  };
+
+  const undoTrash = async () => {
+    for (const id of undoIds) await system.files.restore(id);
+    system.notify('Move to Trash undone', 'success');
+    setUndoIds([]);
+  };
+
+  const openMoveDialog = async (ids = [...selectedIds]) => {
+    if (!ids.length) return;
+    setDirectories(await system.files.listDirectories());
+    setMoveIds(ids);
+    setContextMenu(null);
+  };
+
+  const moveTo = async (destinationId: string) => {
+    if (!moveIds) return;
+    try {
+      for (const id of moveIds) await system.files.move(id, destinationId);
+      system.notify(`${moveIds.length} item${moveIds.length === 1 ? '' : 's'} moved`, 'success');
+      setSelectedIds(new Set());
+    } catch (error) {
+      system.notify(error instanceof Error ? error.message : 'Unable to move items.', 'error');
+    } finally {
+      setMoveIds(null);
+    }
+  };
+
+  const dropInternalItems = async (destinationId: string, draggedId: string) => {
+    const ids = selectedIds.has(draggedId) ? [...selectedIds] : [draggedId];
+    try {
+      for (const id of ids) await system.files.move(id, destinationId);
+      system.notify(`${ids.length} item${ids.length === 1 ? '' : 's'} moved`, 'success');
+      setSelectedIds(new Set());
+    } catch (error) {
+      system.notify(error instanceof Error ? error.message : 'Unable to move items.', 'error');
+    }
   };
 
   const showContextMenu = (event: MouseEvent, node: VfsNode) => {
     event.preventDefault();
     event.stopPropagation();
+    if (!selectedIds.has(node.id)) {
+      setSelectedIds(new Set([node.id]));
+      setSelectionAnchor(node.id);
+    }
     const bounds = appRef.current?.getBoundingClientRect();
     setContextMenu({
       node,
@@ -207,20 +368,53 @@ export function FilesApp({ system, window }: SystemAppProps) {
     });
   };
 
+  const handleAppKeyDown = (event: KeyboardEvent) => {
+    const target = event.target;
+    if (target instanceof HTMLInputElement) return;
+    const command = event.metaKey || event.ctrlKey;
+    const key = event.key.toLocaleLowerCase();
+    if (command && key === 'a') {
+      event.preventDefault();
+      setSelectedIds(new Set(visibleNodes.map((node) => node.id)));
+    }
+    if (command && key === 'c') copySelection('copy');
+    if (command && key === 'x' && view === 'files') copySelection('cut');
+    if (command && key === 'v' && view === 'files') void paste();
+    if (event.key === 'Delete' && view === 'files') void trashSelection();
+    if (event.key === 'F2' && selectedNodes.length === 1) beginRename(selectedNodes[0]);
+    if (event.key === 'Enter' && selectedNodes.length === 1) openNode(selectedNodes[0]);
+  };
+
+  const currentTitle =
+    view === 'files'
+      ? (currentFolder?.name ?? 'Local Space')
+      : { trash: 'Trash', recent: 'Recent', favorites: 'Favorites' }[view];
+
   return (
     <div
-      className={`files-app${dragging ? ' files-app--dragging' : ''}`}
+      className={`files-app${draggingExternal ? ' files-app--dragging' : ''}`}
       ref={appRef}
+      tabIndex={-1}
+      onKeyDown={handleAppKeyDown}
       onContextMenu={(event) => event.preventDefault()}
       onDragEnter={(event) => {
         event.preventDefault();
-        if (view === 'files') setDragging(true);
+        if (view === 'files' && event.dataTransfer.types.includes('Files')) {
+          setDraggingExternal(true);
+        }
       }}
       onDragOver={(event) => event.preventDefault()}
       onDragLeave={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setDragging(false);
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+          setDraggingExternal(false);
+        }
       }}
-      onDrop={handleDrop}
+      onDrop={(event) => {
+        event.preventDefault();
+        const draggedId = event.dataTransfer.getData(INTERNAL_DRAG_TYPE);
+        if (draggedId && view === 'files') void dropInternalItems(folderId, draggedId);
+        else void importFiles(event.dataTransfer.files);
+      }}
     >
       <aside className="files-sidebar" aria-label="Locations">
         <div className="files-sidebar__brand">
@@ -246,11 +440,22 @@ export function FilesApp({ system, window }: SystemAppProps) {
             Documents
           </button>
           <button
+            className={view === 'recent' ? 'is-active' : ''}
+            onClick={() => showSmartView('recent')}
+          >
+            <Icon name="window" size={17} />
+            Recent
+          </button>
+          <button
+            className={view === 'favorites' ? 'is-active' : ''}
+            onClick={() => showSmartView('favorites')}
+          >
+            <Icon name="sparkle" size={17} />
+            Favorites
+          </button>
+          <button
             className={view === 'trash' ? 'is-active' : ''}
-            onClick={() => {
-              setView('trash');
-              setFilter('');
-            }}
+            onClick={() => showSmartView('trash')}
           >
             <Icon name="trash" size={17} />
             Trash
@@ -277,13 +482,8 @@ export function FilesApp({ system, window }: SystemAppProps) {
           </button>
           <div className="files-toolbar__path">
             <button onClick={() => showFiles()}>Local Space</button>
-            {view === 'files' && currentFolder ? (
-              <>
-                <span>/</span>
-                <strong>{currentFolder.name}</strong>
-              </>
-            ) : null}
-            {view === 'trash' ? <strong>Trash</strong> : null}
+            <span>/</span>
+            <strong>{currentTitle}</strong>
           </div>
           <label className="files-toolbar__search">
             <Icon name="search" size={15} />
@@ -294,49 +494,129 @@ export function FilesApp({ system, window }: SystemAppProps) {
               aria-label="Filter files"
             />
           </label>
+          <select
+            className="files-toolbar__select"
+            value={sortMode}
+            aria-label="Sort files"
+            onChange={(event) => setSortMode(event.target.value as SortMode)}
+          >
+            <option value="name">Name</option>
+            <option value="modified">Modified</option>
+            <option value="size">Size</option>
+          </select>
+          <div className="files-view-toggle" aria-label="View">
+            <button
+              className={viewMode === 'list' ? 'is-active' : ''}
+              aria-label="List view"
+              onClick={() => setViewMode('list')}
+            >
+              ≡
+            </button>
+            <button
+              className={viewMode === 'grid' ? 'is-active' : ''}
+              aria-label="Grid view"
+              onClick={() => setViewMode('grid')}
+            >
+              ▦
+            </button>
+          </div>
           {view === 'files' ? (
             <div className="files-toolbar__actions">
-              <button onClick={createFolder}>
-                <Icon name="folder" size={16} />
-                <span>New folder</span>
-              </button>
-              <button onClick={createTextFile}>
-                <Icon name="text" size={16} />
-                <span>New text</span>
-              </button>
-              <button onClick={() => inputRef.current?.click()} disabled={busy}>
-                <Icon name="upload" size={16} />
-                <span>{busy ? 'Importing…' : 'Import'}</span>
-              </button>
+              {selectedIds.size ? (
+                <>
+                  <button onClick={() => copySelection('copy')}>Copy</button>
+                  <button onClick={() => void openMoveDialog()}>Move</button>
+                  <button onClick={() => void trashSelection()}>
+                    <Icon name="trash" size={15} />
+                    <span>Trash</span>
+                  </button>
+                </>
+              ) : (
+                <>
+                  {clipboardAvailable ? (
+                    <button aria-label="Paste items" title="Paste" onClick={() => void paste()}>
+                      <Icon name="plus" size={16} />
+                      <span>Paste</span>
+                    </button>
+                  ) : null}
+                  <button aria-label="New folder" title="New folder" onClick={createFolder}>
+                    <Icon name="folder" size={16} />
+                    <span>New folder</span>
+                  </button>
+                  <button aria-label="New text" title="New text" onClick={createTextFile}>
+                    <Icon name="text" size={16} />
+                    <span>New text</span>
+                  </button>
+                  <button
+                    aria-label={busy ? 'Importing files' : 'Import files'}
+                    title="Import"
+                    onClick={() => inputRef.current?.click()}
+                    disabled={busy}
+                  >
+                    <Icon name="upload" size={16} />
+                    <span>{busy ? 'Importing…' : 'Import'}</span>
+                  </button>
+                </>
+              )}
               <input ref={inputRef} hidden multiple type="file" onChange={handleInput} />
             </div>
-          ) : (
+          ) : view === 'trash' ? (
             <button
               className="files-toolbar__empty"
               disabled={nodes.length === 0}
-              onClick={() => void system.files.emptyTrash()}
+              onClick={() => {
+                if (globalThis.confirm('Permanently delete every item in Trash?')) {
+                  void system.files.emptyTrash();
+                }
+              }}
             >
               Empty Trash
             </button>
-          )}
+          ) : null}
         </header>
 
-        <div className="files-list" role="grid" aria-label={view === 'trash' ? 'Trash' : 'Files'}>
-          <div className="files-list__header" role="row">
-            <span>Name</span>
-            <span>Modified</span>
-            <span>Size</span>
-            <span />
-          </div>
+        <div
+          className={`files-list files-list--${viewMode}`}
+          role="grid"
+          aria-label={currentTitle}
+          onClick={(event) => {
+            if (event.target === event.currentTarget) setSelectedIds(new Set());
+          }}
+        >
+          {viewMode === 'list' ? (
+            <div className="files-list__header" role="row">
+              <span>Name</span>
+              <span>Modified</span>
+              <span>Size</span>
+              <span />
+            </div>
+          ) : null}
           {visibleNodes.map((node) => (
             <div
-              className="files-list__row"
+              className={`files-list__row ${selectedIds.has(node.id) ? 'is-selected' : ''}`}
               key={node.id}
               role="row"
               tabIndex={0}
+              draggable={view !== 'trash'}
+              onClick={(event) => selectNode(event, node)}
               onDoubleClick={() => openNode(node)}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter') openNode(node);
+              onDragStart={(event) => {
+                event.dataTransfer.setData(INTERNAL_DRAG_TYPE, node.id);
+                event.dataTransfer.effectAllowed = 'move';
+              }}
+              onDragOver={(event) => {
+                if (node.kind === 'directory' && view === 'files') {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  event.dataTransfer.dropEffect = 'move';
+                }
+              }}
+              onDrop={(event: DragEvent<HTMLDivElement>) => {
+                if (node.kind !== 'directory' || view !== 'files') return;
+                event.preventDefault();
+                event.stopPropagation();
+                const draggedId = event.dataTransfer.getData(INTERNAL_DRAG_TYPE);
+                if (draggedId) void dropInternalItems(node.id, draggedId);
               }}
               onContextMenu={(event) => showContextMenu(event, node)}
             >
@@ -355,7 +635,20 @@ export function FilesApp({ system, window }: SystemAppProps) {
                     onClick={(event) => event.stopPropagation()}
                   />
                 ) : (
-                  <button onClick={() => openNode(node)}>{node.name}</button>
+                  <button
+                    className="files-list__label"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      if (event.metaKey || event.ctrlKey || event.shiftKey) {
+                        selectNode(event, node);
+                      } else {
+                        openNode(node);
+                      }
+                    }}
+                  >
+                    {node.name}
+                    {node.favorite ? <small>★</small> : null}
+                  </button>
                 )}
               </span>
               <span>{formatDate(node.updatedAt)}</span>
@@ -371,18 +664,27 @@ export function FilesApp({ system, window }: SystemAppProps) {
           ))}
           {visibleNodes.length === 0 ? (
             <div className="files-empty">
-              <Icon name={view === 'trash' ? 'trash' : 'folder'} size={34} />
+              <Icon
+                name={view === 'trash' ? 'trash' : view === 'favorites' ? 'sparkle' : 'folder'}
+                size={34}
+              />
               <strong>
                 {filter
                   ? 'No matching items'
                   : view === 'trash'
                     ? 'Trash is empty'
-                    : 'This folder is empty'}
+                    : view === 'favorites'
+                      ? 'No favorites yet'
+                      : view === 'recent'
+                        ? 'No recent files yet'
+                        : 'This folder is empty'}
               </strong>
               <span>
                 {view === 'trash'
                   ? 'Items you remove appear here.'
-                  : 'Drop files here or create a new document.'}
+                  : view === 'favorites'
+                    ? 'Use the item menu to add a favorite.'
+                    : 'Drop files here or create a new document.'}
               </span>
             </div>
           ) : null}
@@ -390,17 +692,59 @@ export function FilesApp({ system, window }: SystemAppProps) {
 
         <footer className="files-status">
           <span>
-            {visibleNodes.length} item{visibleNodes.length === 1 ? '' : 's'}
+            {selectedIds.size
+              ? `${selectedIds.size} selected`
+              : `${visibleNodes.length} item${visibleNodes.length === 1 ? '' : 's'}`}
           </span>
+          <span>⌘/Ctrl C · X · V · A · F2 · Delete</span>
           <span>Stored locally with IndexedDB</span>
         </footer>
       </section>
 
-      {dragging ? (
+      {draggingExternal ? (
         <div className="files-drop">
           <Icon name="upload" size={34} />
           <strong>Drop to import</strong>
           <span>Your files stay on this device.</span>
+        </div>
+      ) : null}
+
+      {undoIds.length ? (
+        <div className="files-undo" role="status">
+          <span>
+            {undoIds.length} item{undoIds.length === 1 ? '' : 's'} moved to Trash
+          </span>
+          <button onClick={() => void undoTrash()}>Undo</button>
+          <button aria-label="Dismiss" onClick={() => setUndoIds([])}>
+            <Icon name="close" size={12} />
+          </button>
+        </div>
+      ) : null}
+
+      {moveIds ? (
+        <div className="files-dialog-layer" role="presentation">
+          <section className="files-dialog" role="dialog" aria-modal="true">
+            <header>
+              <strong>
+                Move {moveIds.length} item{moveIds.length === 1 ? '' : 's'}
+              </strong>
+              <button aria-label="Close" onClick={() => setMoveIds(null)}>
+                <Icon name="close" size={14} />
+              </button>
+            </header>
+            <button onClick={() => void moveTo(ROOT_DIRECTORY_ID)}>
+              <Icon name="files" size={17} />
+              Local Space
+            </button>
+            {directories
+              .filter((directory) => !moveIds.includes(directory.id))
+              .map((directory) => (
+                <button key={directory.id} onClick={() => void moveTo(directory.id)}>
+                  <Icon name="folder" size={17} />
+                  {directory.name}
+                </button>
+              ))}
+          </section>
         </div>
       ) : null}
 
@@ -410,20 +754,35 @@ export function FilesApp({ system, window }: SystemAppProps) {
           style={{ left: contextMenu.x, top: contextMenu.y }}
           onPointerDown={(event) => event.stopPropagation()}
         >
-          {view === 'files' ? (
+          {view !== 'trash' ? (
             <>
               <button onClick={() => openNode(contextMenu.node)}>Open</button>
-              <button onClick={() => beginRename(contextMenu.node)}>Rename</button>
-              <div />
+              {view === 'files' ? (
+                <button onClick={() => beginRename(contextMenu.node)}>Rename</button>
+              ) : null}
               <button
-                className="is-danger"
                 onClick={() => {
-                  void system.files.trash(contextMenu.node.id);
+                  void system.files.setFavorite(contextMenu.node.id, !contextMenu.node.favorite);
                   setContextMenu(null);
                 }}
               >
-                Move to Trash
+                {contextMenu.node.favorite ? 'Remove from Favorites' : 'Add to Favorites'}
               </button>
+              <div />
+              <button onClick={() => copySelection('copy')}>Copy</button>
+              {view === 'files' ? (
+                <>
+                  <button onClick={() => copySelection('cut')}>Cut</button>
+                  <button onClick={() => void openMoveDialog([...selectedIds])}>Move to…</button>
+                  <div />
+                  <button
+                    className="is-danger"
+                    onClick={() => void trashSelection([...selectedIds])}
+                  >
+                    Move to Trash
+                  </button>
+                </>
+              ) : null}
             </>
           ) : (
             <>
@@ -438,7 +797,9 @@ export function FilesApp({ system, window }: SystemAppProps) {
               <button
                 className="is-danger"
                 onClick={() => {
-                  void system.files.deletePermanently(contextMenu.node.id);
+                  if (globalThis.confirm(`Permanently delete “${contextMenu.node.name}”?`)) {
+                    void system.files.deletePermanently(contextMenu.node.id);
+                  }
                   setContextMenu(null);
                 }}
               >
@@ -454,4 +815,8 @@ export function FilesApp({ system, window }: SystemAppProps) {
 
 function readInstanceData(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
+}
+
+function isFilesView(value: unknown): value is FilesView {
+  return ['files', 'trash', 'recent', 'favorites'].includes(String(value));
 }

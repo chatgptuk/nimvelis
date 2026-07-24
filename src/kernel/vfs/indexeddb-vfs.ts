@@ -5,6 +5,7 @@ const DATABASE_NAME = 'nimvelis.aurora.files';
 const DATABASE_VERSION = 1;
 const NODES_STORE = 'nodes';
 const CONTENTS_STORE = 'contents';
+const SYNC_CHANNEL = 'nimvelis.aurora.files-sync';
 
 interface ContentRecord {
   id: string;
@@ -14,6 +15,11 @@ interface ContentRecord {
 export class IndexedDbVirtualFileSystem extends MemoryVirtualFileSystem {
   private database?: IDBDatabase;
   private initialization?: Promise<void>;
+  private channel?: BroadcastChannel;
+  private readonly sourceId =
+    typeof crypto !== 'undefined' && 'randomUUID' in crypto
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
   constructor() {
     super(false);
@@ -35,6 +41,7 @@ export class IndexedDbVirtualFileSystem extends MemoryVirtualFileSystem {
     for (const [id, data] of this.contents) contentStore.put({ id, data } satisfies ContentRecord);
     await transactionComplete(transaction);
     await super.commit();
+    this.channel?.postMessage({ sourceId: this.sourceId });
   }
 
   private async initialize() {
@@ -52,11 +59,36 @@ export class IndexedDbVirtualFileSystem extends MemoryVirtualFileSystem {
       this.seed();
       await this.commit();
     }
+    this.startSync();
   }
 
   private async getDatabase() {
     this.database ??= await openDatabase();
     return this.database;
+  }
+
+  private startSync() {
+    if (typeof BroadcastChannel === 'undefined' || this.channel) return;
+    this.channel = new BroadcastChannel(SYNC_CHANNEL);
+    this.channel.addEventListener('message', (event: MessageEvent<{ sourceId?: string }>) => {
+      if (event.data?.sourceId === this.sourceId) return;
+      void this.reloadFromDatabase();
+    });
+  }
+
+  private async reloadFromDatabase() {
+    const database = await this.getDatabase();
+    const transaction = database.transaction([NODES_STORE, CONTENTS_STORE], 'readonly');
+    const nodes = await requestResult<VfsNode[]>(transaction.objectStore(NODES_STORE).getAll());
+    const contents = await requestResult<ContentRecord[]>(
+      transaction.objectStore(CONTENTS_STORE).getAll(),
+    );
+    await transactionComplete(transaction);
+    this.nodes.clear();
+    this.contents.clear();
+    for (const node of nodes) this.nodes.set(node.id, node);
+    for (const content of contents) this.contents.set(content.id, content.data);
+    await super.commit();
   }
 }
 

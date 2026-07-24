@@ -6,7 +6,7 @@
 [![CI](https://github.com/chatgptuk/nimvelis/actions/workflows/ci.yml/badge.svg)](https://github.com/chatgptuk/nimvelis/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Nimvelis Aurora 0.2 is a browser-native personal workspace with a desktop interface. The
+Nimvelis Aurora 0.3 is a browser-native personal workspace with a desktop interface. The
 current milestone is intentionally local-first: a custom window manager, IndexedDB file system,
 Files, Text, local media preview, global search, everyday utilities, appearance controls, and an
 installable offline shell.
@@ -84,15 +84,22 @@ routes fall back to `index.html`.
 
 ## What works today
 
-- Create folders and text files, import files by picker or drag and drop, rename items, and use
-  Trash.
-- Edit plain-text documents with automatic local saving.
+- Organize windows across named workspaces, use Overview to switch tasks, snap windows left or
+  right, and use per-app Shelf menus.
+- Multi-select, copy, cut, paste, move, sort, favorite, and drag files between folders; switch
+  between list and grid views; browse Recent and undo moves to Trash.
+- Edit documents in tabs with automatic local saving, find and replace, Markdown preview, recent
+  files, and local recovery snapshots.
 - Preview images, PDFs, audio, and video without uploading them.
-- Search applications, file names, and the content of small text documents with `⌘/Ctrl + K`.
+- Search applications, file names, text content, and system commands with `⌘/Ctrl + K`.
+- Open Device space for quick appearance controls, notification history, storage status, offline
+  state, install controls, and available app updates.
+- Keep window state, preferences, notifications, and IndexedDB files synchronized across open
+  Nimvelis tabs with `BroadcastChannel`.
 - Inspect the current browser, device, display, and local storage from **About This Device**.
 - Install the app and reopen its shell offline after the first production visit.
 
-Aurora 0.2 does not yet include accounts, cloud files, AI, collaboration, or third-party apps.
+Aurora 0.3 does not yet include accounts, cloud files, AI, collaboration, or third-party apps.
 See [`docs/architecture.md`](docs/architecture.md) for the component boundaries and data flow.
 
 ## License

@@ -10,6 +10,8 @@ describe('desktop store', () => {
       appearance: 'system',
       wallpaper: 'aurora',
       hasCompletedWelcome: true,
+      workspaces: [{ id: 'space-main', name: 'Main', createdAt: 0 }],
+      activeWorkspaceId: 'space-main',
     });
   });
 
@@ -73,5 +75,39 @@ describe('desktop store', () => {
       id: firstId,
       focused: true,
     });
+  });
+
+  it('keeps windows isolated across named workspaces', () => {
+    const mainWindowId = useDesktopStore.getState().openApp('memo');
+    const secondSpaceId = useDesktopStore.getState().createWorkspace();
+    const secondWindowId = useDesktopStore.getState().openApp('text');
+    if (!mainWindowId || !secondWindowId) throw new Error('Expected windows to open');
+
+    expect(useDesktopStore.getState().activeWorkspaceId).toBe(secondSpaceId);
+    expect(
+      useDesktopStore.getState().windows.find((window) => window.id === secondWindowId)
+        ?.workspaceId,
+    ).toBe(secondSpaceId);
+
+    useDesktopStore.getState().switchWorkspace('space-main');
+    expect(useDesktopStore.getState().windows.find((window) => window.focused)?.id).toBe(
+      mainWindowId,
+    );
+
+    useDesktopStore.getState().moveWindowToWorkspace(mainWindowId, secondSpaceId);
+    expect(
+      useDesktopStore.getState().windows.find((window) => window.id === mainWindowId)?.workspaceId,
+    ).toBe(secondSpaceId);
+  });
+
+  it('snaps a window to a desktop half', () => {
+    const id = useDesktopStore.getState().openApp('memo');
+    if (!id) throw new Error('Expected Memo to open');
+
+    useDesktopStore.getState().snapWindow(id, 'left');
+    const window = useDesktopStore.getState().windows.find((candidate) => candidate.id === id);
+    expect(window?.state).toBe('normal');
+    expect(window?.bounds.x).toBe(8);
+    expect(window?.bounds.width).toBeGreaterThan(280);
   });
 });

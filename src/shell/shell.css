@@ -299,6 +299,25 @@
   border-radius: 9px 6px 9px 6px;
   background: rgb(255 255 255 / 6%);
   color: rgb(255 255 255 / 68%);
+  font: inherit;
+  cursor: pointer;
+}
+
+.top-bar__local:hover {
+  color: white;
+  background: rgb(255 255 255 / 11%);
+}
+
+.top-bar__local small {
+  min-width: 16px;
+  height: 16px;
+  display: grid;
+  place-items: center;
+  border-radius: 99px;
+  color: #111832;
+  background: #8ef0df;
+  font-size: 8px;
+  font-weight: 800;
 }
 
 .top-bar time {
@@ -425,6 +444,26 @@
   background:
     radial-gradient(circle at 30% 20%, rgb(119 232 224 / 18%), transparent 52%),
     rgb(255 255 255 / 4%);
+  padding: 0;
+  color: white;
+  cursor: pointer;
+  position: relative;
+  font: inherit;
+  transition: transform 180ms var(--ease-spring);
+}
+
+.shelf__brand:hover,
+.shelf__brand:focus-visible {
+  transform: translateY(-7px);
+  background:
+    radial-gradient(circle at 30% 20%, rgb(119 232 224 / 30%), transparent 52%),
+    rgb(255 255 255 / 9%);
+}
+
+.shelf__brand:hover .shelf-app__label,
+.shelf__brand:focus-visible .shelf-app__label {
+  opacity: 1;
+  transform: translate(-50%, 0);
 }
 
 .shelf__divider {
@@ -506,6 +545,72 @@
   width: 7px;
   background: rgb(255 255 255 / 72%);
   box-shadow: none;
+}
+
+.shelf-context {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 4px;
+  width: 190px;
+  display: grid;
+  padding: 7px;
+  border: 1px solid rgb(255 255 255 / 20%);
+  border-radius: 15px 10px 15px 10px;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--window-surface) 93%, transparent);
+  box-shadow: 0 22px 65px rgb(0 0 0 / 38%);
+  backdrop-filter: blur(28px) saturate(1.2);
+}
+
+.shelf-context header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 6px 9px;
+}
+
+.shelf-context header span {
+  display: grid;
+  min-width: 0;
+}
+
+.shelf-context header strong {
+  font-size: 12px;
+}
+
+.shelf-context header small {
+  color: var(--ink-muted);
+  font-size: 9px;
+}
+
+.shelf-context button {
+  min-height: 31px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 8px;
+  color: var(--ink);
+  background: transparent;
+  font: inherit;
+  font-size: 11px;
+  text-align: left;
+}
+
+.shelf-context button:hover:not(:disabled) {
+  background: var(--surface-hover);
+}
+
+.shelf-context button:disabled {
+  opacity: 0.35;
+}
+
+.shelf-context button.is-danger {
+  color: #d85858;
+}
+
+.shelf-context > div {
+  height: 1px;
+  margin: 4px;
+  background: var(--line-soft);
 }
 
 .desktop-tagline {

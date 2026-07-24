@@ -41,4 +41,29 @@ describe('local virtual file system', () => {
     await files.deletePermanently(first.id);
     expect(await files.get(child.id)).toBeUndefined();
   });
+
+  it('copies and moves folder trees and exposes favorites and recent items', async () => {
+    const files = new MemoryVirtualFileSystem(false);
+    const source = await files.mkdir(ROOT_DIRECTORY_ID, 'Source');
+    const destination = await files.mkdir(ROOT_DIRECTORY_ID, 'Destination');
+    const document = await files.writeFile({
+      parentId: source.id,
+      name: 'notes.md',
+      data: new Blob(['# Local work'], { type: 'text/markdown' }),
+    });
+
+    const copiedFolder = await files.copy(source.id, destination.id);
+    const copiedChildren = await files.list(copiedFolder.id);
+    expect(copiedChildren.map((node) => node.name)).toEqual(['notes.md']);
+    expect(await (await files.readFile(copiedChildren[0].id)).text()).toContain('Local work');
+
+    await files.move(document.id, destination.id);
+    expect((await files.list(source.id)).map((node) => node.id)).not.toContain(document.id);
+    expect((await files.list(destination.id)).map((node) => node.id)).toContain(document.id);
+
+    await files.setFavorite(document.id, true);
+    await files.touch(document.id);
+    expect((await files.listFavorites()).map((node) => node.id)).toContain(document.id);
+    expect((await files.listRecent(1))[0]?.id).toBe(document.id);
+  });
 });

@@ -4,9 +4,11 @@ import { getAppManifest, hasApp } from '../kernel/app-registry/registry';
 import type { OpenAppOptions } from '../kernel/system-api';
 import { constrainBounds } from '../kernel/window-manager/geometry';
 import type {
+  DesktopWorkspace,
   DesktopViewport,
   WindowBounds,
   WindowInstance,
+  WindowSnapPosition,
   WindowVisualState,
 } from '../kernel/window-manager/types';
 
@@ -19,6 +21,8 @@ interface PersistedDesktopState {
   appearance: AppearanceMode;
   wallpaper: WallpaperId;
   hasCompletedWelcome: boolean;
+  workspaces: DesktopWorkspace[];
+  activeWorkspaceId: string;
 }
 
 interface DesktopActions {
@@ -38,6 +42,14 @@ interface DesktopActions {
   constrainWindows: (viewport: DesktopViewport) => void;
   cycleFocus: () => void;
   dismissWelcome: () => void;
+  createWorkspace: () => string;
+  switchWorkspace: (workspaceId: string) => void;
+  renameWorkspace: (workspaceId: string, name: string) => void;
+  removeWorkspace: (workspaceId: string) => void;
+  moveWindowToWorkspace: (windowId: string, workspaceId: string) => void;
+  snapWindow: (windowId: string, position: WindowSnapPosition) => void;
+  closeAppWindows: (appId: string) => void;
+  minimizeAppWindows: (appId: string) => void;
 }
 
 export type DesktopStore = PersistedDesktopState & DesktopActions;
@@ -46,6 +58,7 @@ const INITIAL_WINDOWS: WindowInstance[] = [
   {
     id: 'aurora-welcome',
     appId: 'memo',
+    workspaceId: 'space-main',
     title: 'Welcome to Aurora',
     bounds: { x: 292, y: 116, width: 650, height: 500 },
     state: 'normal',
@@ -61,6 +74,7 @@ const INITIAL_WINDOWS: WindowInstance[] = [
   {
     id: 'aurora-calculator',
     appId: 'calculator',
+    workspaceId: 'space-main',
     title: 'Calculator',
     bounds: { x: 82, y: 176, width: 326, height: 468 },
     state: 'normal',
@@ -70,12 +84,16 @@ const INITIAL_WINDOWS: WindowInstance[] = [
   },
 ];
 
+const INITIAL_WORKSPACES: DesktopWorkspace[] = [{ id: 'space-main', name: 'Main', createdAt: 0 }];
+
 const INITIAL_STATE: PersistedDesktopState = {
   windows: INITIAL_WINDOWS,
   zCounter: 102,
   appearance: 'system',
   wallpaper: 'aurora',
   hasCompletedWelcome: false,
+  workspaces: INITIAL_WORKSPACES,
+  activeWorkspaceId: 'space-main',
 };
 
 export const useDesktopStore = create<DesktopStore>()(
@@ -86,12 +104,16 @@ export const useDesktopStore = create<DesktopStore>()(
       openApp: (appId, options) => {
         const manifest = getAppManifest(appId);
         if (!manifest) return null;
+        const activeWorkspaceId = get().activeWorkspaceId;
 
         const existing = get()
           .windows.filter((window) => window.appId === appId)
           .sort((a, b) => b.zIndex - a.zIndex);
 
         if (!manifest.allowMultipleInstances && existing[0]) {
+          if (existing[0].workspaceId !== activeWorkspaceId) {
+            get().switchWorkspace(existing[0].workspaceId);
+          }
           get().restoreWindow(existing[0].id);
           return existing[0].id;
         }
@@ -118,6 +140,7 @@ export const useDesktopStore = create<DesktopStore>()(
         const nextWindow: WindowInstance = {
           id,
           appId,
+          workspaceId: activeWorkspaceId,
           title: manifest.name,
           bounds,
           state: 'normal',
@@ -138,6 +161,9 @@ export const useDesktopStore = create<DesktopStore>()(
       focusWindow: (windowId) => {
         const target = get().windows.find((window) => window.id === windowId);
         if (!target) return;
+        if (target.workspaceId !== get().activeWorkspaceId) {
+          get().switchWorkspace(target.workspaceId);
+        }
         if (target.state === 'minimized') {
           get().restoreWindow(windowId);
           return;
@@ -164,7 +190,10 @@ export const useDesktopStore = create<DesktopStore>()(
         set((state) => {
           const remaining = state.windows.filter((window) => window.id !== windowId);
           const nextFocused = [...remaining]
-            .filter((window) => window.state !== 'minimized')
+            .filter(
+              (window) =>
+                window.workspaceId === state.activeWorkspaceId && window.state !== 'minimized',
+            )
             .sort((a, b) => b.zIndex - a.zIndex)[0];
 
           return {
@@ -182,7 +211,10 @@ export const useDesktopStore = create<DesktopStore>()(
           if (!target || target.state === 'minimized') return state;
 
           const remaining = state.windows.filter(
-            (window) => window.id !== windowId && window.state !== 'minimized',
+            (window) =>
+              window.id !== windowId &&
+              window.workspaceId === state.activeWorkspaceId &&
+              window.state !== 'minimized',
           );
           const nextFocused = [...remaining].sort((a, b) => b.zIndex - a.zIndex)[0];
 
@@ -321,7 +353,10 @@ export const useDesktopStore = create<DesktopStore>()(
 
       cycleFocus: () => {
         const candidates = get()
-          .windows.filter((window) => window.state !== 'minimized')
+          .windows.filter(
+            (window) =>
+              window.workspaceId === get().activeWorkspaceId && window.state !== 'minimized',
+          )
           .sort((a, b) => b.zIndex - a.zIndex);
         if (candidates.length < 2) return;
         const currentIndex = candidates.findIndex((window) => window.focused);
@@ -330,27 +365,187 @@ export const useDesktopStore = create<DesktopStore>()(
       },
 
       dismissWelcome: () => set({ hasCompletedWelcome: true }),
+
+      createWorkspace: () => {
+        const id = createWindowId('space');
+        const createdAt = Date.now();
+        set((state) => ({
+          workspaces: [
+            ...state.workspaces,
+            { id, name: `Space ${state.workspaces.length + 1}`, createdAt },
+          ],
+          activeWorkspaceId: id,
+          windows: state.windows.map((window) => ({ ...window, focused: false })),
+        }));
+        return id;
+      },
+
+      switchWorkspace: (workspaceId) => {
+        if (!get().workspaces.some((workspace) => workspace.id === workspaceId)) return;
+        set((state) => {
+          const target = [...state.windows]
+            .filter((window) => window.workspaceId === workspaceId && window.state !== 'minimized')
+            .sort((left, right) => right.zIndex - left.zIndex)[0];
+          return {
+            activeWorkspaceId: workspaceId,
+            windows: state.windows.map((window) => ({
+              ...window,
+              focused: window.id === target?.id,
+            })),
+          };
+        });
+      },
+
+      renameWorkspace: (workspaceId, rawName) => {
+        const name = rawName.trim().slice(0, 24);
+        if (!name) return;
+        set((state) => ({
+          workspaces: state.workspaces.map((workspace) =>
+            workspace.id === workspaceId ? { ...workspace, name } : workspace,
+          ),
+        }));
+      },
+
+      removeWorkspace: (workspaceId) => {
+        const state = get();
+        if (state.workspaces.length <= 1) return;
+        const fallback =
+          state.workspaces.find((workspace) => workspace.id !== workspaceId) ?? state.workspaces[0];
+        if (!fallback) return;
+        set((current) => ({
+          workspaces: current.workspaces.filter((workspace) => workspace.id !== workspaceId),
+          activeWorkspaceId:
+            current.activeWorkspaceId === workspaceId ? fallback.id : current.activeWorkspaceId,
+          windows: current.windows.map((window) =>
+            window.workspaceId === workspaceId
+              ? { ...window, workspaceId: fallback.id, focused: false }
+              : window,
+          ),
+        }));
+        if (state.activeWorkspaceId === workspaceId) get().switchWorkspace(fallback.id);
+      },
+
+      moveWindowToWorkspace: (windowId, workspaceId) => {
+        if (!get().workspaces.some((workspace) => workspace.id === workspaceId)) return;
+        set((state) => ({
+          windows: state.windows.map((window) =>
+            window.id === windowId
+              ? { ...window, workspaceId, focused: workspaceId === state.activeWorkspaceId }
+              : window.id !== windowId && workspaceId === state.activeWorkspaceId
+                ? { ...window, focused: false }
+                : window,
+          ),
+        }));
+      },
+
+      snapWindow: (windowId, position) => {
+        const viewport = readViewport();
+        const gap = 8;
+        const halfWidth = Math.max(280, Math.floor((viewport.width - gap * 3) / 2));
+        const halfHeight = Math.max(220, Math.floor((viewport.height - gap * 3) / 2));
+        const boundsByPosition: Record<WindowSnapPosition, WindowBounds> = {
+          left: { x: gap, y: gap, width: halfWidth, height: viewport.height - gap * 2 },
+          right: {
+            x: viewport.width - halfWidth - gap,
+            y: gap,
+            width: halfWidth,
+            height: viewport.height - gap * 2,
+          },
+          'top-left': { x: gap, y: gap, width: halfWidth, height: halfHeight },
+          'top-right': {
+            x: viewport.width - halfWidth - gap,
+            y: gap,
+            width: halfWidth,
+            height: halfHeight,
+          },
+          'bottom-left': {
+            x: gap,
+            y: viewport.height - halfHeight - gap,
+            width: halfWidth,
+            height: halfHeight,
+          },
+          'bottom-right': {
+            x: viewport.width - halfWidth - gap,
+            y: viewport.height - halfHeight - gap,
+            width: halfWidth,
+            height: halfHeight,
+          },
+        };
+        set((state) => ({
+          windows: state.windows.map((window) =>
+            window.id === windowId
+              ? {
+                  ...window,
+                  state: 'normal',
+                  bounds: boundsByPosition[position],
+                  restoreBounds: undefined,
+                  focused: true,
+                }
+              : { ...window, focused: false },
+          ),
+        }));
+      },
+
+      closeAppWindows: (appId) => {
+        set((state) => ({
+          windows: state.windows.filter(
+            (window) => window.appId !== appId || window.workspaceId !== state.activeWorkspaceId,
+          ),
+        }));
+      },
+
+      minimizeAppWindows: (appId) => {
+        set((state) => ({
+          windows: state.windows.map((window) =>
+            window.appId === appId &&
+            window.workspaceId === state.activeWorkspaceId &&
+            window.state !== 'minimized'
+              ? {
+                  ...window,
+                  focused: false,
+                  state: 'minimized',
+                  stateBeforeMinimize: window.state,
+                }
+              : window,
+          ),
+        }));
+      },
     }),
     {
       name: 'nimvelis.aurora.desktop',
       storage: createJSONStorage(() => window.localStorage),
-      version: 1,
+      version: 2,
+      migrate: (persistedState) => persistedState,
       partialize: (state): PersistedDesktopState => ({
         windows: state.windows,
         zCounter: state.zCounter,
         appearance: state.appearance,
         wallpaper: state.wallpaper,
         hasCompletedWelcome: state.hasCompletedWelcome,
+        workspaces: state.workspaces,
+        activeWorkspaceId: state.activeWorkspaceId,
       }),
       merge: (persistedState, currentState) => {
         const persisted = isRecord(persistedState)
           ? (persistedState as Partial<PersistedDesktopState>)
           : {};
         const windows = sanitizeWindows(persisted.windows);
+        const workspaces = sanitizeWorkspaces(persisted.workspaces);
+        const resolvedWorkspaces = workspaces.length ? workspaces : INITIAL_WORKSPACES;
+        const activeWorkspaceId = resolvedWorkspaces.some(
+          (workspace) => workspace.id === persisted.activeWorkspaceId,
+        )
+          ? String(persisted.activeWorkspaceId)
+          : resolvedWorkspaces[0].id;
 
         return {
           ...currentState,
-          windows: windows ?? currentState.windows,
+          windows: (windows ?? currentState.windows).map((window) => ({
+            ...window,
+            workspaceId: resolvedWorkspaces.some((workspace) => workspace.id === window.workspaceId)
+              ? window.workspaceId
+              : activeWorkspaceId,
+          })),
           zCounter:
             windows === null
               ? currentState.zCounter
@@ -365,6 +560,8 @@ export const useDesktopStore = create<DesktopStore>()(
             typeof persisted.hasCompletedWelcome === 'boolean'
               ? persisted.hasCompletedWelcome
               : currentState.hasCompletedWelcome,
+          workspaces: resolvedWorkspaces,
+          activeWorkspaceId,
         };
       },
     },
@@ -406,6 +603,8 @@ function sanitizeWindows(value: unknown): WindowInstance[] | null {
       {
         id: candidate.id,
         appId: candidate.appId,
+        workspaceId:
+          typeof candidate.workspaceId === 'string' ? candidate.workspaceId : 'space-main',
         title: candidate.title.slice(0, 80),
         bounds: candidate.bounds,
         state: candidate.state,
@@ -424,6 +623,26 @@ function sanitizeWindows(value: unknown): WindowInstance[] | null {
             ? candidate.stateBeforeFullscreen
             : undefined,
         instanceData: candidate.instanceData,
+      },
+    ];
+  });
+}
+
+function sanitizeWorkspaces(value: unknown): DesktopWorkspace[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((candidate) => {
+    if (
+      !isRecord(candidate) ||
+      typeof candidate.id !== 'string' ||
+      typeof candidate.name !== 'string'
+    ) {
+      return [];
+    }
+    return [
+      {
+        id: candidate.id,
+        name: candidate.name.trim().slice(0, 24) || 'Space',
+        createdAt: typeof candidate.createdAt === 'number' ? candidate.createdAt : 0,
       },
     ];
   });

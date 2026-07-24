@@ -10,6 +10,7 @@ export interface WindowBounds {
 export interface WindowInstance {
   id: string;
   appId: string;
+  workspaceId: string;
   title: string;
   bounds: WindowBounds;
   state: WindowVisualState;
@@ -21,6 +22,15 @@ export interface WindowInstance {
   stateBeforeFullscreen?: 'normal' | 'maximized';
   instanceData?: unknown;
 }
+
+export interface DesktopWorkspace {
+  id: string;
+  name: string;
+  createdAt: number;
+}
+
+export type WindowSnapPosition =
+  'left' | 'right' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
 
 export interface DesktopViewport {
   width: number;

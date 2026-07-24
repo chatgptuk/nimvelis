@@ -24,7 +24,7 @@ export function SettingsApp({ system }: SystemAppProps) {
         </div>
         <div>
           <strong>Local space</strong>
-          <span>Aurora 0.2</span>
+          <span>Aurora 0.3</span>
         </div>
         <nav aria-label="Settings sections">
           <button type="button" className="settings-nav-item is-active">

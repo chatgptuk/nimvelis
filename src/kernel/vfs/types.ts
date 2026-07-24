@@ -12,6 +12,8 @@ export interface VfsNode {
   createdAt: number;
   updatedAt: number;
   trashedAt?: number;
+  favorite?: boolean;
+  lastOpenedAt?: number;
 }
 
 export interface WriteFileInput {
@@ -32,6 +34,13 @@ export interface VirtualFileSystem {
   writeFile(input: WriteFileInput): Promise<VfsNode>;
   mkdir(parentId: string, name: string): Promise<VfsNode>;
   rename(id: string, name: string): Promise<VfsNode>;
+  move(id: string, parentId: string): Promise<VfsNode>;
+  copy(id: string, parentId: string): Promise<VfsNode>;
+  setFavorite(id: string, favorite: boolean): Promise<void>;
+  touch(id: string): Promise<void>;
+  listFavorites(): Promise<VfsNode[]>;
+  listRecent(limit?: number): Promise<VfsNode[]>;
+  listDirectories(): Promise<VfsNode[]>;
   trash(id: string): Promise<void>;
   restore(id: string): Promise<void>;
   deletePermanently(id: string): Promise<void>;
