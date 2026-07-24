@@ -81,8 +81,12 @@ test('desktop and accessibility settings update persisted shell preferences', as
 
   await settingsWindow.getByRole('button', { name: /Desktop/ }).click();
   await settingsWindow.getByRole('button', { name: 'Compact' }).click();
+  await settingsWindow.getByRole('button', { name: /Date & Time/ }).click();
   await settingsWindow.getByRole('switch', { name: 'Show seconds' }).click();
+  await settingsWindow.getByRole('combobox', { name: 'Time zone' }).selectOption('Asia/Tokyo');
+  await settingsWindow.getByRole('button', { name: 'Monday' }).click();
   await expect(page.locator('.desktop-shell')).toHaveAttribute('data-density', 'compact');
+  await expect(settingsWindow.getByText('Nimvelis override')).toBeVisible();
 
   await settingsWindow.getByRole('button', { name: /Accessibility/ }).click();
   await settingsWindow.getByRole('button', { name: 'Large' }).click();
@@ -103,10 +107,10 @@ test('tasks and calendar share a local agenda', async ({ page }) => {
     .last()
     .click();
   const tasksWindow = page.locator('[data-app-id="tasks"]');
-  await tasksWindow.getByRole('textbox', { name: 'Task title' }).fill('Ship Aurora 0.5');
+  await tasksWindow.getByRole('textbox', { name: 'Task title' }).fill('Ship Aurora 0.6');
   await tasksWindow.getByRole('textbox', { name: 'Task due date' }).fill('2026-07-23');
   await tasksWindow.getByRole('button', { name: 'Add task' }).click();
-  await expect(tasksWindow.getByText('Ship Aurora 0.5')).toBeVisible();
+  await expect(tasksWindow.getByText('Ship Aurora 0.6')).toBeVisible();
 
   await page
     .getByRole('button', { name: /^Calendar/ })
@@ -133,6 +137,31 @@ test('clock includes world clocks, timer, and stopwatch', async ({ page }) => {
   await clockWindow.getByRole('button', { name: 'Stopwatch' }).click();
   await clockWindow.getByRole('button', { name: 'Start' }).click();
   await expect(clockWindow.getByRole('button', { name: 'Pause' })).toBeVisible();
+});
+
+test('connections shows honest network diagnostics and Bluetooth availability', async ({
+  page,
+}) => {
+  await page
+    .getByRole('button', { name: /^Connections/ })
+    .last()
+    .click();
+  const connectionsWindow = page.locator('[data-app-id="connections"]');
+
+  await expect(connectionsWindow).toBeVisible();
+  await expect(connectionsWindow.getByRole('heading', { name: 'Network & Wi-Fi' })).toBeVisible();
+  await expect(connectionsWindow.getByText('Websites cannot read Wi-Fi names')).toBeVisible();
+  await expect(
+    connectionsWindow.getByRole('heading', { name: 'Bluetooth', exact: true }),
+  ).toBeVisible();
+  await expect(
+    connectionsWindow
+      .getByRole('region', { name: 'Bluetooth' })
+      .getByText(/Available|Unavailable|Checking/, { exact: true }),
+  ).toBeVisible();
+
+  await connectionsWindow.getByRole('button', { name: 'Test connection' }).click();
+  await expect(connectionsWindow.getByRole('button', { name: 'Test connection' })).toBeEnabled();
 });
 
 test('desktop icons can be moved and keep their positions after reload', async ({ page }) => {
@@ -172,7 +201,7 @@ test('system menus expose Nimvelis workflows and keyboard guidance', async ({ pa
   await page.getByRole('menuitem', { name: 'About This Device' }).click();
   const about = page.getByRole('dialog', { name: 'Nimvelis Aurora' });
   await expect(about).toBeVisible();
-  await expect(about).toContainText('Version 0.5');
+  await expect(about).toContainText('Version 0.6');
   await expect(about).toContainText('LOCAL STORAGE');
   await expect(about).toContainText('Display');
   await about.getByRole('button', { name: 'Close About This Device' }).click();

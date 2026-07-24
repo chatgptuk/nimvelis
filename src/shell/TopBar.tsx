@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Icon, NimvelisMark } from '../design/Icon';
 import type { AppManifest } from '../kernel/app-registry/types';
 import type { WindowInstance } from '../kernel/window-manager/types';
+import { resolveTimeZone, type TimeZoneId } from '../kernel/time';
 import type { ClockFormat } from '../state/desktop-store';
 
 interface TopBarProps {
@@ -25,6 +26,7 @@ interface TopBarProps {
   clockFormat: ClockFormat;
   showDate: boolean;
   showSeconds: boolean;
+  timeZone: TimeZoneId;
 }
 
 type MenuId = 'nimvelis' | 'space' | 'view' | 'window' | 'help' | null;
@@ -50,6 +52,7 @@ export function TopBar({
   clockFormat,
   showDate,
   showSeconds,
+  timeZone,
 }: TopBarProps) {
   const [openMenu, setOpenMenu] = useState<MenuId>(null);
   const barRef = useRef<HTMLElement>(null);
@@ -91,7 +94,7 @@ export function TopBar({
                 <NimvelisMark size={40} />
                 <div>
                   <strong>Nimvelis</strong>
-                  <span>Aurora desktop · 0.5</span>
+                  <span>Aurora desktop · 0.6</span>
                 </div>
               </div>
               <p>An independent space for your local work.</p>
@@ -294,7 +297,7 @@ export function TopBar({
                 </span>
               </div>
               <div className="top-menu__separator" />
-              <div className="top-menu__footnote">Nimvelis Aurora 0.5</div>
+              <div className="top-menu__footnote">Nimvelis Aurora 0.6</div>
             </div>
           )}
         </div>
@@ -325,6 +328,7 @@ export function TopBar({
                 weekday: 'short',
                 month: 'short',
                 day: 'numeric',
+                timeZone: resolveTimeZone(timeZone),
               }).format(now)
             : null}
           <strong>
@@ -333,6 +337,7 @@ export function TopBar({
               minute: '2-digit',
               second: showSeconds ? '2-digit' : undefined,
               hour12: clockFormat === 'system' ? undefined : clockFormat === '12h',
+              timeZone: resolveTimeZone(timeZone),
             }).format(now)}
           </strong>
         </time>

@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { getAppManifest, hasApp } from '../kernel/app-registry/registry';
 import type { OpenAppOptions } from '../kernel/system-api';
+import { isTimeZoneId, type TimeZoneId, type WeekStartsOn } from '../kernel/time';
 import type { DesktopIconPosition } from '../kernel/desktop-icons/geometry';
 import { constrainBounds } from '../kernel/window-manager/geometry';
 import type {
@@ -28,6 +29,8 @@ export interface DesktopPreferences {
   clockFormat: ClockFormat;
   showDate: boolean;
   showSeconds: boolean;
+  timeZone: TimeZoneId;
+  weekStartsOn: WeekStartsOn;
 }
 
 export const DEFAULT_DESKTOP_PREFERENCES: DesktopPreferences = {
@@ -39,6 +42,8 @@ export const DEFAULT_DESKTOP_PREFERENCES: DesktopPreferences = {
   clockFormat: 'system',
   showDate: true,
   showSeconds: false,
+  timeZone: 'system',
+  weekStartsOn: 'sunday',
 };
 
 interface PersistedDesktopState {
@@ -570,7 +575,7 @@ export const useDesktopStore = create<DesktopStore>()(
     {
       name: 'nimvelis.aurora.desktop',
       storage: createJSONStorage(() => window.localStorage),
-      version: 4,
+      version: 5,
       migrate: (persistedState) => persistedState,
       partialize: (state): PersistedDesktopState => ({
         windows: state.windows,
@@ -785,5 +790,10 @@ function sanitizePreferences(value: unknown): DesktopPreferences {
       typeof value.showSeconds === 'boolean'
         ? value.showSeconds
         : DEFAULT_DESKTOP_PREFERENCES.showSeconds,
+    timeZone: isTimeZoneId(value.timeZone) ? value.timeZone : DEFAULT_DESKTOP_PREFERENCES.timeZone,
+    weekStartsOn:
+      value.weekStartsOn === 'sunday' || value.weekStartsOn === 'monday'
+        ? value.weekStartsOn
+        : DEFAULT_DESKTOP_PREFERENCES.weekStartsOn,
   };
 }

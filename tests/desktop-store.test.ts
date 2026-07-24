@@ -126,12 +126,16 @@ describe('desktop store', () => {
       interfaceDensity: 'compact',
       showSeconds: true,
       textScale: 'large',
+      timeZone: 'Asia/Tokyo',
+      weekStartsOn: 'monday',
     });
 
     expect(useDesktopStore.getState().preferences).toMatchObject({
       interfaceDensity: 'compact',
       showSeconds: true,
       textScale: 'large',
+      timeZone: 'Asia/Tokyo',
+      weekStartsOn: 'monday',
     });
 
     useDesktopStore.getState().resetPreferences();

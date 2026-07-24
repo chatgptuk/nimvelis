@@ -2,6 +2,13 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { Icon, type IconName } from '../../design/Icon';
 import { listAppManifests } from '../../kernel/app-registry/registry';
 import type { SystemAppProps } from '../../kernel/app-registry/types';
+import {
+  getSystemTimeZone,
+  resolveTimeZone,
+  TIME_ZONES,
+  type TimeZoneId,
+  type WeekStartsOn,
+} from '../../kernel/time';
 import type {
   AppearanceMode,
   ClockFormat,
@@ -11,7 +18,7 @@ import type {
 } from '../../state/desktop-store';
 import './settings.css';
 
-type SettingsSection = 'appearance' | 'desktop' | 'accessibility' | 'system';
+type SettingsSection = 'appearance' | 'desktop' | 'time' | 'accessibility' | 'system';
 
 const SECTIONS: Array<{
   id: SettingsSection;
@@ -20,7 +27,8 @@ const SECTIONS: Array<{
   icon: IconName;
 }> = [
   { id: 'appearance', label: 'Appearance', description: 'Theme and atmosphere', icon: 'wallpaper' },
-  { id: 'desktop', label: 'Desktop', description: 'Icons, clock, and density', icon: 'window' },
+  { id: 'desktop', label: 'Desktop', description: 'Icons and density', icon: 'window' },
+  { id: 'time', label: 'Date & Time', description: 'Time zone and clock', icon: 'clock' },
   {
     id: 'accessibility',
     label: 'Accessibility',
@@ -54,7 +62,7 @@ export function SettingsApp({ system }: SystemAppProps) {
           </div>
           <div>
             <strong>Local space</strong>
-            <span>Aurora 0.5</span>
+            <span>Aurora 0.6</span>
           </div>
         </header>
         <nav aria-label="Settings sections">
@@ -83,6 +91,7 @@ export function SettingsApp({ system }: SystemAppProps) {
       <main className="settings-content">
         {section === 'appearance' ? <AppearanceSettings system={system} /> : null}
         {section === 'desktop' ? <DesktopSettings system={system} /> : null}
+        {section === 'time' ? <TimeSettings system={system} /> : null}
         {section === 'accessibility' ? <AccessibilitySettings system={system} /> : null}
         {section === 'system' ? <SystemSettings system={system} /> : null}
       </main>
@@ -206,6 +215,75 @@ function DesktopSettings({ system }: Pick<SystemAppProps, 'system'>) {
           onChange={(interfaceDensity) => system.updatePreferences({ interfaceDensity })}
         />
       </SettingsGroup>
+    </>
+  );
+}
+
+function TimeSettings({ system }: Pick<SystemAppProps, 'system'>) {
+  const preferences = system.preferences;
+  const now = useLiveTime();
+  const resolvedTimeZone = resolveTimeZone(preferences.timeZone);
+  const activeTimeZone =
+    preferences.timeZone === 'system' ? getSystemTimeZone() : preferences.timeZone;
+
+  return (
+    <>
+      <SettingsHeading
+        eyebrow="DATE & TIME"
+        title="Keep your world in time."
+        description="Use the device clock automatically or display Nimvelis in another time zone."
+      />
+      <div className="settings-time-preview">
+        <span>
+          {new Intl.DateTimeFormat(undefined, {
+            hour: 'numeric',
+            minute: '2-digit',
+            second: preferences.showSeconds ? '2-digit' : undefined,
+            hour12:
+              preferences.clockFormat === 'system' ? undefined : preferences.clockFormat === '12h',
+            timeZone: resolvedTimeZone,
+          }).format(now)}
+        </span>
+        <div>
+          <strong>
+            {new Intl.DateTimeFormat(undefined, {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+              timeZone: resolvedTimeZone,
+            }).format(now)}
+          </strong>
+          <small>
+            {activeTimeZone}
+            {preferences.timeZone === 'system' ? ' · System detected' : ' · Nimvelis override'}
+          </small>
+        </div>
+      </div>
+      <SettingsGroup
+        title="Time zone"
+        description="This changes Nimvelis displays, not the operating system clock."
+      >
+        <label className="settings-select-row">
+          <span>
+            <strong>Display time zone</strong>
+            <small>Your device time remains unchanged.</small>
+          </span>
+          <select
+            value={preferences.timeZone}
+            aria-label="Time zone"
+            onChange={(event) =>
+              system.updatePreferences({ timeZone: event.target.value as TimeZoneId })
+            }
+          >
+            {TIME_ZONES.map((timeZone) => (
+              <option key={timeZone.id} value={timeZone.id}>
+                {timeZone.city} — {timeZone.label}
+              </option>
+            ))}
+          </select>
+        </label>
+      </SettingsGroup>
       <SettingsGroup title="Menu bar clock" description="Choose how time appears at the top.">
         <div className="settings-list">
           <SegmentedControl<ClockFormat>
@@ -241,6 +319,17 @@ function DesktopSettings({ system }: Pick<SystemAppProps, 'system'>) {
             }
           />
         </div>
+      </SettingsGroup>
+      <SettingsGroup title="Calendar" description="Set the first column of every month view.">
+        <SegmentedControl<WeekStartsOn>
+          label="Week starts on"
+          value={preferences.weekStartsOn}
+          options={[
+            { value: 'sunday', label: 'Sunday' },
+            { value: 'monday', label: 'Monday' },
+          ]}
+          onChange={(weekStartsOn) => system.updatePreferences({ weekStartsOn })}
+        />
       </SettingsGroup>
     </>
   );
@@ -353,7 +442,8 @@ function SystemSettings({ system }: Pick<SystemAppProps, 'system'>) {
             <strong>Local-first by default</strong>
             <p>
               Tasks, calendar events, notes, settings, and files stay in browser storage on this
-              device. Vela only sends a prompt when you choose to submit one.
+              device. Network details are read from browser signals, Bluetooth always uses the
+              browser permission picker, and Vela only sends a prompt when you submit one.
             </p>
           </div>
         </div>
@@ -504,4 +594,13 @@ function formatBytes(value: number) {
   if (value < 1024 ** 2) return `${Math.round(value / 1024)} KB`;
   if (value < 1024 ** 3) return `${(value / 1024 ** 2).toFixed(1)} MB`;
   return `${(value / 1024 ** 3).toFixed(1)} GB`;
+}
+
+function useLiveTime() {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const interval = globalThis.setInterval(() => setNow(new Date()), 1_000);
+    return () => globalThis.clearInterval(interval);
+  }, []);
+  return now;
 }

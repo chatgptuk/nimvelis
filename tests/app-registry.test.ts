@@ -12,6 +12,7 @@ describe('app registry', () => {
       'tasks',
       'calendar',
       'clock',
+      'connections',
       'calculator',
       'memo',
       'vela',
@@ -25,7 +26,7 @@ describe('app registry', () => {
   });
 
   it('registers the local productivity suite as single-instance apps', () => {
-    for (const appId of ['tasks', 'calendar', 'clock']) {
+    for (const appId of ['tasks', 'calendar', 'clock', 'connections']) {
       expect(getAppManifest(appId)?.allowMultipleInstances).toBe(false);
     }
   });

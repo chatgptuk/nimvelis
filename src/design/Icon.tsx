@@ -11,6 +11,9 @@ export type IconName =
   | 'tasks'
   | 'calendar'
   | 'clock'
+  | 'connections'
+  | 'wifi'
+  | 'bluetooth'
   | 'search'
   | 'folder'
   | 'file'
@@ -125,6 +128,26 @@ export function Icon({ name, size = 20, ...props }: IconProps) {
         <svg {...shared}>
           <circle cx="12" cy="12" r="9" />
           <path d="M12 7v5l3.5 2" />
+        </svg>
+      );
+    case 'connections':
+      return (
+        <svg {...shared}>
+          <path d="M3.5 9.5c5-4.3 12-4.3 17 0M6.5 13c3.2-2.7 7.8-2.7 11 0M9.7 16.4c1.4-1.1 3.2-1.1 4.6 0" />
+          <circle cx="12" cy="19.2" r=".9" fill="currentColor" stroke="none" />
+        </svg>
+      );
+    case 'wifi':
+      return (
+        <svg {...shared}>
+          <path d="M3 9c5.2-4.5 12.8-4.5 18 0M6.3 12.8c3.3-2.8 8.1-2.8 11.4 0M9.5 16.3c1.5-1.2 3.5-1.2 5 0" />
+          <circle cx="12" cy="19.5" r=".8" fill="currentColor" stroke="none" />
+        </svg>
+      );
+    case 'bluetooth':
+      return (
+        <svg {...shared}>
+          <path d="m8 7 8 10-4 4V3l4 4-8 10" />
         </svg>
       );
     case 'search':
@@ -275,6 +298,7 @@ const APP_ICON_PALETTES = {
   tasks: ['#163f4a', '#2da18c', '#a2f3d8'],
   calendar: ['#253b68', '#507fd1', '#b7dfff'],
   clock: ['#4b2d51', '#d4776d', '#ffd39b'],
+  connections: ['#173d5a', '#318db4', '#a9eeff'],
 } as const;
 
 export function AppIcon({ name, size = 56, className = '', ...props }: AppIconProps) {
@@ -334,6 +358,7 @@ export function AppIcon({ name, size = 56, className = '', ...props }: AppIconPr
       {name === 'tasks' && <TasksArtwork accent={palette[2]} />}
       {name === 'calendar' && <CalendarArtwork accent={palette[2]} />}
       {name === 'clock' && <ClockArtwork accent={palette[2]} />}
+      {name === 'connections' && <ConnectionsArtwork accent={palette[2]} />}
       {![
         'calculator',
         'memo',
@@ -345,6 +370,7 @@ export function AppIcon({ name, size = 56, className = '', ...props }: AppIconPr
         'tasks',
         'calendar',
         'clock',
+        'connections',
       ].includes(name) && (
         <g color="white">
           <rect x="15" y="15" width="34" height="34" rx="12" fill="white" fillOpacity=".1" />
@@ -615,6 +641,36 @@ function ClockArtwork({ accent }: { accent: string }) {
       />
       <circle cx="32" cy="32" r="3.2" fill={accent} />
       <path d="M32 15v3M49 32h-3M32 49v-3M15 32h3" stroke="#6b4b61" strokeWidth="2" />
+    </g>
+  );
+}
+
+function ConnectionsArtwork({ accent }: { accent: string }) {
+  return (
+    <g>
+      <circle
+        cx="32"
+        cy="34"
+        r="19"
+        fill="#effcff"
+        fillOpacity=".12"
+        stroke="white"
+        strokeOpacity=".18"
+      />
+      <path
+        d="M18 28c8-7 20-7 28 0M23 34c5-4.3 13-4.3 18 0M28 40c2.3-1.8 5.7-1.8 8 0"
+        stroke="white"
+        strokeWidth="3.2"
+        strokeLinecap="round"
+      />
+      <circle cx="32" cy="46" r="3" fill={accent} />
+      <path
+        d="m45 14 7 8-4 4V10l4 4-7 8"
+        stroke={accent}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </g>
   );
 }

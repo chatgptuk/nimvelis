@@ -1,6 +1,7 @@
 import { useMemo, useState, type FormEvent } from 'react';
 import { Icon } from '../../design/Icon';
 import type { SystemAppProps } from '../../kernel/app-registry/types';
+import { dateKeyInTimeZone } from '../../kernel/time';
 import {
   useProductivityStore,
   type LocalTask,
@@ -28,7 +29,7 @@ export function TasksApp({ system }: SystemAppProps) {
   const [title, setTitle] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [priority, setPriority] = useState<TaskPriority>('normal');
-  const today = dateKey(new Date());
+  const today = dateKeyInTimeZone(new Date(), system.preferences.timeZone);
 
   const visibleTasks = useMemo(
     () =>
@@ -241,7 +242,7 @@ function describeView(view: TaskView, today: string) {
 
 function formatDueDate(value: string, today: string) {
   if (value === today) return 'Due today';
-  const tomorrow = new Date();
+  const tomorrow = parseDateKey(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
   if (value === dateKey(tomorrow)) return 'Due tomorrow';
   return `Due ${new Intl.DateTimeFormat(undefined, {

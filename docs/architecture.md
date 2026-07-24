@@ -1,6 +1,6 @@
-# Nimvelis Aurora 0.5 architecture
+# Nimvelis Aurora 0.6 architecture
 
-Nimvelis is a long-running browser SPA with a small edge API. Aurora 0.5 preserves the local
+Nimvelis is a long-running browser SPA with a small edge API. Aurora 0.6 preserves the local
 desktop boundaries while adding Vela through a native Cloudflare Workers AI binding. It still has
 no account, remote file storage, or collaboration code.
 
@@ -10,7 +10,7 @@ no account, remote file storage, or collaboration code.
 flowchart LR
   Shell["Desktop Shell\nTop Bar · Overview · Shelf · Windows"] --> Store["Desktop Store\nZustand + versioned persistence"]
   Shell --> Registry["App Registry\nTyped manifests"]
-  Registry --> Apps["System Apps\nFiles · Text · Tasks · Calendar · Clock · Vela"]
+  Registry --> Apps["System Apps\nFiles · Text · Tasks · Calendar · Clock · Connections · Vela"]
   Apps --> API["Nimvelis System API"]
   API --> Store
   Store --> Persistence["Browser localStorage\nstable state only"]
@@ -22,6 +22,7 @@ flowchart LR
   Search --> VFS
   Vela["Vela text app\nlocal conversation history"] --> Worker["Worker API\nvalidation + model allowlist"]
   Worker --> AI["Cloudflare Workers AI\nstreamed inference"]
+  Connections["Connections app\nbrowser capability signals"] --> Browser["Network Information · Web Bluetooth"]
 ```
 
 - `src/kernel/window-manager` owns normalized window types and pure geometry functions.
@@ -36,6 +37,10 @@ flowchart LR
 - `src/kernel/vfs` defines the storage contract. The in-memory implementation supports tests and
   future adapters; the IndexedDB implementation is the browser default.
 - `src/shell/SystemSearch.tsx` owns transient global search UI and queries the registry plus VFS.
+- `src/kernel/time.ts` validates display-time preferences and keeps time-zone-aware date keys
+  consistent between the menu bar, Clock, Calendar, and Settings.
+- `src/apps/connections` reads online/network estimates and starts Web Bluetooth only after an
+  explicit click. It has no access to Wi-Fi credentials or operating-system network controls.
 - `src/design` and `src/styles` own original Nimvelis icons and shared design tokens.
 - `worker/index.ts` is the only remote inference boundary. It validates chat size and roles,
   rate-limits per edge isolate, maps a short model key through an allowlist, and streams Workers AI.
@@ -79,7 +84,7 @@ The Zustand `persist` middleware stores only stable user state:
 - welcome completion;
 - named workspaces and the active workspace;
 - desktop icon positions;
-- interface, clock, desktop, and accessibility preferences.
+- interface, clock, time zone, week-start, desktop, and accessibility preferences.
 
 Transient pointer data, animation state, menu state, current time, and resolved system color
 scheme are not persisted. Rehydration validates records, application IDs, bounds, visual states,
@@ -106,6 +111,12 @@ only the visible conversation slice and selected key to `/api/vela/chat`; it has
 and cannot read files or device details. The Worker holds the system prompt and Cloudflare model
 IDs, rejects unsupported models and cross-origin browser requests, and returns a no-store SSE
 stream.
+
+Connections does not persist Bluetooth devices or network details. Network estimates are read
+from the browser when available, and the latency check fetches a same-origin static manifest with
+`no-store`. Bluetooth selection and connection are delegated to the browser's permission UI and
+last only for the active session. Time-zone preferences affect Nimvelis formatting; the device
+clock remains read-only.
 
 ## Future adapters
 

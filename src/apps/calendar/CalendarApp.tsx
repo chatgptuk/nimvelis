@@ -1,6 +1,7 @@
 import { useMemo, useState, type FormEvent } from 'react';
 import { Icon } from '../../design/Icon';
 import type { SystemAppProps } from '../../kernel/app-registry/types';
+import { dateKeyInTimeZone, type WeekStartsOn } from '../../kernel/time';
 import {
   useProductivityStore,
   type CalendarEventColor,
@@ -16,14 +17,19 @@ export function CalendarApp({ system }: SystemAppProps) {
   const tasks = useProductivityStore((state) => state.tasks);
   const addEvent = useProductivityStore((state) => state.addEvent);
   const removeEvent = useProductivityStore((state) => state.removeEvent);
-  const today = dateKey(new Date());
-  const [visibleMonth, setVisibleMonth] = useState(() => startOfMonth(new Date()));
+  const today = dateKeyInTimeZone(new Date(), system.preferences.timeZone);
+  const [visibleMonth, setVisibleMonth] = useState(() => startOfMonth(parseDateKey(today)));
   const [selectedDate, setSelectedDate] = useState(today);
   const [title, setTitle] = useState('');
   const [time, setTime] = useState('');
   const [color, setColor] = useState<CalendarEventColor>('blue');
 
-  const days = useMemo(() => monthGrid(visibleMonth), [visibleMonth]);
+  const weekdays =
+    system.preferences.weekStartsOn === 'monday' ? [...WEEKDAYS.slice(1), WEEKDAYS[0]] : WEEKDAYS;
+  const days = useMemo(
+    () => monthGrid(visibleMonth, system.preferences.weekStartsOn),
+    [system.preferences.weekStartsOn, visibleMonth],
+  );
   const selectedEvents = events.filter((event) => event.date === selectedDate).sort(compareEvents);
   const selectedTasks = tasks.filter((task) => !task.completed && task.dueDate === selectedDate);
 
@@ -36,9 +42,9 @@ export function CalendarApp({ system }: SystemAppProps) {
   };
 
   const goToToday = () => {
-    const now = new Date();
+    const now = parseDateKey(today);
     setVisibleMonth(startOfMonth(now));
-    setSelectedDate(dateKey(now));
+    setSelectedDate(today);
   };
 
   return (
@@ -73,7 +79,7 @@ export function CalendarApp({ system }: SystemAppProps) {
       <main className="calendar-layout">
         <section className="calendar-month" aria-label="Month">
           <div className="calendar-weekdays" aria-hidden="true">
-            {WEEKDAYS.map((day) => (
+            {weekdays.map((day) => (
               <span key={day}>{day}</span>
             ))}
           </div>
@@ -207,9 +213,11 @@ function AgendaEvent({ event, onRemove }: { event: LocalCalendarEvent; onRemove:
   );
 }
 
-function monthGrid(month: Date) {
+function monthGrid(month: Date, weekStartsOn: WeekStartsOn) {
   const first = startOfMonth(month);
-  const start = new Date(first.getFullYear(), first.getMonth(), 1 - first.getDay());
+  const firstDayIndex = weekStartsOn === 'monday' ? 1 : 0;
+  const leadingDays = (first.getDay() - firstDayIndex + 7) % 7;
+  const start = new Date(first.getFullYear(), first.getMonth(), 1 - leadingDays);
   return Array.from(
     { length: 42 },
     (_, index) => new Date(start.getFullYear(), start.getMonth(), start.getDate() + index),

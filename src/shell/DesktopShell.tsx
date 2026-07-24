@@ -163,6 +163,16 @@ export function DesktopShell() {
         },
       },
       {
+        id: 'open-connections',
+        title: 'Open connections',
+        description: 'Inspect network and Bluetooth availability',
+        keywords: 'wifi bluetooth network internet connection',
+        icon: 'connections',
+        run: () => {
+          openApp('connections');
+        },
+      },
+      {
         id: 'ask-vela',
         title: 'Ask Vela',
         description: 'Open the Workers AI text assistant',
@@ -435,6 +445,7 @@ export function DesktopShell() {
         clockFormat={preferences.clockFormat}
         showDate={preferences.showDate}
         showSeconds={preferences.showSeconds}
+        timeZone={preferences.timeZone}
       />
       <section
         className="desktop-workspace"
@@ -446,7 +457,7 @@ export function DesktopShell() {
         <div className="desktop-atmosphere" aria-hidden="true" />
         <div className="desktop-version" aria-hidden="true">
           <span>AURORA</span>
-          <strong>0.5</strong>
+          <strong>0.6</strong>
         </div>
         {preferences.showDesktopIcons ? (
           <DesktopIcons

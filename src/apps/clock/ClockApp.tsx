@@ -1,12 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 import { Icon } from '../../design/Icon';
 import type { SystemAppProps } from '../../kernel/app-registry/types';
+import {
+  getSystemTimeZone,
+  getTimeZoneLabel,
+  resolveTimeZone,
+  type TimeZoneId,
+} from '../../kernel/time';
 import './clock.css';
 
 type ClockTab = 'world' | 'timer' | 'stopwatch';
 
-const CITIES = [
-  { city: 'Local', zone: undefined },
+const WORLD_CITIES = [
   { city: 'Vancouver', zone: 'America/Vancouver' },
   { city: 'London', zone: 'Europe/London' },
   { city: 'Tokyo', zone: 'Asia/Tokyo' },
@@ -57,19 +62,33 @@ export function ClockApp({ system }: SystemAppProps) {
           ))}
         </nav>
         <div className="clock-sidebar__now">
-          <span>{formatTime(now, undefined, system.preferences.clockFormat, true)}</span>
+          <span>
+            {formatTime(
+              now,
+              resolveTimeZone(system.preferences.timeZone),
+              system.preferences.clockFormat,
+              true,
+            )}
+          </span>
           <small>
             {new Intl.DateTimeFormat(undefined, {
               weekday: 'long',
               month: 'short',
               day: 'numeric',
+              timeZone: resolveTimeZone(system.preferences.timeZone),
             }).format(now)}
           </small>
         </div>
       </aside>
 
       <main className="clock-main">
-        {tab === 'world' ? <WorldClocks now={now} format={system.preferences.clockFormat} /> : null}
+        {tab === 'world' ? (
+          <WorldClocks
+            now={now}
+            format={system.preferences.clockFormat}
+            timeZone={system.preferences.timeZone}
+          />
+        ) : null}
         {tab === 'timer' ? <Timer system={system} /> : null}
         {tab === 'stopwatch' ? <Stopwatch /> : null}
       </main>
@@ -77,8 +96,21 @@ export function ClockApp({ system }: SystemAppProps) {
   );
 }
 
-function WorldClocks({ now, format }: { now: number; format: 'system' | '12h' | '24h' }) {
-  const localOffset = new Date(now).getTimezoneOffset();
+function WorldClocks({
+  now,
+  format,
+  timeZone,
+}: {
+  now: number;
+  format: 'system' | '12h' | '24h';
+  timeZone: TimeZoneId;
+}) {
+  const selectedZone = timeZone === 'system' ? getSystemTimeZone() : resolveTimeZone(timeZone);
+  const cities = [
+    { city: getTimeZoneLabel(timeZone), zone: selectedZone },
+    ...WORLD_CITIES.filter((item) => item.zone !== selectedZone),
+  ].slice(0, 5);
+
   return (
     <section className="clock-panel world-panel">
       <header>
@@ -87,9 +119,9 @@ function WorldClocks({ now, format }: { now: number; format: 'system' | '12h' | 
         <p>World clocks update live and use your device as the source of time.</p>
       </header>
       <div className="world-grid">
-        {CITIES.map((item, index) => (
-          <article className={index === 0 ? 'is-local' : ''} key={item.city}>
-            <span>{index === 0 ? 'HERE' : offsetLabel(now, item.zone, localOffset)}</span>
+        {cities.map((item, index) => (
+          <article className={index === 0 ? 'is-local' : ''} key={`${item.city}-${item.zone}`}>
+            <span>{index === 0 ? 'SELECTED' : offsetLabel(now, item.zone, selectedZone)}</span>
             <strong>{formatTime(now, item.zone, format, false)}</strong>
             <div>
               <b>{item.city}</b>
@@ -303,8 +335,24 @@ function formatDay(value: number, timeZone?: string) {
   }).format(value);
 }
 
-function offsetLabel(value: number, timeZone: string | undefined, localOffset: number) {
-  if (!timeZone) return 'LOCAL';
+function offsetLabel(
+  value: number,
+  timeZone: string | undefined,
+  selectedTimeZone: string | undefined,
+) {
+  const zoneMinutes = getZoneOffsetMinutes(value, timeZone);
+  const selectedMinutes = getZoneOffsetMinutes(value, selectedTimeZone);
+  if (zoneMinutes === null || selectedMinutes === null) {
+    if (!timeZone) return 'LOCAL';
+    return timeZone.split('/').at(-1)?.replaceAll('_', ' ') ?? timeZone;
+  }
+  const difference = (zoneMinutes - selectedMinutes) / 60;
+  if (difference === 0) return 'SAME TIME';
+  return `${difference > 0 ? '+' : ''}${difference}H`;
+}
+
+function getZoneOffsetMinutes(value: number, timeZone: string | undefined) {
+  if (!timeZone) return -new Date(value).getTimezoneOffset();
   const parts = new Intl.DateTimeFormat('en-CA', {
     timeZone,
     timeZoneName: 'longOffset',
@@ -312,13 +360,9 @@ function offsetLabel(value: number, timeZone: string | undefined, localOffset: n
   const match = parts
     .find((part) => part.type === 'timeZoneName')
     ?.value.match(/GMT([+-])(\d{2}):(\d{2})/);
-  if (!match) return timeZone.split('/').at(-1)?.replaceAll('_', ' ') ?? timeZone;
+  if (!match) return null;
   const direction = match[1] === '+' ? 1 : -1;
-  const zoneMinutes = direction * (Number(match[2]) * 60 + Number(match[3]));
-  const localMinutes = -localOffset;
-  const difference = (zoneMinutes - localMinutes) / 60;
-  if (difference === 0) return 'SAME TIME';
-  return `${difference > 0 ? '+' : ''}${difference}H`;
+  return direction * (Number(match[2]) * 60 + Number(match[3]));
 }
 
 function formatDuration(seconds: number) {

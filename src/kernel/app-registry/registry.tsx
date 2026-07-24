@@ -1,6 +1,7 @@
 import { CalculatorApp } from '../../apps/calculator/CalculatorApp';
 import { CalendarApp } from '../../apps/calendar/CalendarApp';
 import { ClockApp } from '../../apps/clock/ClockApp';
+import { ConnectionsApp } from '../../apps/connections/ConnectionsApp';
 import { FilesApp } from '../../apps/files/FilesApp';
 import { MemoApp } from '../../apps/memo/MemoApp';
 import { SettingsApp } from '../../apps/settings/SettingsApp';
@@ -97,6 +98,20 @@ const manifests = [
       height: 540,
       minWidth: 480,
       minHeight: 380,
+    },
+    allowMultipleInstances: false,
+  },
+  {
+    id: 'connections',
+    name: 'Connections',
+    description: 'Inspect network quality and connect approved Bluetooth devices.',
+    icon: 'connections',
+    component: ConnectionsApp,
+    defaultWindow: {
+      width: 760,
+      height: 620,
+      minWidth: 520,
+      minHeight: 430,
     },
     allowMultipleInstances: false,
   },
