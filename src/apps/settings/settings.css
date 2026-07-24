@@ -6,7 +6,9 @@
 }
 
 .settings-sidebar {
-  display: flex;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
   align-items: center;
   align-content: start;
   gap: 11px;
@@ -48,11 +50,10 @@
 }
 
 .settings-sidebar nav {
+  grid-column: 1 / -1;
   width: 100%;
-  align-self: stretch;
-  margin-top: 62px;
-  margin-left: -86px;
-  padding-top: 12px;
+  align-self: start;
+  margin-top: 16px;
 }
 
 .settings-nav-item {
@@ -288,7 +289,30 @@
   color: var(--accent-contrast);
 }
 
-@media (max-width: 680px) {
+@container (max-width: 680px) {
+  .settings-app {
+    grid-template-columns: 168px minmax(0, 1fr);
+  }
+
+  .settings-content {
+    padding: 28px 22px 40px;
+  }
+
+  .settings-heading {
+    margin-bottom: 26px;
+  }
+
+  .appearance-options {
+    grid-template-columns: repeat(3, minmax(86px, 1fr));
+    gap: 8px;
+  }
+
+  .appearance-option {
+    padding: 7px;
+  }
+}
+
+@container (max-width: 500px) {
   .settings-app {
     grid-template-columns: 1fr;
   }

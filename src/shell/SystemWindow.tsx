@@ -5,7 +5,7 @@ import {
   type KeyboardEvent,
   type PointerEvent as ReactPointerEvent,
 } from 'react';
-import { Icon } from '../design/Icon';
+import { AppIcon, Icon } from '../design/Icon';
 import { getAppManifest } from '../kernel/app-registry/registry';
 import type { NimvelisSystemApi } from '../kernel/system-api';
 import {
@@ -225,20 +225,22 @@ export function SystemWindow({ window, viewport, system }: SystemWindowProps) {
         }}
         onKeyDown={handleTitlebarKeyDown}
       >
-        <div className="window-app-identity">
-          <span className={`window-app-icon window-app-icon--${manifest.icon}`}>
-            <Icon name={manifest.icon} size={15} />
-          </span>
-          <span className="window-title">{window.title}</span>
-        </div>
         <div className="window-controls" data-window-action>
+          <button
+            type="button"
+            className="window-control window-control--close"
+            aria-label={`Close ${window.title}`}
+            onClick={() => closeWindow(window.id)}
+          >
+            <Icon name="close" size={12} />
+          </button>
           <button
             type="button"
             className="window-control"
             aria-label={`Minimize ${window.title}`}
             onClick={() => minimizeWindow(window.id)}
           >
-            <Icon name="minimize" size={15} />
+            <Icon name="minimize" size={12} />
           </button>
           <button
             type="button"
@@ -248,7 +250,7 @@ export function SystemWindow({ window, viewport, system }: SystemWindowProps) {
             }
             onClick={() => toggleMaximize(window.id)}
           >
-            <Icon name={window.state === 'maximized' ? 'restore' : 'maximize'} size={14} />
+            <Icon name={window.state === 'maximized' ? 'restore' : 'maximize'} size={11} />
           </button>
           <button
             type="button"
@@ -260,16 +262,14 @@ export function SystemWindow({ window, viewport, system }: SystemWindowProps) {
             }
             onClick={() => toggleFullscreen(window.id)}
           >
-            <Icon name="fullscreen" size={14} />
+            <Icon name="fullscreen" size={11} />
           </button>
-          <button
-            type="button"
-            className="window-control window-control--close"
-            aria-label={`Close ${window.title}`}
-            onClick={() => closeWindow(window.id)}
-          >
-            <Icon name="close" size={15} />
-          </button>
+        </div>
+        <div className="window-app-identity">
+          <span className="window-app-icon">
+            <AppIcon name={manifest.icon} size={23} />
+          </span>
+          <span className="window-title">{window.title}</span>
         </div>
       </header>
       <div className="window-content">

@@ -10,6 +10,10 @@ Nimvelis Aurora 0.1 is a browser-native personal workspace with a desktop interf
 current milestone is intentionally local-first: a custom window manager, desktop shell, app
 registry, three system applications, appearance controls, and durable browser persistence.
 
+Nimvelis is an independent project and is not affiliated with or endorsed by Apple Inc. Its
+marks, icons, wallpaper, interface assets, naming, and visual system are original to Nimvelis;
+Apple assets and SF Symbols are not included.
+
 ## Deploy your own
 
 ### One click

@@ -3,7 +3,7 @@
   top: 0;
   left: 0;
   display: grid;
-  grid-template-rows: 43px minmax(0, 1fr);
+  grid-template-rows: 46px minmax(0, 1fr);
   overflow: hidden;
   border: 1px solid var(--window-border);
   border-radius: var(--radius-window);
@@ -47,11 +47,11 @@
 .window-titlebar {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: var(--space-3);
   min-width: 0;
-  padding: 0 8px 0 13px;
+  padding: 0 12px;
   border-bottom: 1px solid var(--border-soft);
   background: var(--titlebar-bg);
   cursor: grab;
@@ -71,27 +71,17 @@
   min-width: 0;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   pointer-events: none;
 }
 
 .window-app-icon {
   display: grid;
   place-items: center;
-  width: 24px;
-  height: 24px;
+  width: 25px;
+  height: 25px;
   flex: 0 0 auto;
-  border-radius: 8px;
-  background: var(--app-icon-bg);
-  color: var(--accent);
-}
-
-.window-app-icon--memo {
-  color: var(--memo-accent);
-}
-
-.window-app-icon--settings {
-  color: var(--settings-accent);
+  filter: drop-shadow(0 4px 7px rgb(4 7 18 / 22%));
 }
 
 .window-title {
@@ -109,17 +99,21 @@
 
 .window-controls {
   display: flex;
-  gap: 3px;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--border-soft);
+  border-radius: 10px 7px 10px 7px;
+  background: var(--control-bg);
 }
 
 .window-control {
   display: grid;
   place-items: center;
-  width: 29px;
-  height: 29px;
+  width: 21px;
+  height: 21px;
   padding: 0;
   border: 0;
-  border-radius: 9px;
+  border-radius: 6px 4px 6px 4px;
   background: transparent;
   color: var(--text-tertiary);
   cursor: pointer;
@@ -130,7 +124,7 @@
 }
 
 .window-control:hover {
-  background: var(--control-hover);
+  background: color-mix(in srgb, var(--accent) 16%, var(--control-hover));
   color: var(--text-primary);
 }
 
@@ -147,6 +141,7 @@
   min-width: 0;
   min-height: 0;
   overflow: hidden;
+  container-type: inline-size;
 }
 
 .window-resize-handle {
@@ -222,7 +217,7 @@
 }
 
 @media (max-width: 620px) {
-  .window-controls .window-control:nth-child(3) {
+  .window-controls .window-control:nth-child(4) {
     display: none;
   }
 }

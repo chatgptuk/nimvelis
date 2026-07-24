@@ -1,4 +1,4 @@
-import type { SVGProps } from 'react';
+import { useId, type SVGProps } from 'react';
 
 export type IconName =
   | 'calculator'
@@ -151,6 +151,170 @@ export function Icon({ name, size = 20, ...props }: IconProps) {
         </svg>
       );
   }
+}
+
+interface AppIconProps extends Omit<SVGProps<SVGSVGElement>, 'name'> {
+  name: IconName;
+  size?: number;
+}
+
+const APP_ICON_PALETTES = {
+  calculator: ['#163b53', '#149a9f', '#78f0d5'],
+  memo: ['#542f55', '#cf6d68', '#ffd68c'],
+  settings: ['#272b65', '#796ee8', '#d5a8ff'],
+} as const;
+
+export function AppIcon({ name, size = 56, className = '', ...props }: AppIconProps) {
+  const rawId = useId().replaceAll(':', '');
+  const palette =
+    APP_ICON_PALETTES[name as keyof typeof APP_ICON_PALETTES] ?? APP_ICON_PALETTES.settings;
+  const backgroundId = `${rawId}-background`;
+  const glowId = `${rawId}-glow`;
+
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 64 64"
+      fill="none"
+      aria-hidden="true"
+      className={`app-icon-art app-icon-art--${name} ${className}`.trim()}
+      {...props}
+    >
+      <defs>
+        <linearGradient id={backgroundId} x1="8" y1="5" x2="58" y2="60">
+          <stop stopColor={palette[1]} />
+          <stop offset=".52" stopColor={palette[0]} />
+          <stop offset="1" stopColor="#0b1227" />
+        </linearGradient>
+        <radialGradient
+          id={glowId}
+          cx="0"
+          cy="0"
+          r="1"
+          gradientTransform="translate(19 13) rotate(48) scale(49)"
+        >
+          <stop stopColor={palette[2]} stopOpacity=".62" />
+          <stop offset=".62" stopColor={palette[1]} stopOpacity=".08" />
+          <stop offset="1" stopColor={palette[0]} stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <path
+        d="M14 4h35c7 0 11 5 11 12v34c0 6-4 10-10 10H14C8 60 4 56 4 50V15C4 8.5 8 4 14 4Z"
+        fill={`url(#${backgroundId})`}
+      />
+      <path
+        d="M14 4.75h35c6.4 0 10.25 4.55 10.25 11.25v34c0 5.6-3.65 9.25-9.25 9.25H14c-5.6 0-9.25-3.65-9.25-9.25V15c0-6.1 3.65-10.25 9.25-10.25Z"
+        fill={`url(#${glowId})`}
+        stroke="white"
+        strokeOpacity=".18"
+        strokeWidth="1.5"
+      />
+      <path d="M9 15C22 6 42 5 56 15" stroke="white" strokeOpacity=".16" strokeWidth="1.5" />
+      {name === 'calculator' && <CalculatorArtwork accent={palette[2]} />}
+      {name === 'memo' && <MemoArtwork accent={palette[2]} />}
+      {name === 'settings' && <SettingsArtwork accent={palette[2]} />}
+      {!['calculator', 'memo', 'settings'].includes(name) && (
+        <g color="white">
+          <rect x="15" y="15" width="34" height="34" rx="12" fill="white" fillOpacity=".1" />
+          <path
+            d="M23 32h18M32 23v18"
+            stroke="currentColor"
+            strokeWidth="3"
+            strokeLinecap="round"
+          />
+        </g>
+      )}
+    </svg>
+  );
+}
+
+function CalculatorArtwork({ accent }: { accent: string }) {
+  return (
+    <g>
+      <path
+        d="M18 15h28a4 4 0 0 1 4 4v26a5 5 0 0 1-5 5H19a5 5 0 0 1-5-5V19a4 4 0 0 1 4-4Z"
+        fill="#07111f"
+        fillOpacity=".62"
+        stroke="white"
+        strokeOpacity=".16"
+      />
+      <path
+        d="M20 22h20"
+        stroke="white"
+        strokeOpacity=".82"
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
+      <circle cx="21" cy="33" r="3" fill="white" fillOpacity=".76" />
+      <circle cx="31" cy="33" r="3" fill="white" fillOpacity=".42" />
+      <circle cx="21" cy="43" r="3" fill="white" fillOpacity=".42" />
+      <path
+        d="M30.5 43h1"
+        stroke="white"
+        strokeOpacity=".76"
+        strokeWidth="6"
+        strokeLinecap="round"
+      />
+      <path d="M43 31v14" stroke={accent} strokeWidth="5" strokeLinecap="round" />
+    </g>
+  );
+}
+
+function MemoArtwork({ accent }: { accent: string }) {
+  return (
+    <g>
+      <path
+        d="m18 15 26-3 6 8-3 30-28 2-6-8 2-24Z"
+        fill="#fffaf0"
+        fillOpacity=".93"
+        stroke="white"
+        strokeOpacity=".38"
+      />
+      <path d="m18 15-3 15 5-4 4-11Z" fill={accent} fillOpacity=".76" />
+      <path d="m44 12 6 8-7 1Z" fill="#381c42" fillOpacity=".5" />
+      <path
+        d="m25 29 16-1M23 36l18-1M22 43l13-1"
+        stroke="#673a57"
+        strokeOpacity=".72"
+        strokeWidth="2.4"
+        strokeLinecap="round"
+      />
+      <circle cx="42.5" cy="43" r="3.5" fill={accent} />
+    </g>
+  );
+}
+
+function SettingsArtwork({ accent }: { accent: string }) {
+  return (
+    <g>
+      <ellipse
+        cx="32"
+        cy="32"
+        rx="19"
+        ry="10"
+        stroke="white"
+        strokeOpacity=".38"
+        strokeWidth="2"
+        transform="rotate(-28 32 32)"
+      />
+      <ellipse
+        cx="32"
+        cy="32"
+        rx="19"
+        ry="10"
+        stroke="white"
+        strokeOpacity=".26"
+        strokeWidth="2"
+        transform="rotate(38 32 32)"
+      />
+      <path d="m32 20 10 12-10 12-10-12Z" fill="#f8f5ff" fillOpacity=".9" />
+      <path d="m32 20 10 12-10 2-10-2Z" fill={accent} fillOpacity=".58" />
+      <path d="m32 34 10-2-10 12Z" fill="#9b8dff" fillOpacity=".62" />
+      <circle cx="17" cy="22" r="3" fill={accent} />
+      <circle cx="48" cy="40" r="2.5" fill="white" fillOpacity=".9" />
+    </g>
+  );
 }
 
 export function NimvelisMark({ size = 24 }: { size?: number }) {

@@ -14,7 +14,7 @@ interface TopBarProps {
   onOpenSettings: () => void;
 }
 
-type MenuId = 'nimvelis' | 'window' | null;
+type MenuId = 'nimvelis' | 'space' | 'view' | 'window' | 'help' | null;
 
 export function TopBar({
   activeWindow,
@@ -43,6 +43,10 @@ export function TopBar({
     setOpenMenu(null);
   };
 
+  const toggleMenu = (menu: Exclude<MenuId, null>) => {
+    setOpenMenu((current) => (current === menu ? null : menu));
+  };
+
   return (
     <header className="top-bar" ref={barRef}>
       <nav className="top-bar__left" aria-label="System menu">
@@ -52,7 +56,7 @@ export function TopBar({
             className={`top-bar__brand ${openMenu === 'nimvelis' ? 'is-open' : ''}`}
             aria-label="Open Nimvelis menu"
             aria-expanded={openMenu === 'nimvelis'}
-            onClick={() => setOpenMenu((current) => (current === 'nimvelis' ? null : 'nimvelis'))}
+            onClick={() => toggleMenu('nimvelis')}
           >
             <NimvelisMark size={23} />
           </button>
@@ -62,29 +66,96 @@ export function TopBar({
                 <NimvelisMark size={40} />
                 <div>
                   <strong>Nimvelis</strong>
-                  <span>Aurora 0.1</span>
+                  <span>Aurora desktop · 0.1</span>
                 </div>
               </div>
-              <p>Your world, anywhere.</p>
+              <p>An independent space for your local work.</p>
               <div className="top-menu__separator" />
               <button type="button" role="menuitem" onClick={() => runAndClose(onOpenSettings)}>
-                Settings
+                Personalize Nimvelis
                 <Icon name="chevron" size={14} />
               </button>
               <div className="top-menu__footnote">
                 <span className="status-dot" />
-                Local workspace
+                Original interface · MIT licensed
               </div>
             </div>
           )}
         </div>
-        <span className="top-bar__active-app">{activeManifest?.name ?? 'Desktop'}</span>
+        <span className="top-bar__active-app">
+          <span>N</span>
+          {activeManifest?.name ?? 'Desktop'}
+        </span>
+        <div className="top-menu">
+          <button
+            type="button"
+            className={`top-bar__menu-label ${openMenu === 'space' ? 'is-open' : ''}`}
+            aria-expanded={openMenu === 'space'}
+            onClick={() => toggleMenu('space')}
+          >
+            Space
+          </button>
+          {openMenu === 'space' && (
+            <div className="top-menu__popover" role="menu">
+              <button
+                type="button"
+                role="menuitem"
+                disabled={!activeManifest?.allowMultipleInstances}
+                onClick={() => runAndClose(onNewWindow)}
+              >
+                New {activeManifest?.name ?? 'window'}
+                <span>Shift + click</span>
+              </button>
+              <div className="top-menu__separator" />
+              <button type="button" role="menuitem" onClick={() => runAndClose(onOpenSettings)}>
+                Appearance
+                <Icon name="sparkle" size={14} />
+              </button>
+              <div className="top-menu__footnote">
+                <span className="status-dot" />
+                Saved on this device
+              </div>
+            </div>
+          )}
+        </div>
+        <div className="top-menu">
+          <button
+            type="button"
+            className={`top-bar__menu-label ${openMenu === 'view' ? 'is-open' : ''}`}
+            aria-expanded={openMenu === 'view'}
+            onClick={() => toggleMenu('view')}
+          >
+            View
+          </button>
+          {openMenu === 'view' && (
+            <div className="top-menu__popover" role="menu">
+              <button
+                type="button"
+                role="menuitem"
+                disabled={!activeWindow}
+                onClick={() => runAndClose(onToggleMaximize)}
+              >
+                {activeWindow?.state === 'maximized' ? 'Return to window' : 'Expand window'}
+                <span>Alt + Enter</span>
+              </button>
+              <button
+                type="button"
+                role="menuitem"
+                disabled={!activeWindow}
+                onClick={() => runAndClose(onToggleFullscreen)}
+              >
+                {activeWindow?.state === 'fullscreen' ? 'Leave full canvas' : 'Full canvas'}
+                <Icon name="fullscreen" size={14} />
+              </button>
+            </div>
+          )}
+        </div>
         <div className="top-menu">
           <button
             type="button"
             className={`top-bar__menu-label ${openMenu === 'window' ? 'is-open' : ''}`}
             aria-expanded={openMenu === 'window'}
-            onClick={() => setOpenMenu((current) => (current === 'window' ? null : 'window'))}
+            onClick={() => toggleMenu('window')}
           >
             Window
           </button>
@@ -97,7 +168,7 @@ export function TopBar({
                 onClick={() => runAndClose(onNewWindow)}
               >
                 New window
-                <span>⇧ click</span>
+                <span>Shift + click</span>
               </button>
               <div className="top-menu__separator" />
               <button
@@ -115,7 +186,7 @@ export function TopBar({
                 onClick={() => runAndClose(onToggleMaximize)}
               >
                 {activeWindow?.state === 'maximized' ? 'Restore' : 'Maximize'}
-                <span>⌥↵</span>
+                <span>Alt + Enter</span>
               </button>
               <button
                 type="button"
@@ -137,11 +208,39 @@ export function TopBar({
             </div>
           )}
         </div>
+        <div className="top-menu top-menu--help">
+          <button
+            type="button"
+            className={`top-bar__menu-label ${openMenu === 'help' ? 'is-open' : ''}`}
+            aria-expanded={openMenu === 'help'}
+            onClick={() => toggleMenu('help')}
+          >
+            Help
+          </button>
+          {openMenu === 'help' && (
+            <div className="top-menu__popover top-menu__popover--help" role="menu">
+              <div className="shortcut-card">
+                <strong>Keyboard flow</strong>
+                <span>
+                  Move window <kbd>Alt</kbd> + <kbd>Arrow</kbd>
+                </span>
+                <span>
+                  Resize window <kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>Arrow</kbd>
+                </span>
+                <span>
+                  Cycle focus <kbd>Alt</kbd> + <kbd>`</kbd>
+                </span>
+              </div>
+              <div className="top-menu__separator" />
+              <div className="top-menu__footnote">Nimvelis Aurora 0.1</div>
+            </div>
+          )}
+        </div>
       </nav>
       <div className="top-bar__right">
-        <span className="top-bar__local">
+        <span className="top-bar__local" title="Your data stays in this browser">
           <span className="status-dot" />
-          Local
+          Device space
         </span>
         <time dateTime={now.toISOString()}>
           {new Intl.DateTimeFormat(undefined, {

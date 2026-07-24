@@ -67,3 +67,17 @@ test('appearance settings update the desktop immediately', async ({ page }) => {
   await settingsWindow.getByRole('button', { name: /Soft Solstice/ }).click();
   await expect(page.locator('.desktop-shell')).toHaveAttribute('data-wallpaper', 'solstice');
 });
+
+test('system menus expose Nimvelis workflows and keyboard guidance', async ({ page }) => {
+  await page.getByRole('button', { name: 'Space', exact: true }).click();
+  const spaceMenu = page.getByRole('menu');
+  await expect(spaceMenu).toContainText('Saved on this device');
+
+  await spaceMenu.getByRole('menuitem', { name: /Appearance/ }).click();
+  await expect(page.locator('[data-app-id="settings"]')).toBeVisible();
+
+  await page.getByRole('button', { name: 'Help', exact: true }).click();
+  const helpMenu = page.getByRole('menu');
+  await expect(helpMenu).toContainText('Keyboard flow');
+  await expect(helpMenu).toContainText('Cycle focus');
+});

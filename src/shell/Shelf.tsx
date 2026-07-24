@@ -1,4 +1,4 @@
-import { Icon, NimvelisMark } from '../design/Icon';
+import { AppIcon, NimvelisMark } from '../design/Icon';
 import type { AppManifest } from '../kernel/app-registry/types';
 import type { WindowInstance } from '../kernel/window-manager/types';
 
@@ -30,7 +30,7 @@ export function Shelf({ apps, windows, onLaunch }: ShelfProps) {
             onClick={(event) => onLaunch(app.id, event.shiftKey)}
           >
             <span className="shelf-app__icon">
-              <Icon name={app.icon} size={25} />
+              <AppIcon name={app.icon} size={54} />
             </span>
             <span className="shelf-app__label">{app.name}</span>
             {appWindows.length > 0 && (

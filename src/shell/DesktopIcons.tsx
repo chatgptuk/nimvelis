@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Icon } from '../design/Icon';
+import { AppIcon } from '../design/Icon';
 import type { AppManifest } from '../kernel/app-registry/types';
 
 interface DesktopIconsProps {
@@ -30,7 +30,7 @@ export function DesktopIcons({ apps, onOpen }: DesktopIconsProps) {
           }}
         >
           <span className="desktop-icon__tile">
-            <Icon name={app.icon} size={28} />
+            <AppIcon name={app.icon} size={56} />
           </span>
           <span>{app.name}</span>
         </button>
