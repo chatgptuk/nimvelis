@@ -1,0 +1,92 @@
+:root {
+  color-scheme: light dark;
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+
+  --font-xs: 0.72rem;
+  --font-sm: 0.82rem;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-window: 21px;
+  --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --accent: #7189ff;
+  --accent-strong: #5872f3;
+  --accent-warm: #ed8fc0;
+  --accent-contrast: white;
+  --positive: #24a67c;
+  --danger: #ef5f75;
+  --danger-soft: rgb(239 95 117 / 14%);
+  --memo-accent: #d99b33;
+  --settings-accent: #7c83e7;
+  --focus-ring: #78dbdc;
+
+  --wallpaper-solstice:
+    radial-gradient(circle at 64% 72%, rgb(255 209 172 / 90%), transparent 22%),
+    radial-gradient(circle at 30% 18%, rgb(255 161 180 / 45%), transparent 31%),
+    linear-gradient(145deg, #2d375c 5%, #8b6681 42%, #d59b91 72%, #f1c7a8);
+  --wallpaper-stillness:
+    radial-gradient(circle at 50% 85%, rgb(83 203 211 / 24%), transparent 26%),
+    linear-gradient(145deg, #070c20, #13294f 58%, #174b63);
+}
+
+[data-appearance='light'] {
+  color-scheme: light;
+  --surface-solid: #f7f8fb;
+  --sidebar-bg: #eef0f5;
+  --titlebar-bg: rgb(250 251 253 / 94%);
+  --popover-bg: rgb(250 251 254 / 90%);
+  --popover-border: rgb(61 70 99 / 16%);
+  --text-primary: #1a2030;
+  --text-secondary: #4c556c;
+  --text-tertiary: #7c859a;
+  --border-soft: rgb(45 55 83 / 10%);
+  --border-strong: rgb(45 55 83 / 22%);
+  --window-border: rgb(255 255 255 / 68%);
+  --control-bg: rgb(67 77 106 / 6%);
+  --control-hover: rgb(67 77 106 / 11%);
+  --control-utility: rgb(104 112 133 / 11%);
+  --selection-bg: rgb(113 137 255 / 13%);
+  --app-icon-bg: rgb(113 137 255 / 9%);
+  --memo-rule: rgb(220 105 128 / 22%);
+  --shadow-window: 0 34px 86px rgb(9 15 35 / 26%), 0 8px 24px rgb(9 15 35 / 12%);
+  --shadow-window-inactive: 0 24px 54px rgb(9 15 35 / 18%);
+  --shadow-window-drag: 0 42px 100px rgb(9 15 35 / 34%);
+  --shadow-popover: 0 22px 58px rgb(9 15 35 / 26%);
+}
+
+[data-appearance='dark'] {
+  color-scheme: dark;
+  --surface-solid: #151a29;
+  --sidebar-bg: #101522;
+  --titlebar-bg: rgb(25 30 47 / 96%);
+  --popover-bg: rgb(22 27 42 / 88%);
+  --popover-border: rgb(255 255 255 / 12%);
+  --text-primary: #f3f5fb;
+  --text-secondary: #bdc5d8;
+  --text-tertiary: #858fa6;
+  --border-soft: rgb(255 255 255 / 8%);
+  --border-strong: rgb(255 255 255 / 18%);
+  --window-border: rgb(255 255 255 / 13%);
+  --control-bg: rgb(255 255 255 / 6%);
+  --control-hover: rgb(255 255 255 / 11%);
+  --control-utility: rgb(255 255 255 / 9%);
+  --selection-bg: rgb(113 137 255 / 19%);
+  --app-icon-bg: rgb(255 255 255 / 7%);
+  --memo-rule: rgb(255 143 167 / 17%);
+  --shadow-window: 0 36px 90px rgb(0 2 10 / 56%), 0 8px 24px rgb(0 2 10 / 30%);
+  --shadow-window-inactive: 0 24px 58px rgb(0 2 10 / 42%);
+  --shadow-window-drag: 0 46px 110px rgb(0 2 10 / 68%);
+  --shadow-popover: 0 24px 62px rgb(0 2 10 / 52%);
+}

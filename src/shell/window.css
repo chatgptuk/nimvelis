@@ -1,0 +1,235 @@
+.system-window {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  grid-template-rows: 43px minmax(0, 1fr);
+  overflow: hidden;
+  border: 1px solid var(--window-border);
+  border-radius: var(--radius-window);
+  background: var(--surface-solid);
+  box-shadow: var(--shadow-window);
+  color: var(--text-primary);
+  contain: layout paint;
+  will-change: transform;
+  transition:
+    width 280ms var(--ease-spring),
+    height 280ms var(--ease-spring),
+    transform 280ms var(--ease-spring),
+    box-shadow 180ms ease,
+    opacity 180ms ease;
+}
+
+.system-window:not(.is-focused) {
+  box-shadow: var(--shadow-window-inactive);
+}
+
+.system-window[data-interacting] {
+  user-select: none;
+  transition: box-shadow 120ms ease;
+  box-shadow: var(--shadow-window-drag);
+}
+
+.system-window.is-maximized {
+  border-radius: 18px;
+}
+
+.system-window.is-fullscreen {
+  position: fixed;
+  inset: 0;
+  width: 100vw !important;
+  height: 100vh !important;
+  transform: none !important;
+  border: 0;
+  border-radius: 0;
+}
+
+.window-titlebar {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+  padding: 0 8px 0 13px;
+  border-bottom: 1px solid var(--border-soft);
+  background: var(--titlebar-bg);
+  cursor: grab;
+  touch-action: none;
+}
+
+.window-titlebar:active {
+  cursor: grabbing;
+}
+
+.window-titlebar:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: -3px;
+}
+
+.window-app-identity {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.window-app-icon {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  border-radius: 8px;
+  background: var(--app-icon-bg);
+  color: var(--accent);
+}
+
+.window-app-icon--memo {
+  color: var(--memo-accent);
+}
+
+.window-app-icon--settings {
+  color: var(--settings-accent);
+}
+
+.window-title {
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: var(--font-sm);
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.is-focused .window-title {
+  color: var(--text-primary);
+}
+
+.window-controls {
+  display: flex;
+  gap: 3px;
+}
+
+.window-control {
+  display: grid;
+  place-items: center;
+  width: 29px;
+  height: 29px;
+  padding: 0;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition:
+    color 120ms ease,
+    background 120ms ease,
+    transform 120ms ease;
+}
+
+.window-control:hover {
+  background: var(--control-hover);
+  color: var(--text-primary);
+}
+
+.window-control:active {
+  transform: scale(0.9);
+}
+
+.window-control--close:hover {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.window-content {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.window-resize-handle {
+  position: absolute;
+  z-index: 4;
+  touch-action: none;
+}
+
+.window-resize-handle--n,
+.window-resize-handle--s {
+  right: 11px;
+  left: 11px;
+  height: 9px;
+}
+
+.window-resize-handle--n {
+  top: -4px;
+  cursor: ns-resize;
+}
+
+.window-resize-handle--s {
+  bottom: -4px;
+  cursor: ns-resize;
+}
+
+.window-resize-handle--e,
+.window-resize-handle--w {
+  top: 11px;
+  bottom: 11px;
+  width: 9px;
+}
+
+.window-resize-handle--e {
+  right: -4px;
+  cursor: ew-resize;
+}
+
+.window-resize-handle--w {
+  left: -4px;
+  cursor: ew-resize;
+}
+
+.window-resize-handle--ne,
+.window-resize-handle--nw,
+.window-resize-handle--se,
+.window-resize-handle--sw {
+  width: 18px;
+  height: 18px;
+}
+
+.window-resize-handle--ne {
+  top: -5px;
+  right: -5px;
+  cursor: nesw-resize;
+}
+
+.window-resize-handle--nw {
+  top: -5px;
+  left: -5px;
+  cursor: nwse-resize;
+}
+
+.window-resize-handle--se {
+  right: -5px;
+  bottom: -5px;
+  cursor: nwse-resize;
+}
+
+.window-resize-handle--sw {
+  bottom: -5px;
+  left: -5px;
+  cursor: nesw-resize;
+}
+
+@media (max-width: 620px) {
+  .window-controls .window-control:nth-child(3) {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .system-window,
+  .window-control {
+    transition: none;
+  }
+}

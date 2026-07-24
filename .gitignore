@@ -1,0 +1,9 @@
+node_modules
+dist
+playwright-report
+test-results
+coverage
+.wrangler
+.dev.vars*
+.DS_Store
+*.local
