@@ -1,7 +1,7 @@
-# Nimvelis Aurora 0.1 architecture
+# Nimvelis Aurora 0.2 architecture
 
-Nimvelis is a long-running browser SPA. Aurora 0.1 deliberately stops at the local desktop
-kernel: it has no account, remote storage, AI, or collaboration code.
+Nimvelis is a long-running browser SPA. Aurora 0.2 adds a usable local workspace while preserving
+the desktop kernel boundaries. It still has no account, remote storage, AI, or collaboration code.
 
 ## Boundaries
 
@@ -9,10 +9,14 @@ kernel: it has no account, remote storage, AI, or collaboration code.
 flowchart LR
   Shell["Desktop Shell\nTop Bar · Shelf · Windows"] --> Store["Desktop Store\nZustand + versioned persistence"]
   Shell --> Registry["App Registry\nTyped manifests"]
-  Registry --> Apps["System Apps\nCalculator · Memo · Settings"]
+  Registry --> Apps["System Apps\nFiles · Text · View · Utilities"]
   Apps --> API["Nimvelis System API"]
   API --> Store
   Store --> Persistence["Browser localStorage\nstable state only"]
+  API --> VFS["Virtual File System\ncapability interface"]
+  VFS --> IndexedDB["IndexedDB adapter\nmetadata + Blob content"]
+  Search["System Search\napps + local content"] --> Registry
+  Search --> VFS
 ```
 
 - `src/kernel/window-manager` owns normalized window types and pure geometry functions.
@@ -22,6 +26,9 @@ flowchart LR
 - `src/shell` turns the kernel state into the desktop UI and implements Pointer Events.
 - `src/apps` receives a window record and a capability-shaped System API. Apps do not import or
   mutate the desktop store.
+- `src/kernel/vfs` defines the storage contract. The in-memory implementation supports tests and
+  future adapters; the IndexedDB implementation is the browser default.
+- `src/shell/SystemSearch.tsx` owns transient global search UI and queries the registry plus VFS.
 - `src/design` and `src/styles` own original Nimvelis icons and shared design tokens.
 
 ## Window lifecycle
@@ -65,8 +72,17 @@ scheme are not persisted. Rehydration validates records, application IDs, bounds
 and preferences before merging them with current defaults. The storage record is versioned so a
 future release can migrate it.
 
+Files use a separate IndexedDB database. Metadata and Blob content are exposed only through the
+`VirtualFileSystem` interface. Directories and file names are unique per folder, deleting a
+directory treats its descendants as one tree, and Trash keeps recoverable records until they are
+permanently removed. The search boundary reads names and the contents of small text-compatible
+files; it ignores trashed items.
+
+The production service worker caches the application shell and same-origin built assets. It does
+not cache or upload virtual-file content: IndexedDB remains the source of truth for local files.
+
 ## Future adapters
 
-Milestone 1 can add IndexedDB-backed virtual files behind a `VirtualFileSystem` interface without
-changing the window manager. Cloud metadata, object storage, and synchronization remain separate
-future adapters; no cloud assumptions are embedded in the Aurora 0.1 system apps.
+Cloud metadata, object storage, and synchronization can be implemented as separate adapters
+without changing the window manager or application components. No cloud assumptions are embedded
+in the Aurora 0.2 system apps.

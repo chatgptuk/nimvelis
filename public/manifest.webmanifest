@@ -1,0 +1,18 @@
+{
+  "name": "Nimvelis",
+  "short_name": "Nimvelis",
+  "description": "A private, browser-native workspace for local files, notes, and everyday tools.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#090d21",
+  "theme_color": "#090d21",
+  "icons": [
+    {
+      "src": "/nimvelis-mark.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

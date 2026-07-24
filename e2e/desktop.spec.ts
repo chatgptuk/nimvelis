@@ -81,3 +81,49 @@ test('system menus expose Nimvelis workflows and keyboard guidance', async ({ pa
   await expect(helpMenu).toContainText('Keyboard flow');
   await expect(helpMenu).toContainText('Cycle focus');
 });
+
+test('local files can be edited, searched by content, imported, and previewed', async ({
+  page,
+}) => {
+  await page
+    .getByRole('button', { name: /^Files/ })
+    .last()
+    .click();
+  const filesWindow = page.locator('[data-app-id="files"]').first();
+  await expect(filesWindow).toBeVisible();
+  await expect(filesWindow.getByText('Aurora Shapes.svg')).toBeVisible();
+
+  await filesWindow.getByRole('button', { name: 'New text' }).click();
+  const textWindow = page.locator('[data-app-id="text"]').last();
+  await expect(textWindow).toBeVisible();
+  await textWindow.getByRole('textbox', { name: 'File name' }).fill('Aurora Plan.txt');
+  await textWindow
+    .getByRole('textbox', { name: 'Document content' })
+    .fill('Offline roadmap and private local workspace');
+  await expect(textWindow.getByText('Saved locally')).toBeVisible();
+
+  await page.keyboard.press('Control+K');
+  const search = page.getByRole('dialog', { name: 'Search Nimvelis' });
+  await search.getByRole('textbox').fill('offline roadmap');
+  await expect(search.getByRole('button', { name: /Aurora Plan.txt/ })).toBeVisible();
+  await search.getByRole('button', { name: /Aurora Plan.txt/ }).click();
+  await expect(page.locator('[data-app-id="text"]')).toHaveCount(2);
+
+  await filesWindow.locator('input[type="file"]').setInputFiles({
+    name: 'tiny.svg',
+    mimeType: 'image/svg+xml',
+    buffer: Buffer.from(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><rect width="20" height="20" fill="#58d8ca"/></svg>',
+    ),
+  });
+  await expect(filesWindow.getByRole('button', { name: 'tiny.svg', exact: true })).toBeVisible();
+  await page
+    .getByRole('button', { name: /^Files/ })
+    .last()
+    .click();
+  await filesWindow.getByRole('button', { name: 'tiny.svg', exact: true }).click();
+
+  const viewWindow = page.locator('[data-app-id="view"]').last();
+  await expect(viewWindow).toBeVisible();
+  await expect(viewWindow.getByRole('img', { name: 'tiny.svg' })).toBeVisible();
+});

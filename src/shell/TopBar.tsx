@@ -12,6 +12,7 @@ interface TopBarProps {
   onToggleFullscreen: () => void;
   onClose: () => void;
   onOpenSettings: () => void;
+  onOpenSearch: () => void;
 }
 
 type MenuId = 'nimvelis' | 'space' | 'view' | 'window' | 'help' | null;
@@ -25,6 +26,7 @@ export function TopBar({
   onToggleFullscreen,
   onClose,
   onOpenSettings,
+  onOpenSearch,
 }: TopBarProps) {
   const [openMenu, setOpenMenu] = useState<MenuId>(null);
   const barRef = useRef<HTMLElement>(null);
@@ -66,7 +68,7 @@ export function TopBar({
                 <NimvelisMark size={40} />
                 <div>
                   <strong>Nimvelis</strong>
-                  <span>Aurora desktop · 0.1</span>
+                  <span>Aurora desktop · 0.2</span>
                 </div>
               </div>
               <p>An independent space for your local work.</p>
@@ -232,12 +234,17 @@ export function TopBar({
                 </span>
               </div>
               <div className="top-menu__separator" />
-              <div className="top-menu__footnote">Nimvelis Aurora 0.1</div>
+              <div className="top-menu__footnote">Nimvelis Aurora 0.2</div>
             </div>
           )}
         </div>
       </nav>
       <div className="top-bar__right">
+        <button className="top-bar__search" type="button" onClick={onOpenSearch}>
+          <Icon name="search" size={14} />
+          <span>Search</span>
+          <kbd>⌘K</kbd>
+        </button>
         <span className="top-bar__local" title="Your data stays in this browser">
           <span className="status-dot" />
           Device space

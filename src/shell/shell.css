@@ -262,6 +262,33 @@
   gap: 11px;
 }
 
+.top-bar__search {
+  display: inline-flex;
+  min-height: 27px;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  border: 1px solid rgb(255 255 255 / 9%);
+  border-radius: 9px;
+  color: rgb(255 255 255 / 73%);
+  background: rgb(255 255 255 / 6%);
+  font: inherit;
+}
+
+.top-bar__search:hover {
+  color: white;
+  background: rgb(255 255 255 / 11%);
+}
+
+.top-bar__search kbd {
+  padding: 1px 4px;
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 4px;
+  color: rgb(255 255 255 / 52%);
+  background: rgb(0 0 0 / 8%);
+  font: 9px/1.4 inherit;
+}
+
 .top-bar__local {
   display: inline-flex;
   align-items: center;
@@ -491,6 +518,50 @@
   letter-spacing: 0.08em;
 }
 
+.notification-stack {
+  position: fixed;
+  z-index: 51000;
+  top: 56px;
+  right: 14px;
+  display: grid;
+  width: min(310px, calc(100vw - 28px));
+  gap: 8px;
+  pointer-events: none;
+}
+
+.system-notification {
+  display: flex;
+  min-height: 45px;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 13px;
+  border: 1px solid rgb(255 255 255 / 34%);
+  border-radius: 13px;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--window-surface) 91%, transparent);
+  box-shadow: 0 16px 44px rgb(0 0 0 / 24%);
+  backdrop-filter: blur(20px);
+  animation: notification-in 180ms ease-out both;
+  font-size: 12px;
+}
+
+.system-notification--error .status-dot {
+  background: #ec6c6c;
+  box-shadow: 0 0 0 3px rgb(236 108 108 / 13%);
+}
+
+.system-notification--neutral .status-dot {
+  background: #79a8ff;
+  box-shadow: 0 0 0 3px rgb(121 168 255 / 13%);
+}
+
+@keyframes notification-in {
+  from {
+    opacity: 0;
+    transform: translateY(-7px) scale(0.98);
+  }
+}
+
 @keyframes popover-in {
   from {
     opacity: 0;
@@ -512,6 +583,11 @@
 
   .top-bar time strong {
     font-size: 0.78rem;
+  }
+
+  .top-bar__search span,
+  .top-bar__search kbd {
+    display: none;
   }
 
   .desktop-icons {

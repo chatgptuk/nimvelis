@@ -1,11 +1,13 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { getAppManifest, listAppManifests } from '../kernel/app-registry/registry';
 import type { NimvelisSystemApi } from '../kernel/system-api';
+import { isTextMimeType, localFileSystem, type VfsNode } from '../kernel/vfs';
 import type { DesktopViewport, WindowInstance } from '../kernel/window-manager/types';
 import { useDesktopStore, type AppearanceMode } from '../state/desktop-store';
 import { DesktopIcons } from './DesktopIcons';
 import { Shelf } from './Shelf';
+import { SystemSearch } from './SystemSearch';
 import { SystemWindow } from './SystemWindow';
 import { TopBar } from './TopBar';
 import './shell.css';
@@ -53,12 +55,42 @@ export function DesktopShell() {
     })),
   );
   const [viewport, setViewport] = useState<DesktopViewport>(() => readViewport());
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [notifications, setNotifications] = useState<
+    Array<{ id: number; message: string; tone: 'neutral' | 'success' | 'error' }>
+  >([]);
   const resolvedAppearance = useResolvedAppearance(appearance);
   const apps = listAppManifests();
   const activeWindow = [...windows]
     .filter((window) => window.focused)
     .sort((a, b) => b.zIndex - a.zIndex)[0];
   const activeManifest = activeWindow ? getAppManifest(activeWindow.appId) : undefined;
+  const openFile = useCallback(
+    (node: VfsNode) => {
+      if (node.kind === 'directory') {
+        return openApp('files', { instanceData: { folderId: node.id } });
+      }
+      const previewable =
+        node.mimeType.startsWith('image/') ||
+        node.mimeType.startsWith('audio/') ||
+        node.mimeType.startsWith('video/') ||
+        node.mimeType === 'application/pdf';
+      return openApp(!previewable && isTextMimeType(node.mimeType) ? 'text' : 'view', {
+        instanceData: { fileId: node.id },
+      });
+    },
+    [openApp],
+  );
+  const notify = useCallback(
+    (message: string, tone: 'neutral' | 'success' | 'error' = 'neutral') => {
+      const id = Date.now() + Math.random();
+      setNotifications((items) => [...items.slice(-2), { id, message, tone }]);
+      globalThis.setTimeout(() => {
+        setNotifications((items) => items.filter((item) => item.id !== id));
+      }, 3200);
+    },
+    [],
+  );
 
   useEffect(() => {
     const handleResize = () => {
@@ -84,6 +116,17 @@ export function DesktopShell() {
         cycleFocus();
       }
 
+      if ((event.metaKey || event.ctrlKey) && event.key.toLocaleLowerCase() === 'k') {
+        event.preventDefault();
+        setSearchOpen(true);
+      }
+
+      if (event.key === 'Escape' && searchOpen) {
+        event.preventDefault();
+        setSearchOpen(false);
+        return;
+      }
+
       if (event.key === 'Escape' && activeWindow?.state === 'fullscreen') {
         event.preventDefault();
         toggleFullscreen(activeWindow.id);
@@ -92,7 +135,7 @@ export function DesktopShell() {
 
     globalThis.addEventListener('keydown', handleKeyboard);
     return () => globalThis.removeEventListener('keydown', handleKeyboard);
-  }, [activeWindow, cycleFocus, toggleFullscreen]);
+  }, [activeWindow, cycleFocus, searchOpen, toggleFullscreen]);
 
   const handleShelfLaunch = (appId: string, forceNew: boolean) => {
     const manifest = getAppManifest(appId);
@@ -130,6 +173,7 @@ export function DesktopShell() {
         onToggleFullscreen={() => activeWindow && toggleFullscreen(activeWindow.id)}
         onClose={() => activeWindow && closeWindow(activeWindow.id)}
         onOpenSettings={() => openApp('settings')}
+        onOpenSearch={() => setSearchOpen(true)}
       />
       <section
         className="desktop-workspace"
@@ -141,7 +185,7 @@ export function DesktopShell() {
         <div className="desktop-atmosphere" aria-hidden="true" />
         <div className="desktop-version" aria-hidden="true">
           <span>AURORA</span>
-          <strong>0.1</strong>
+          <strong>0.2</strong>
         </div>
         <DesktopIcons apps={apps} onOpen={(appId) => openApp(appId)} />
         {windows.map((window) => (
@@ -157,12 +201,34 @@ export function DesktopShell() {
             updateWindowData={updateWindowData}
             setAppearance={setAppearance}
             setWallpaper={setWallpaper}
+            openFile={openFile}
+            notify={notify}
           />
         ))}
       </section>
       <Shelf apps={apps} windows={windows} onLaunch={handleShelfLaunch} />
       <div className="desktop-tagline" aria-hidden="true">
         Your world, anywhere.
+      </div>
+      {searchOpen ? (
+        <SystemSearch
+          apps={apps}
+          files={localFileSystem}
+          onClose={() => setSearchOpen(false)}
+          onOpenApp={(appId) => openApp(appId)}
+          onOpenFile={openFile}
+        />
+      ) : null}
+      <div className="notification-stack" aria-live="polite">
+        {notifications.map((notification) => (
+          <div
+            className={`system-notification system-notification--${notification.tone}`}
+            key={notification.id}
+          >
+            <span className="status-dot" />
+            {notification.message}
+          </div>
+        ))}
       </div>
     </main>
   );
@@ -179,6 +245,8 @@ interface WindowHostProps {
   updateWindowData: NimvelisSystemApi['updateWindowData'];
   setAppearance: NimvelisSystemApi['setAppearance'];
   setWallpaper: NimvelisSystemApi['setWallpaper'];
+  openFile: NimvelisSystemApi['openFile'];
+  notify: NimvelisSystemApi['notify'];
 }
 
 function WindowHost({
@@ -192,12 +260,17 @@ function WindowHost({
   updateWindowData,
   setAppearance,
   setWallpaper,
+  openFile,
+  notify,
 }: WindowHostProps) {
   const system = useMemo<NimvelisSystemApi>(
     () => ({
       appearance,
       wallpaper,
+      files: localFileSystem,
       openApp,
+      openFile,
+      notify,
       closeWindow,
       setWindowTitle,
       updateWindowData,
@@ -208,6 +281,8 @@ function WindowHost({
       appearance,
       closeWindow,
       openApp,
+      openFile,
+      notify,
       setAppearance,
       setWallpaper,
       setWindowTitle,

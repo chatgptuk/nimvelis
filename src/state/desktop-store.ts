@@ -54,7 +54,7 @@ const INITIAL_WINDOWS: WindowInstance[] = [
     resizable: true,
     instanceData: {
       content:
-        'Welcome to Nimvelis.\n\nA quiet space for your thoughts, tools, and work — wherever you are.\n\nTry dragging this window, opening Calculator from the Shelf, or changing the atmosphere in Settings.',
+        'Welcome to Nimvelis.\n\nA quiet space for your thoughts, files, tools, and work — wherever you are.\n\nOpen Files to create or import documents, press ⌘/Ctrl + K to search, or change the atmosphere in Settings.',
       updatedAt: 'A moment ago',
     },
   },

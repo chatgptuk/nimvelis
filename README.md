@@ -6,9 +6,10 @@
 [![CI](https://github.com/chatgptuk/nimvelis/actions/workflows/ci.yml/badge.svg)](https://github.com/chatgptuk/nimvelis/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Nimvelis Aurora 0.1 is a browser-native personal workspace with a desktop interface. The
-current milestone is intentionally local-first: a custom window manager, desktop shell, app
-registry, three system applications, appearance controls, and durable browser persistence.
+Nimvelis Aurora 0.2 is a browser-native personal workspace with a desktop interface. The
+current milestone is intentionally local-first: a custom window manager, IndexedDB file system,
+Files, Text, local media preview, global search, everyday utilities, appearance controls, and an
+installable offline shell.
 
 Nimvelis is an independent project and is not affiliated with or endorsed by Apple Inc. Its
 marks, icons, wallpaper, interface assets, naming, and visual system are original to Nimvelis;
@@ -81,9 +82,16 @@ The Worker configuration intentionally contains no account-specific IDs, routes,
 resource bindings. `assets.not_found_handling` is set to `single-page-application`, so browser
 routes fall back to `index.html`.
 
-## Scope
+## What works today
 
-Aurora 0.1 does not include accounts, cloud files, AI, collaboration, or third-party apps.
+- Create folders and text files, import files by picker or drag and drop, rename items, and use
+  Trash.
+- Edit plain-text documents with automatic local saving.
+- Preview images, PDFs, audio, and video without uploading them.
+- Search applications, file names, and the content of small text documents with `⌘/Ctrl + K`.
+- Install the app and reopen its shell offline after the first production visit.
+
+Aurora 0.2 does not yet include accounts, cloud files, AI, collaboration, or third-party apps.
 See [`docs/architecture.md`](docs/architecture.md) for the component boundaries and data flow.
 
 ## License

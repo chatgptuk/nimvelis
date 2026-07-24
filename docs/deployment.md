@@ -157,5 +157,6 @@ Confirm that the deployed copy still contains:
 
 ### Local desktop state does not appear on another device
 
-Aurora 0.1 stores windows, Memo content, appearance, and wallpaper in that browser's local
-storage. Deploying the app does not synchronize state across browsers or devices.
+Aurora 0.2 stores windows, Memo content, appearance, and wallpaper in localStorage. Files and
+their content live in IndexedDB in the same browser. Deploying the app does not synchronize state
+across browsers or devices.

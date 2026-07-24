@@ -1,9 +1,59 @@
 import { CalculatorApp } from '../../apps/calculator/CalculatorApp';
+import { FilesApp } from '../../apps/files/FilesApp';
 import { MemoApp } from '../../apps/memo/MemoApp';
 import { SettingsApp } from '../../apps/settings/SettingsApp';
+import { TextApp } from '../../apps/text/TextApp';
+import { ViewApp } from '../../apps/view/ViewApp';
 import type { AppManifest } from './types';
 
 const manifests = [
+  {
+    id: 'files',
+    name: 'Files',
+    description: 'Organize documents stored privately on this device.',
+    icon: 'files',
+    component: FilesApp,
+    defaultWindow: {
+      width: 850,
+      height: 560,
+      minWidth: 580,
+      minHeight: 380,
+    },
+    permissions: ['files:read', 'files:write', 'window:open'],
+    allowMultipleInstances: true,
+  },
+  {
+    id: 'text',
+    name: 'Text',
+    description: 'A focused local editor with automatic saving.',
+    icon: 'text',
+    component: TextApp,
+    defaultWindow: {
+      width: 720,
+      height: 540,
+      minWidth: 420,
+      minHeight: 320,
+    },
+    permissions: ['files:read', 'files:write'],
+    fileAssociations: ['text/*', 'application/json', 'application/xml'],
+    allowMultipleInstances: true,
+  },
+  {
+    id: 'view',
+    name: 'View',
+    description: 'Preview images, PDFs, audio, and video locally.',
+    icon: 'view',
+    component: ViewApp,
+    defaultWindow: {
+      width: 780,
+      height: 580,
+      minWidth: 440,
+      minHeight: 340,
+    },
+    permissions: ['files:read'],
+    fileAssociations: ['image/*', 'application/pdf', 'audio/*', 'video/*'],
+    allowMultipleInstances: true,
+  },
   {
     id: 'calculator',
     name: 'Calculator',

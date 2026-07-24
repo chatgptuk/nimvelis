@@ -4,6 +4,17 @@ export type IconName =
   | 'calculator'
   | 'memo'
   | 'settings'
+  | 'files'
+  | 'text'
+  | 'view'
+  | 'search'
+  | 'folder'
+  | 'file'
+  | 'trash'
+  | 'upload'
+  | 'download'
+  | 'arrow-left'
+  | 'more'
   | 'minimize'
   | 'maximize'
   | 'restore'
@@ -58,6 +69,69 @@ export function Icon({ name, size = 20, ...props }: IconProps) {
         <svg {...shared}>
           <circle cx="12" cy="12" r="3.2" />
           <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.86 2.86-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21H9.55v-.1A1.7 1.7 0 0 0 8 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.86-2.86.06-.06A1.7 1.7 0 0 0 3.6 15a1.7 1.7 0 0 0-1.5-1H2V10h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.34-1.88l-.06-.06L6.06 4.2l.06.06A1.7 1.7 0 0 0 8 4.6a1.7 1.7 0 0 0 1-1.5V3h4v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.88-.34l.06-.06 2.86 2.86-.06.06A1.7 1.7 0 0 0 18.4 9a1.7 1.7 0 0 0 1.5 1h.1v4h-.1a1.7 1.7 0 0 0-1.5 1Z" />
+        </svg>
+      );
+    case 'files':
+    case 'folder':
+      return (
+        <svg {...shared}>
+          <path d="M3.5 7.5A2.5 2.5 0 0 1 6 5h4l2 2h6A2.5 2.5 0 0 1 20.5 9.5v7A2.5 2.5 0 0 1 18 19H6a2.5 2.5 0 0 1-2.5-2.5Z" />
+          {name === 'files' && <path d="M8 12h8M8 15h5" />}
+        </svg>
+      );
+    case 'text':
+    case 'file':
+      return (
+        <svg {...shared}>
+          <path d="M6 3.5h8l4 4v13H6Z" />
+          <path d="M14 3.5v4h4M9 12h6M9 16h6" />
+          {name === 'text' && <path d="M9 9h2" />}
+        </svg>
+      );
+    case 'view':
+      return (
+        <svg {...shared}>
+          <path d="M2.8 12s3.2-5.2 9.2-5.2 9.2 5.2 9.2 5.2-3.2 5.2-9.2 5.2S2.8 12 2.8 12Z" />
+          <circle cx="12" cy="12" r="2.8" />
+        </svg>
+      );
+    case 'search':
+      return (
+        <svg {...shared}>
+          <circle cx="10.8" cy="10.8" r="6.3" />
+          <path d="m15.5 15.5 4.2 4.2" />
+        </svg>
+      );
+    case 'trash':
+      return (
+        <svg {...shared}>
+          <path d="M4.5 7h15M9 3.8h6l1 3.2H8ZM7 7l.8 13h8.4L17 7M10 11v5M14 11v5" />
+        </svg>
+      );
+    case 'upload':
+      return (
+        <svg {...shared}>
+          <path d="M12 16V4M7.5 8.5 12 4l4.5 4.5M4 15v5h16v-5" />
+        </svg>
+      );
+    case 'download':
+      return (
+        <svg {...shared}>
+          <path d="M12 4v12M7.5 11.5 12 16l4.5-4.5M4 15v5h16v-5" />
+        </svg>
+      );
+    case 'arrow-left':
+      return (
+        <svg {...shared}>
+          <path d="m14.5 5-7 7 7 7" />
+        </svg>
+      );
+    case 'more':
+      return (
+        <svg {...shared}>
+          <circle cx="5" cy="12" r="1" fill="currentColor" stroke="none" />
+          <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" />
+          <circle cx="19" cy="12" r="1" fill="currentColor" stroke="none" />
         </svg>
       );
     case 'minimize':
@@ -162,6 +236,9 @@ const APP_ICON_PALETTES = {
   calculator: ['#163b53', '#149a9f', '#78f0d5'],
   memo: ['#542f55', '#cf6d68', '#ffd68c'],
   settings: ['#272b65', '#796ee8', '#d5a8ff'],
+  files: ['#153d59', '#2e8cca', '#92f2ed'],
+  text: ['#353368', '#8a67d3', '#f1c0ff'],
+  view: ['#59344b', '#d26d7b', '#ffd391'],
 } as const;
 
 export function AppIcon({ name, size = 56, className = '', ...props }: AppIconProps) {
@@ -214,7 +291,10 @@ export function AppIcon({ name, size = 56, className = '', ...props }: AppIconPr
       {name === 'calculator' && <CalculatorArtwork accent={palette[2]} />}
       {name === 'memo' && <MemoArtwork accent={palette[2]} />}
       {name === 'settings' && <SettingsArtwork accent={palette[2]} />}
-      {!['calculator', 'memo', 'settings'].includes(name) && (
+      {name === 'files' && <FilesArtwork accent={palette[2]} />}
+      {name === 'text' && <TextArtwork accent={palette[2]} />}
+      {name === 'view' && <ViewArtwork accent={palette[2]} />}
+      {!['calculator', 'memo', 'settings', 'files', 'text', 'view'].includes(name) && (
         <g color="white">
           <rect x="15" y="15" width="34" height="34" rx="12" fill="white" fillOpacity=".1" />
           <path
@@ -313,6 +393,59 @@ function SettingsArtwork({ accent }: { accent: string }) {
       <path d="m32 34 10-2-10 12Z" fill="#9b8dff" fillOpacity=".62" />
       <circle cx="17" cy="22" r="3" fill={accent} />
       <circle cx="48" cy="40" r="2.5" fill="white" fillOpacity=".9" />
+    </g>
+  );
+}
+
+function FilesArtwork({ accent }: { accent: string }) {
+  return (
+    <g>
+      <path
+        d="M12 23c0-4 3-7 7-7h9l5 5h14c3 0 5 2 5 5v21c0 4-3 7-7 7H18c-4 0-7-3-7-7Z"
+        fill="#eefeff"
+        fillOpacity=".9"
+      />
+      <path d="M12 27h40v20c0 4-3 7-7 7H18c-4 0-7-3-7-7Z" fill={accent} fillOpacity=".7" />
+      <path
+        d="m18 42 9-9 7 7 5-5 8 8"
+        stroke="#153d59"
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="42" cy="31" r="3" fill="#153d59" fillOpacity=".72" />
+    </g>
+  );
+}
+
+function TextArtwork({ accent }: { accent: string }) {
+  return (
+    <g>
+      <path d="m18 12 25 2 6 7-3 32-30-2-4-8 3-27Z" fill="#fbf8ff" fillOpacity=".94" />
+      <path d="m43 14 6 7-7-1Z" fill="#3a326a" fillOpacity=".42" />
+      <path
+        d="M23 27h18M22 34h18M21 41h13"
+        stroke="#554c88"
+        strokeOpacity=".72"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+      />
+      <path d="m37 47 10-11 4 4-10 11-6 2Z" fill={accent} />
+    </g>
+  );
+}
+
+function ViewArtwork({ accent }: { accent: string }) {
+  return (
+    <g>
+      <path
+        d="M10 32s8-13 22-13 22 13 22 13-8 13-22 13S10 32 10 32Z"
+        fill="#fff8ed"
+        fillOpacity=".9"
+      />
+      <circle cx="32" cy="32" r="9" fill="#563651" />
+      <circle cx="32" cy="32" r="5" fill={accent} />
+      <circle cx="29" cy="29" r="2" fill="white" fillOpacity=".92" />
     </g>
   );
 }

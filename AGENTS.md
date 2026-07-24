@@ -6,11 +6,11 @@ Nimvelis is a browser-native personal workspace with a desktop interface.
 
 It is inspired by familiar desktop interaction patterns, but it is not a macOS emulator or Apple product. Do not use Apple logos, proprietary icons, wallpapers, application names, bundled assets, or copied interface resources.
 
-The first release is Nimvelis Aurora 0.1.
+The current release is Nimvelis Aurora 0.2.
 
 ## Current Scope
 
-The current milestone is the local desktop kernel.
+The current milestone is a usable local-first desktop.
 
 Build only:
 
@@ -19,10 +19,16 @@ Build only:
 - Shelf
 - Window manager
 - App registry
+- IndexedDB virtual file system
+- Files
+- Text editor
+- Local image, PDF, audio, and video preview
+- Global application and file search
 - Calculator
 - Memo
 - Settings
 - Local persistence
+- Installable offline shell
 - Light and dark appearance
 - Automated tests
 
